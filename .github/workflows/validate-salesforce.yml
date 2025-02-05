@@ -1,0 +1,23 @@
+name: Salesforce Validation Check
+
+on:
+  pull_request:
+    branches:
+      - sandbox
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Salesforce CLI
+        run: npm install --global sfdx-cli
+
+      - name: Authenticate Salesforce (Sandbox)
+        run: echo "${{ secrets.SF_SANDBOX_AUTH_URL }}" | sf auth sfdx-url store --alias minha-sandbox --set-default
+
+      - name: Validate Deployment
+        run: sf project deploy validate --target-org minha-sandbox --wait 10
