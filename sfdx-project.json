@@ -5,6 +5,7 @@
       "default": true
     }
   ],
+  "namespace": "Bread_Winner",
   "name": "dx-project",
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "62.0"
