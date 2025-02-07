@@ -1,0 +1,18 @@
+<template>
+  <lightning-record-edit-form object-api-name="OperacaoInvestimento__c" record-id={recordId} onsuccess={handleSuccess}>
+      <lightning-modal-header label="Editar CNPJ"></lightning-modal-header>
+      <lightning-modal-body>
+          <lightning-input 
+              type="text" 
+              label="CNPJ" 
+              value={formattedCnpj} 
+              onchange={handleInputChange}
+              placeholder="00.000.000/0000-00">
+          </lightning-input>
+      </lightning-modal-body>
+      <lightning-modal-footer>
+          <lightning-button label="Cancelar" onclick={handleCancel}></lightning-button>
+          <lightning-button variant="brand" label="Salvar" onclick={handleSave}></lightning-button>
+      </lightning-modal-footer>
+  </lightning-record-edit-form>
+</template>
