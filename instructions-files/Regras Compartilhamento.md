@@ -81,6 +81,7 @@ _Nota:_ Se o campo “Atribuído a” (por exemplo, `Atribuido_a__c`) for um loo
    - **Critérios-based Sharing Rule** (Regra baseada em critérios).
 
 4. **Defina os Detalhes da Regra:**
+
    - **Nome da Regra:**  
      Exemplo: `Compartilhar_Operacoes_Com_Gestor_[NomeDoGestor]`
    - **Critério da Regra:**
@@ -89,6 +90,7 @@ _Nota:_ Se o campo “Atribuído a” (por exemplo, `Atribuido_a__c`) for um loo
      - Configure o critério para: **igual a** o ID do Gestor de Operações.
 
      > **Dica:** Se houver apenas 1 Gestor para o grupo, você pode inserir o valor fixo. Caso haja mais de um, considere criar uma regra separada para cada usuário ou usar uma lógica de campo (por exemplo, um checkbox específico) que seja marcado quando o registro for atribuído a um Gestor.
+
 5. **Defina o Grupo de Usuários para Compartilhamento:**
 
    - Escolha **Users** e, em seguida, selecione o usuário específico (ou um Public Group contendo somente aquele Gestor – se for possível manter o acesso individualizado).

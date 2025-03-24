@@ -1,0 +1,1 @@
+SELECT Id, Profile.PermissionsApiOnlyUser FROM User

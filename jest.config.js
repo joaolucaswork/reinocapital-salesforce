@@ -1,6 +1,10 @@
-const { jestConfig } = require('@salesforce/sfdx-lwc-jest/config');
+// @ts-check
+const config = require("@salesforce/sfdx-lwc-jest/config");
 
-module.exports = {
-    ...jestConfig,
-    modulePathIgnorePatterns: ['<rootDir>/.localdevserver']
+/** @type {import('@jest/types').Config.InitialOptions} */
+const jestConfig = {
+  ...config,
+  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"]
 };
+
+module.exports = jestConfig;
