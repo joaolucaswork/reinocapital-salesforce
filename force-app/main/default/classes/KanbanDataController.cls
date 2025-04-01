@@ -9,8 +9,8 @@
  */
 public with sharing class KanbanDataController {
   /**
-   * @description Busca registros do objeto BackOffice__c para exibição no Kanban
-   * @return List<BackOffice__c> Lista de registros do BackOffice
+   * @description Busca registros do objeto Opportunity para exibição no Kanban
+   * @return List<Opportunity> Lista de registros do BackOffice
    *
    * Anotações importantes:
    * - @AuraEnabled(cacheable=true): Permite caching dos resultados para melhor performance
@@ -18,17 +18,20 @@ public with sharing class KanbanDataController {
    * - LIMIT 1000: Boa prática para evitar problemas de performance e limites do Salesforce
    */
   @AuraEnabled(cacheable=true)
-  public static List<BackOffice__c> getRecords() {
+  public static List<Opportunity> getRecords() {
     return [
-      SELECT
+      SELECT 
         Id,
         Name,
-        EtapaBO__c,
-        NomeClienteBO__c,
+        StageName,
+        Amount,
+        CloseDate,
+        AccountId,
+        Account.Name,
         OwnerId,
         CreatedDate,
         LastModifiedDate
-      FROM BackOffice__c
+      FROM Opportunity
       WITH SECURITY_ENFORCED
       ORDER BY CreatedDate DESC
       LIMIT 1000
@@ -51,43 +54,39 @@ public with sharing class KanbanDataController {
    */
   @AuraEnabled
   public static void updateRecordStatus(Id recordId, String newStatus) {
-    // Verificação de registros ativos do usuário atual
-    List<BackOffice__c> activeRecords = [
+    // Verificar permissões CRUD
+    if (!Schema.sObjectType.Opportunity.isUpdateable() ||
+        !Schema.sObjectType.Opportunity.fields.StageName.isUpdateable()) {
+      throw new AuraHandledException('Você não tem permissão para atualizar oportunidades.');
+    }
+
+    // Verificação de registros ativos para o usuário atual
+    List<Opportunity> activeOpps = [
       SELECT Id
-      FROM BackOffice__c
-      WHERE
+      FROM Opportunity
+      WHERE 
         OwnerId = :UserInfo.getUserId()
-        AND EtapaBO__c != 'Recebidas'
-        AND EtapaBO__c != 'Em Análise'
-        AND EtapaBO__c != 'Pendências Internas'
-        AND EtapaBO__c != 'Pendências Externas'
-        AND EtapaBO__c != 'Em Validação'
-        AND EtapaBO__c != 'Finalizadas'
-        AND EtapaBO__c != 'Canceladas'
+        AND StageName = 'Negociação'
         AND Id != :recordId
       WITH SECURITY_ENFORCED
       LIMIT 1
     ];
 
-    // Validação de regra de negócio: uma tarefa por vez
-    if (
-      !activeRecords.isEmpty() &&
-      newStatus != 'Finalizadas' &&
-      newStatus != 'Canceladas'
-    ) {
+    // Validação de regra de negócio: uma oportunidade em negociação por vez
+    if (!activeOpps.isEmpty() && newStatus == 'Negociação') {
       throw new AuraHandledException(
-        'Você já possui uma tarefa em andamento. Finalize-a antes de mover outra.'
+        'Você já possui uma oportunidade em negociação. Finalize-a antes de mover outra.'
       );
     }
 
     // Atualização do registro após validação
-    BackOffice__c record = new BackOffice__c(
+    Opportunity opp = new Opportunity(
       Id = recordId,
-      EtapaBO__c = newStatus
+      StageName = newStatus
     );
 
     try {
-      update record;
+      update opp;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }

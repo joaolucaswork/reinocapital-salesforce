@@ -18,13 +18,13 @@ export default class KanbanPerson extends LightningElement {
 
   // Mapeamento de status para ícones
   statusIconMap = {
-    Recebidas: "utility:inbox",
-    "Em Análise": "utility:preview",
-    "Pendências Internas": "utility:pause",
-    "Pendências Externas": "utility:warning",
-    "Em Validação": "utility:check",
-    Finalizadas: "utility:success",
-    Canceladas: "utility:error"
+    "Sem contato": "utility:multi_picklist", // Indica múltiplas possibilidades iniciais
+    "Primeiro Contato": "utility:filter", // Filtragem/qualificação do lead
+    "Primeira Reunião": "utility:file", // Documento/proposta
+    "Em Negociação": "utility:adjust_value", // Relacionado a valores/orçamento
+    "Análise Contratual": "utility:contract", // Ícone específico para contratos
+    Convertido: "utility:success", // Indica sucesso
+    Perdido: "utility:error" // Indica que não foi adiante
   };
 
   /**
@@ -48,25 +48,25 @@ export default class KanbanPerson extends LightningElement {
    */
   formatData(records) {
     const statuses = [
-      "Recebidas",
-      "Em Análise",
-      "Pendências Internas",
-      "Pendências Externas",
-      "Em Validação",
-      "Finalizadas",
-      "Canceladas"
+      "Sem contato",
+      "Primeiro Contato",
+      "Primeira Reunião",
+      "Em Negociação",
+      "Análise Contratual",
+      "Convertido",
+      "Perdido"
     ];
 
     this.columns = statuses.map((status, index) => {
       // Filtrar registros por status
       const statusRecords = records.filter(
-        (record) => record.EtapaBO__c === status
+        (record) => record.StageName === status
       );
 
       // Adicionar ícone a cada registro
       const recordsWithIcons = statusRecords.map((record) => ({
         ...record,
-        iconName: this.statusIconMap[record.EtapaBO__c] || "utility:record"
+        iconName: this.statusIconMap[record.StageName] || "utility:record"
       }));
 
       // Propriedades para o sistema de abas
