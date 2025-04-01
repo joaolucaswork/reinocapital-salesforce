@@ -1,79 +1,95 @@
 <!-- 
-    Componente Kanban LWC
-    Este template implementa um quadro Kanban usando o Salesforce Lightning Design System (SLDS)
+    Componente Kanban LWC com layout de Pipeline
+    Este template implementa um sistema de abas similar ao Pipeline do Salesforce
     
     Estrutura do componente:
     1. Container principal (slds-card)
-    2. Cabeçalho do card
-    3. Grid responsivo de colunas
-    4. Cards arrastáveis dentro de cada coluna
-    
-    Dicas de implementação:
-    - Uso de classes SLDS para garantir consistência visual
-    - Layout responsivo com slds-grid e slds-col
-    - Atributos data-* para manipulação via JavaScript
-    - Eventos de drag and drop nativos do HTML5
+    2. Sistema de navegação por abas (slds-tabs_default)
+    3. Conteúdo de cada aba com os cards do Kanban
+    4. Cards arrastáveis dentro de cada aba
 -->
 <template>
     <!-- Container principal com estilo de card do SLDS -->
     <div class="slds-card slds-card_boundary">
-        <!-- Cabeçalho do Kanban -->
         <div class="slds-card__header">
-            <h1 class="slds-text-heading_medium slds-p-around_medium">Kanban Board</h1>
+            <h1 class="slds-text-heading_medium slds-p-around_medium">Kanban</h1>
         </div>
         
-        <!-- Corpo do card com grid responsivo -->
         <div class="slds-card__body">
-            <!-- Grid principal - usa slds-wrap para quebra responsiva -->
-            <div class="slds-grid slds-wrap slds-gutters slds-p-around_medium">
-                <!-- Iteração das colunas do Kanban -->
-                <template for:each={columns} for:item="column">
-                    <!-- 
-                        Coluna do Kanban
-                        - slds-size_1-of-1: 100% largura em mobile
-                        - slds-medium-size_6-of-12: 50% largura em telas médias
-                        - slds-large-size_3-of-12: 25% largura em telas grandes
-                    -->
-                    <div key={column.label} class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_3-of-12 slds-p-around_x-small">
-                        <!-- Container da coluna com eventos de drop -->
-                        <div class="slds-box slds-box_x-small slds-theme_shade kanban-column" 
-                             ondrop={handleDrop} 
-                             ondragover={allowDrop} 
-                             data-status={column.value}>
-                            
-                            <!-- Cabeçalho da coluna com título e contador -->
-                            <div class="slds-media slds-media_center slds-m-bottom_small">
-                                <div class="slds-media__body">
-                                    <h2 class="slds-card__header-title">{column.label}</h2>
-                                    <span class="slds-badge slds-badge_lightest">{column.recordCount}</span>
+            <!-- Sistema de abas do SLDS -->
+            <div class="slds-tabs_default">
+                <!-- Navegação entre abas com suporte a drop -->
+                <ul class="slds-tabs_default__nav" role="tablist">
+                    <template for:each={columns} for:item="column" for:index="index">
+                        <li key={column.label} class={column.tabClass} role="presentation"
+                            ondrop={handleDrop} 
+                            ondragover={allowDrop} 
+                            data-status={column.value}>
+                            <a class="slds-tabs_default__link" role="tab" tabindex={column.tabIndex} 
+                               aria-selected={column.isActive} aria-controls={column.tabPanelId} 
+                               data-index={index} onclick={handleTabClick}>
+                                <div class="slds-media slds-media_center">
+                                    <div class="slds-media__figure">
+                                        <lightning-icon icon-name={column.iconName} size="x-small"></lightning-icon>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <span>{column.label}</span>
+                                        <span class="slds-badge slds-badge_lightest slds-m-left_small">{column.recordCount}</span>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
+                        </li>
+                    </template>
+                </ul>
+                
+                <!-- Conteúdo de cada aba -->
+                <template for:each={columns} for:item="column" for:index="index">
+                    <div key={column.label} id={column.tabPanelId} class={column.tabPanelClass} role="tabpanel" 
+                         aria-labelledby={column.tabId}>
+                        
+                        <!-- Container dos cartões com scroll vertical -->
+                        <div class="slds-p-around_medium records-container" 
+                             ondrop={handleDrop} ondragover={allowDrop} data-status={column.value}>
+                            
+                            <!-- Cards do Kanban -->
+                            <template for:each={column.records} for:item="record">
+                                <article key={record.Id} 
+                                         class="slds-box slds-box_x-small slds-theme_default slds-m-bottom_small kanban-card"
+                                         draggable="true"
+                                         ondragstart={handleDrag}
+                                         data-id={record.Id}>
+                                    
+                                    <!-- Layout de informações do card -->
+                                    <div class="slds-grid slds-grid_vertical">
+                                        <div class="slds-col">
+                                            <div class="slds-media slds-media_center">
+                                                <div class="slds-media__figure">
+                                                    <!-- Ícone personalizado baseado no status -->
+                                                    <span class="slds-icon_container">
+                                                        <lightning-icon icon-name={record.iconName} size="small"></lightning-icon>
+                                                    </span>
+                                                </div>
+                                                <div class="slds-media__body">
+                                                    <p class="slds-truncate slds-text-heading_small">{record.Name}</p>
 
-                            <!-- Container dos cards com scroll vertical -->
-                            <div class="records-container">
-                                <!-- Iteração dos registros em cada coluna -->
-                                <template for:each={column.records} for:item="record">
-                                    <!-- 
-                                        Card arrastável
-                                        - draggable="true": Permite arrastar o card
-                                        - data-id: ID do registro para manipulação no JS
-                                    -->
-                                    <article key={record.Id} 
-                                             class="slds-box slds-box_x-small slds-theme_default slds-m-bottom_small kanban-card"
-                                             draggable="true"
-                                             ondragstart={handleDrag}
-                                             data-id={record.Id}>
-                                        <!-- Layout vertical para informações do card -->
-                                        <div class="slds-grid slds-grid_vertical">
-                                            <div class="slds-col">
-                                                <p class="slds-truncate slds-text-heading_small">{record.Name}</p>
-                                                <p class="slds-truncate slds-text-body_small">Cliente: {record.NomeClienteBO__c}</p>
-                                                <p class="slds-truncate slds-text-body_small">Status: {record.EtapaBO__c}</p>
+                                                    <p class="slds-truncate slds-text-body_large">Data: {record.DataBO__c}</p>
+                                                    <p class="slds-truncate slds-text-body_large">Valor: {record.ValorBO__c}</p>
+                                                    <p class="slds-truncate slds-text-body_large">Cliente: {record.NomeClienteBO__c}</p>
+                                                    <p class="slds-truncate slds-text-body_large">Status: {record.EtapaBO__c}</p>
+                                                </div>
                                             </div>
+                                           
                                         </div>
-                                    </article>
-                                </template>
-                            </div>
+                                    </div>
+                                </article>
+                            </template>
+                            
+                            <!-- Mensagem quando não há registros -->
+                            <template if:true={column.isEmpty}>
+                                <div class="slds-align_absolute-center slds-p-around_medium slds-text-color_weak">
+                                    Não há registros nesta categoria
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </template>

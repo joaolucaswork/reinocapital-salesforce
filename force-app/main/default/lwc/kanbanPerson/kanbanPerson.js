@@ -1,11 +1,6 @@
 /**
  * @description Componente Kanban para visualização e gerenciamento de registros do BackOffice
- *
- * Recursos utilizados:
- * - @wire: Para comunicação com o Apex e cache de dados
- * - @track: Para reatividade de arrays/objetos complexos
- * - Drag and Drop API: Para interação de arrastar/soltar cards
- * - Lightning Platform Show Toast Event: Para feedback ao usuário
+ * com navegação por abas no estilo Pipeline do Salesforce
  */
 import { LightningElement, wire, track } from "lwc";
 import { refreshApex } from "@salesforce/apex";
@@ -19,43 +14,39 @@ export default class KanbanPerson extends LightningElement {
   @track error; // Armazena erros para exibição
   wiredRecordsResult; // Armazena resultado do wire para refresh
   draggedRecordId; // ID do registro sendo arrastado
+  activeTabIndex = 0; // Índice da aba ativa
+
+  // Mapeamento de status para ícones
+  statusIconMap = {
+    Recebidas: "utility:inbox",
+    "Em Análise": "utility:preview",
+    "Pendências Internas": "utility:pause",
+    "Pendências Externas": "utility:warning",
+    "Em Validação": "utility:check",
+    Finalizadas: "utility:success",
+    Canceladas: "utility:error"
+  };
 
   /**
    * @description Wire adapter para buscar registros do Apex
-   * Uso do wire service permite:
-   * 1. Cache automático dos dados
-   * 2. Reatividade quando os dados mudam
-   * 3. Gerenciamento de estado de carregamento/erro
    */
   @wire(getRecords)
   wiredRecords(result) {
-    this.wiredRecordsResult = result; // Armazena para refresh posterior
+    this.wiredRecordsResult = result;
     if (result.data) {
       this.error = undefined;
       this.formatData(result.data);
     } else if (result.error) {
       this.error = result.error;
-      this.showToast("Error", "Error loading records", "error");
+      this.showToast("Erro", "Erro ao carregar registros", "error");
     }
   }
 
   /**
-   * @description Formata os dados para exibição no Kanban
-   * @param {Array} records - Registros retornados do Apex
-   *
-   * Estrutura criada:
-   * columns = [
-   *   {
-   *     label: "Nome do Status",
-   *     value: "Status_API_Value",
-   *     records: [...registros filtrados],
-   *     recordCount: número de registros
-   *   },
-   *   ...
-   * ]
+   * @description Formata os dados para exibição no Pipeline
+   * Adiciona propriedades para controle da UI de abas
    */
   formatData(records) {
-    // Define os status possíveis e sua ordem
     const statuses = [
       "Recebidas",
       "Em Análise",
@@ -66,58 +57,139 @@ export default class KanbanPerson extends LightningElement {
       "Canceladas"
     ];
 
-    // Cria as colunas com registros filtrados
-    this.columns = statuses.map((status) => ({
-      label: status,
-      value: status,
-      records: records.filter((record) => record.EtapaBO__c === status),
-      recordCount: records.filter((record) => record.EtapaBO__c === status)
-        .length
-    }));
+    this.columns = statuses.map((status, index) => {
+      // Filtrar registros por status
+      const statusRecords = records.filter(
+        (record) => record.EtapaBO__c === status
+      );
+
+      // Adicionar ícone a cada registro
+      const recordsWithIcons = statusRecords.map((record) => ({
+        ...record,
+        iconName: this.statusIconMap[record.EtapaBO__c] || "utility:record"
+      }));
+
+      // Propriedades para o sistema de abas
+      const isActive = index === this.activeTabIndex;
+      const tabId = `tab-${status.toLowerCase().replace(/ /g, "-")}`;
+      const tabPanelId = `tabPanel-${status.toLowerCase().replace(/ /g, "-")}`;
+
+      return {
+        label: status,
+        value: status,
+        records: recordsWithIcons,
+        recordCount: statusRecords.length,
+        isEmpty: statusRecords.length === 0,
+        iconName: this.statusIconMap[status],
+        // Propriedades para CSS dinâmico das abas
+        tabClass: `slds-tabs_default__item ${isActive ? "slds-is-active" : ""}`,
+        tabPanelClass: `slds-tabs_default__content ${isActive ? "slds-show" : "slds-hide"}`,
+        tabIndex: isActive ? 0 : -1,
+        isActive: isActive,
+        tabId: tabId,
+        tabPanelId: tabPanelId
+      };
+    });
+  }
+
+  /**
+   * @description Handler para clique em aba
+   * Atualiza a aba ativa e reformata os dados
+   */
+  handleTabClick(event) {
+    // Evitar comportamento padrão
+    event.preventDefault();
+
+    // Obter índice da aba clicada
+    const clickedTabIndex = parseInt(event.currentTarget.dataset.index, 10);
+
+    // Atualizar aba ativa
+    this.activeTabIndex = clickedTabIndex;
+
+    // Reformatar dados com nova aba ativa
+    if (this.wiredRecordsResult.data) {
+      this.formatData(this.wiredRecordsResult.data);
+    }
   }
 
   /**
    * @description Handler para início do drag de um card
-   * Armazena o ID do registro sendo arrastado
    */
   handleDrag(event) {
     this.draggedRecordId = event.target.dataset.id;
+
+    // Adicionar classe para estilo durante drag
+    event.target.classList.add("dragging");
+
+    // Configurar o efeito de arrastar
+    event.dataTransfer.effectAllowed = "move";
   }
 
   /**
    * @description Handler para permitir o drop
-   * Necessário para funcionamento do drag and drop HTML5
    */
   allowDrop(event) {
     event.preventDefault();
+
+    // Adicionar feedback visual durante o drag
+    const dropTarget = event.currentTarget;
+
+    // Remover classe drag-over de todos os elementos
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    // Adicionar classe drag-over ao elemento atual
+    dropTarget.classList.add("drag-over");
   }
 
   /**
    * @description Handler para quando um card é solto em uma coluna
-   * 1. Previne comportamento padrão do navegador
-   * 2. Obtém o novo status da coluna
-   * 3. Chama o Apex para atualizar o registro
-   * 4. Atualiza a UI com feedback
    */
   handleDrop(event) {
     event.preventDefault();
     const newStatus = event.currentTarget.dataset.status;
 
-    updateRecordStatus({ recordId: this.draggedRecordId, newStatus: newStatus })
-      .then(() => {
-        this.showToast("Success", "Record updated successfully", "success");
-        return refreshApex(this.wiredRecordsResult);
+    // Remover todas as classes de feedback visual
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    this.template
+      .querySelectorAll(".kanban-card")
+      .forEach((card) => card.classList.remove("dragging"));
+
+    if (this.draggedRecordId && newStatus) {
+      updateRecordStatus({
+        recordId: this.draggedRecordId,
+        newStatus: newStatus
       })
-      .catch((error) => {
-        this.showToast("Error", error.body.message, "error");
-      });
+        .then(() => {
+          this.showToast(
+            "Sucesso",
+            "Registro atualizado com sucesso",
+            "success"
+          );
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToast("Erro", error.body.message, "error");
+        });
+    }
+  }
+
+  // Adicionar evento para remover feedback visual quando o drag termina
+  handleDragEnd(event) {
+    event.preventDefault();
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    event.target.classList.remove("dragging");
   }
 
   /**
    * @description Utility para mostrar mensagens toast ao usuário
-   * @param {String} title - Título do toast
-   * @param {String} message - Mensagem a ser exibida
-   * @param {String} variant - Tipo do toast (success, error, warning, info)
    */
   showToast(title, message, variant) {
     this.dispatchEvent(
