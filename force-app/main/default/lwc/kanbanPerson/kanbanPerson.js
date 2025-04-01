@@ -16,15 +16,15 @@ export default class KanbanPerson extends LightningElement {
   draggedRecordId; // ID do registro sendo arrastado
   activeTabIndex = 0; // Índice da aba ativa
 
-  // Mapeamento de status para ícones
+  // Mapeamento de status para ícones com os estágios corretos de Oportunidade
   statusIconMap = {
-    "Sem contato": "utility:multi_picklist", // Indica múltiplas possibilidades iniciais
-    "Primeiro Contato": "utility:filter", // Filtragem/qualificação do lead
-    "Primeira Reunião": "utility:file", // Documento/proposta
-    "Em Negociação": "utility:adjust_value", // Relacionado a valores/orçamento
-    "Análise Contratual": "utility:contract", // Ícone específico para contratos
-    Convertido: "utility:success", // Indica sucesso
-    Perdido: "utility:error" // Indica que não foi adiante
+    "Sem contato": "utility:multi_picklist", // Prospecção inicial
+    "Primeiro Contato": "utility:filter", // Qualificação inicial
+    "Primeira Reunião": "utility:file", // Proposta/Apresentação
+    "Em Negociação": "utility:adjust_value", // Negociação/Revisão
+    "Análise Contratual": "utility:contract", // Contrato/Negociação final
+    Convertido: "utility:success", // Fechado/Ganho
+    Perdido: "utility:error" // Fechado/Perdido
   };
 
   /**
@@ -63,10 +63,14 @@ export default class KanbanPerson extends LightningElement {
         (record) => record.StageName === status
       );
 
-      // Adicionar ícone a cada registro
+      // Adicionar ícone e tratar campos undefined
       const recordsWithIcons = statusRecords.map((record) => ({
         ...record,
-        iconName: this.statusIconMap[record.StageName] || "utility:record"
+        iconName: this.statusIconMap[record.StageName] || "utility:record",
+        Name: record.Name || "N/A",
+        Amount: record.Amount || 0,
+        CloseDate: record.CloseDate || null,
+        AccountName: record.Account?.Name || "N/A"
       }));
 
       // Propriedades para o sistema de abas
