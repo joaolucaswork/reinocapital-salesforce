@@ -14,15 +14,18 @@
 }
 
 .records-container {
-    height: calc(100% - 50px);
+    position: relative;
+    height: calc(100vh - 150px);
     overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem;
 }
 
 /* Estilos para o componente Pipeline Kanban */
 
 /* Estilos para o sistema de abas */
 .slds-tabs_default__nav {
-    border-bottom: 1px solid #dddbda;
+    border-bottom: 2px solid #dddbda;
     position: relative;
 }
 .slds-text-heading_small {
@@ -95,8 +98,9 @@
     min-height: 300px;
     max-height: calc(100vh - 200px);
     overflow-y: auto;
-    padding: 1rem;
+    padding: 0.5rem;
     transition: background-color 0.3s ease;
+    overflow-x: hidden;
 }
 
 .records-container.drag-over {
@@ -132,9 +136,44 @@ article[data-id] .slds-media__figure .slds-icon_container {
     background-color: #f3f2f2;
 }
 
+/* Estilo para itens da lista */
+.record-item {
+    padding: 0.5rem;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    transition: all 0.2s ease;
+   
+}
+
+/* Estilo para as células da grid */
+.slds-col {
+    padding: 0.25rem;
+    min-width: 0; /* Permite que as colunas encolham */
+    white-space: nowrap;
+    
+}
+
+/* Ajuste específico para coluna de ações */
+.slds-col.slds-size_2-of-12.slds-text-align_right {
+    padding-right: 0.75rem;
+}
+
+/* Estilo para textos truncados */
+.slds-truncate {
+    font-size: 0.8125rem;
+}
+
+/* Badge de estágio */
+.slds-badge {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    background-color: #f3f3f3;
+    padding: 0.125rem 0.5rem;
+}
+
 /* Estilização da barra de rolagem */
 .records-container::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
 }
 
 .records-container::-webkit-scrollbar-track {
@@ -151,6 +190,90 @@ article[data-id] .slds-media__figure .slds-icon_container {
     background: #b5bcc9;
 }
 
+/* Feedback visual para drag and drop */
+.slds-tabs_default__item.drag-over,
+.records-container.drag-over {
+    background-color: #f3f2f2;
+}
+
+/* Estilo para o cabeçalho da lista */
+.list-header {
+    position: sticky;
+    top: 0;
+    
+    z-index: 2;
+    padding: 0.5rem;
+    border-bottom: 1px solid #dddbda;
+}
+
+.list-header .slds-text-title_caps {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #514f4d;
+    font-weight: 600;
+}
+
+/* Estilos para o menu dropdown */
+.slds-dropdown-trigger {
+    position: relative;
+    margin-left: auto; /* Empurra o botão para a direita */
+}
+
+.slds-dropdown-trigger .slds-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    width: 200px;
+    background: white;
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.16);
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    z-index: 7000;
+}
+
+.slds-dropdown-trigger.slds-is-open .slds-dropdown {
+    display: block;
+}
+
+.slds-dropdown__item > a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: #000000;
+    position: relative;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.slds-dropdown__item > a:hover,
+.slds-dropdown__item > a:focus {
+    background-color: #f3f2f2;
+    text-decoration: none;
+    outline: 0;
+}
+
+/* Estilos específicos para o botão do menu dropdown */
+.slds-button_icon-border-filled {
+    width: 1.8rem;
+    height: 1.8rem;
+    min-width: 1.8rem; /* Previne o botão de encolher */
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid#dddbda;
+    border-radius: 0.25rem;
+}
+
+.slds-button_icon-border-filled:hover {
+    
+    border-color: #dddbda;
+}
+
+.slds-button_icon-border-filled lightning-icon {
+    --sds-c-icon-color-foreground-default: #706e6b;
+}
+
 /* Responsividade para telas menores */
 @media screen and (max-width: 768px) {
     .kanban-column {
@@ -165,6 +288,27 @@ article[data-id] .slds-media__figure .slds-icon_container {
     }
     
     .records-container {
+        height: calc(100vh - 200px);
         max-height: 400px;
     }
+    
+    .slds-grid {
+        flex-wrap: wrap;
+    }
+    
+    .slds-col {
+        flex: 1 1 50%;
+    }
+
+    .list-header {
+        display: none; /* Esconde os cabeçalhos em telas pequenas */
+    }
+}
+
+.slds-grid {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    width: 100%;
+    min-width: 0; /* Previne overflow */
 }

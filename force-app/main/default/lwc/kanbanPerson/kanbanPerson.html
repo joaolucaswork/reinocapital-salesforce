@@ -11,8 +11,16 @@
 <template>
     <!-- Container principal com estilo de card do SLDS -->
     <div class="slds-card slds-card_boundary">
-        <div class="slds-card__header">
-            <h1 class="slds-text-heading_medium slds-p-around_medium">Kanban</h1>
+        <div class="slds-card__header slds-grid slds-grid_align-spread">
+            <h1 class="slds-text-heading_medium slds-p-around_medium">Pipeline Board</h1>
+            <lightning-button-icon 
+                icon-name="utility:refresh" 
+                variant="border-filled" 
+                alternative-text="Atualizar" 
+                title="Atualizar"
+                class="slds-m-around_medium"
+                onclick={handleRefresh}>
+            </lightning-button-icon>
         </div>
         
         <div class="slds-card__body">
@@ -48,41 +56,145 @@
                          aria-labelledby={column.tabId}>
                         
                         <!-- Container dos cartões com scroll vertical -->
-                        <div class="slds-p-around_medium records-container" 
+                        <div class="slds-p-around_x-small records-container" 
                              ondrop={handleDrop} ondragover={allowDrop} data-status={column.value}>
                             
-                            <!-- Cards do Kanban -->
-                            <template for:each={column.records} for:item="record">
-                                <article key={record.Id} 
-                                         class="slds-box slds-box_x-small slds-theme_default slds-m-bottom_small kanban-card"
-                                         draggable="true"
-                                         ondragstart={handleDrag}
-                                         data-id={record.Id}>
-                                    
-                                    <!-- Layout de informações do card -->
-                                    <div class="slds-grid slds-grid_vertical">
-                                        <div class="slds-col">
-                                            <div class="slds-media slds-media_center">
-                                                <div class="slds-media__figure">
-                                                    <!-- Ícone personalizado baseado no status -->
-                                                    <span class="slds-icon_container">
-                                                        <lightning-icon icon-name={record.iconName} size="small"></lightning-icon>
-                                                    </span>
-                                                </div>
-                                                <div class="slds-media__body">
-                                                    <p class="slds-truncate slds-text-heading_small">{record.Name}</p>
-
-                                                    <p class="slds-truncate slds-text-body_large">Data: {record.DataBO__c}</p>
-                                                    <p class="slds-truncate slds-text-body_large">Valor: {record.ValorBO__c}</p>
-                                                    <p class="slds-truncate slds-text-body_large">Cliente: {record.NomeClienteBO__c}</p>
-                                                    <p class="slds-truncate slds-text-body_large">Status: {record.EtapaBO__c}</p>
+                            <!-- Cabeçalhos das colunas -->
+                            <div class="slds-grid slds-grid_vertical-align-center slds-border_bottom slds-p-bottom_x-small list-header">
+                                <div class="slds-col slds-size_1-of-12">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Tipo</div>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Nome da Oportunidade</div>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Nome da Conta</div>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Valor</div>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Data de Fechamento</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-12">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Estágio</div>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Ações</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Lista compacta de registros -->
+                            <ul class="slds-has-dividers_around-space slds-has-list-interactions slds-m-top_x-small">
+                                <template for:each={column.records} for:item="record">
+                                    <li key={record.Id} class="slds-item record-item"
+                                        draggable="true"
+                                        ondragstart={handleDrag}
+                                        ondragend={handleDragEnd}
+                                        data-id={record.Id}>
+                                        <div class="slds-grid slds-grid_vertical-align-center">
+                                            <!-- Ícone do estágio -->
+                                            <div class="slds-col slds-size_1-of-12">
+                                                <lightning-icon icon-name={record.iconName} 
+                                                              size="x-small" 
+                                                              class="slds-m-right_x-small">
+                                                </lightning-icon>
+                                            </div>
+                                            
+                                            <!-- Nome da oportunidade -->
+                                            <div class="slds-col slds-size_2-of-12">
+                                                <div class="slds-truncate slds-text-body_small" title={record.Name}>
+                                                    <a href="javascript:void(0);" 
+                                                       onclick={handleNavigateToRecord} 
+                                                       data-id={record.Id}
+                                                       class="slds-text-link_reset"
+                                                       style="text-decoration: underline;">
+                                                        {record.Name}
+                                                    </a>
                                                 </div>
                                             </div>
-                                           
+                                            
+                                            <!-- Nome da conta -->
+                                            <div class="slds-col slds-size_2-of-12">
+                                                <div class="slds-truncate slds-text-body_small" title={record.AccountName}>
+                                                    {record.AccountName}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Valor da oportunidade -->
+                                            <div class="slds-col slds-size_2-of-12">
+                                                <div class="slds-truncate slds-text-body_small" title={record.Amount}>
+                                                    <lightning-formatted-number value={record.Amount} 
+                                                                             format-style="currency" 
+                                                                             currency-code="BRL">
+                                                    </lightning-formatted-number>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Data de fechamento -->
+                                            <div class="slds-col slds-size_2-of-12">
+                                                <div class="slds-truncate slds-text-body_small">
+                                                    <template if:true={record.CloseDate}>
+                                                        <lightning-formatted-date-time value={record.CloseDate} 
+                                                                                    year="2-digit" 
+                                                                                    month="2-digit" 
+                                                                                    day="2-digit">
+                                                        </lightning-formatted-date-time>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Estágio -->
+                                            <div class="slds-col slds-size_1-of-12">
+                                                <span class="slds-badge">{record.StageName}</span>
+                                            </div>
+
+                                            <!-- Menu de ações -->
+                                            <div class="slds-col slds-size_2-of-12 slds-text-align_right">
+                                                <div class="slds-dropdown-trigger slds-dropdown-trigger_click">
+                                                    <button class="slds-button slds-button_icon slds-button_icon-border-filled" 
+                                                            onclick={handleActionClick} 
+                                                            data-id={record.Id}
+                                                            aria-haspopup="true">
+                                                        <lightning-icon icon-name="utility:chevrondown" 
+                                                                      size="small"
+                                                                      alternative-text="Mostrar menu">
+                                                        </lightning-icon>
+                                                    </button>
+                                                    <div class="slds-dropdown slds-dropdown_right" role="menu">
+                                                        <ul class="slds-dropdown__list" role="menu">
+                                                            <li class="slds-dropdown__item" role="presentation">
+                                                                <a href="javascript:void(0);" role="menuitem" tabindex="-1"
+                                                                   onclick={handleEdit} data-id={record.Id}>
+                                                                    <span class="slds-truncate">Editar</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="slds-dropdown__item" role="presentation">
+                                                                <a href="javascript:void(0);" role="menuitem" tabindex="-1"
+                                                                   onclick={handleChangeOwner} data-id={record.Id}>
+                                                                    <span class="slds-truncate">Alterar Proprietário</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="slds-dropdown__item" role="presentation">
+                                                                <a href="javascript:void(0);" role="menuitem" tabindex="-1"
+                                                                   onclick={handleClone} data-id={record.Id}>
+                                                                    <span class="slds-truncate">Duplicar</span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="slds-dropdown__item" role="presentation">
+                                                                <a href="javascript:void(0);" role="menuitem" tabindex="-1"
+                                                                   onclick={handleDelete} data-id={record.Id}>
+                                                                    <span class="slds-truncate" title="Excluir">Excluir</span>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </article>
-                            </template>
+                                    </li>
+                                </template>
+                            </ul>
                             
                             <!-- Mensagem quando não há registros -->
                             <template if:true={column.isEmpty}>
