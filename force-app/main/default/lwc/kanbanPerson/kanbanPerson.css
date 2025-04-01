@@ -1,0 +1,62 @@
+.slds-box {
+    transition: all 0.3s ease;
+}
+
+.slds-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.kanban-column {
+    min-height: 300px;
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.records-container {
+    height: calc(100% - 50px);
+    overflow-y: auto;
+}
+
+.kanban-card {
+    transition: all 0.3s ease;
+    background: #ffffff;
+    border: 1px solid #d8dde6;
+}
+
+.kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
+/* Estilização da barra de rolagem */
+.records-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.records-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.records-container::-webkit-scrollbar-thumb {
+    background: #d8dde6;
+    border-radius: 3px;
+}
+
+.records-container::-webkit-scrollbar-thumb:hover {
+    background: #b5bcc9;
+}
+
+/* Responsividade para telas menores */
+@media screen and (max-width: 768px) {
+    .kanban-column {
+        height: auto;
+        min-height: 200px;
+        max-height: 400px;
+    }
+}

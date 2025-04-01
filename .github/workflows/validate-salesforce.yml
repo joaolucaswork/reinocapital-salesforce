@@ -17,7 +17,7 @@ jobs:
         run: npm install --global sfdx-cli
 
       - name: Authenticate Salesforce (Sandbox)
-        run: echo "${{ secrets.SF_SANDBOX_AUTH_URL }}" | sf auth sfdx-url store --alias minha-sandbox --set-default
+        run: echo "${{ secrets.SF_SANDBOX_AUTH_URL }}" | sf auth sfdx-url store --alias sandReino --set-default
 
       - name: Validate Deployment
-        run: sf project deploy validate --target-org minha-sandbox --wait 10
+        run: sf project deploy validate --target-org sandReino --wait 10
