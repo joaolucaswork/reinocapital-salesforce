@@ -91,4 +91,56 @@ public with sharing class KanbanDataController {
       throw new AuraHandledException(e.getMessage());
     }
   }
+
+  @AuraEnabled
+  public static void deleteRecord(Id recordId) {
+    // Verificar permissões CRUD
+    if (!Schema.sObjectType.Opportunity.isDeletable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para excluir oportunidades.'
+      );
+    }
+
+    try {
+      Opportunity opp = new Opportunity(Id = recordId);
+      delete opp;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled
+  public static Id cloneRecord(Id recordId) {
+    // Verificar permissões CRUD
+    if (!Schema.sObjectType.Opportunity.isCreateable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para criar oportunidades.'
+      );
+    }
+
+    try {
+      // Buscar a oportunidade original com todos os campos necessários
+      Opportunity originalOpp = [
+        SELECT Name, StageName, Amount, CloseDate, AccountId
+        FROM Opportunity
+        WHERE Id = :recordId
+        WITH SECURITY_ENFORCED
+        LIMIT 1
+      ];
+
+      // Criar nova oportunidade com os mesmos dados
+      Opportunity clonedOpp = new Opportunity(
+        Name = originalOpp.Name + ' - Cópia',
+        StageName = 'Sem contato', // Sempre começa como sem contato
+        Amount = originalOpp.Amount,
+        CloseDate = originalOpp.CloseDate,
+        AccountId = originalOpp.AccountId
+      );
+
+      insert clonedOpp;
+      return clonedOpp.Id;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
 }

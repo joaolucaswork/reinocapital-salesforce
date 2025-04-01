@@ -5,16 +5,21 @@
 import { LightningElement, wire, track } from "lwc";
 import { refreshApex } from "@salesforce/apex";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { NavigationMixin } from "lightning/navigation";
 import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
 import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
+import deleteRecord from "@salesforce/apex/KanbanDataController.deleteRecord";
+import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
 
-export default class KanbanPerson extends LightningElement {
+export default class KanbanPerson extends NavigationMixin(LightningElement) {
   // Propriedades reativas do componente
   @track columns = []; // Array de colunas do Kanban
   @track error; // Armazena erros para exibição
   wiredRecordsResult; // Armazena resultado do wire para refresh
   draggedRecordId; // ID do registro sendo arrastado
   activeTabIndex = 0; // Índice da aba ativa
+
+  activeActionButton = null;
 
   // Mapeamento de status para ícones com os estágios corretos de Oportunidade
   statusIconMap = {
@@ -203,5 +208,137 @@ export default class KanbanPerson extends LightningElement {
         variant: variant
       })
     );
+  }
+
+  handleActionClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Fecha o menu anterior se existir
+    if (
+      this.activeActionButton &&
+      this.activeActionButton !== event.currentTarget
+    ) {
+      this.activeActionButton.parentElement.classList.remove("slds-is-open");
+    }
+
+    // Toggle do menu atual
+    const dropdownTrigger = event.currentTarget.parentElement;
+    dropdownTrigger.classList.toggle("slds-is-open");
+
+    // Atualiza o botão ativo
+    this.activeActionButton = event.currentTarget;
+  }
+
+  // Fecha o dropdown quando clicar fora
+  handleClickOutside = (event) => {
+    if (
+      this.activeActionButton &&
+      !this.activeActionButton.contains(event.target)
+    ) {
+      this.activeActionButton.parentElement.classList.remove("slds-is-open");
+      this.activeActionButton = null;
+    }
+  };
+
+  connectedCallback() {
+    // Adiciona listener para fechar o dropdown quando clicar fora
+    document.addEventListener("click", this.handleClickOutside);
+  }
+
+  disconnectedCallback() {
+    // Remove o listener quando o componente for destruído
+    document.removeEventListener("click", this.handleClickOutside);
+  }
+
+  handleEdit(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    // Navega para a página de edição da oportunidade
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: recordId,
+        objectApiName: "Opportunity",
+        actionName: "edit"
+      }
+    });
+  }
+
+  handleChangeOwner(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    // Navega para a página de alteração de proprietário
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: recordId,
+        objectApiName: "Opportunity",
+        actionName: "changeOwner"
+      }
+    });
+  }
+
+  handleDelete(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    // Confirma antes de deletar
+    if (confirm("Tem certeza que deseja excluir este registro?")) {
+      deleteRecord({ recordId: recordId })
+        .then(() => {
+          this.showToast("Sucesso", "Registro excluído com sucesso", "success");
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToast("Erro", error.body.message, "error");
+        });
+    }
+  }
+
+  handleClone(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    cloneRecord({ recordId })
+      .then((newRecordId) => {
+        this.showToast(
+          "Sucesso",
+          "Oportunidade duplicada com sucesso",
+          "success"
+        );
+        return refreshApex(this.wiredRecordsResult);
+      })
+      .catch((error) => {
+        this.showToast("Erro", error.body.message, "error");
+      });
+  }
+
+  handleRefresh() {
+    return refreshApex(this.wiredRecordsResult);
+  }
+
+  handleNavigateToRecord(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: event.currentTarget.dataset.id,
+        objectApiName: "Opportunity",
+        actionName: "view"
+      }
+    });
   }
 }
