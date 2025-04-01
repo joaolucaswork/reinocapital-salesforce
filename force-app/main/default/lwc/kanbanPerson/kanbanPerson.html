@@ -12,21 +12,31 @@
     <!-- Container principal com estilo de card do SLDS -->
     <div class="slds-card slds-card_boundary">
         <div class="slds-card__header">
-            <h1 class="slds-text-heading_medium slds-p-around_medium">Pipeline Board</h1>
+            <h1 class="slds-text-heading_medium slds-p-around_medium">Kanban</h1>
         </div>
         
         <div class="slds-card__body">
             <!-- Sistema de abas do SLDS -->
             <div class="slds-tabs_default">
-                <!-- Navegação entre abas -->
+                <!-- Navegação entre abas com suporte a drop -->
                 <ul class="slds-tabs_default__nav" role="tablist">
                     <template for:each={columns} for:item="column" for:index="index">
-                        <li key={column.label} class={column.tabClass} role="presentation">
+                        <li key={column.label} class={column.tabClass} role="presentation"
+                            ondrop={handleDrop} 
+                            ondragover={allowDrop} 
+                            data-status={column.value}>
                             <a class="slds-tabs_default__link" role="tab" tabindex={column.tabIndex} 
                                aria-selected={column.isActive} aria-controls={column.tabPanelId} 
                                data-index={index} onclick={handleTabClick}>
-                                <span>{column.label}</span>
-                                <span class="slds-badge slds-badge_lightest slds-m-left_small">{column.recordCount}</span>
+                                <div class="slds-media slds-media_center">
+                                    <div class="slds-media__figure">
+                                        <lightning-icon icon-name={column.iconName} size="x-small"></lightning-icon>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <span>{column.label}</span>
+                                        <span class="slds-badge slds-badge_lightest slds-m-left_small">{column.recordCount}</span>
+                                    </div>
+                                </div>
                             </a>
                         </li>
                     </template>
@@ -61,12 +71,14 @@
                                                 </div>
                                                 <div class="slds-media__body">
                                                     <p class="slds-truncate slds-text-heading_small">{record.Name}</p>
+
+                                                    <p class="slds-truncate slds-text-body_large">Data: {record.DataBO__c}</p>
+                                                    <p class="slds-truncate slds-text-body_large">Valor: {record.ValorBO__c}</p>
+                                                    <p class="slds-truncate slds-text-body_large">Cliente: {record.NomeClienteBO__c}</p>
+                                                    <p class="slds-truncate slds-text-body_large">Status: {record.EtapaBO__c}</p>
                                                 </div>
                                             </div>
-                                            <div class="slds-grid slds-grid_vertical-align-center slds-m-top_small">
-                                                <p class="slds-truncate slds-text-body_small">Cliente: {record.NomeClienteBO__c}</p>
-                                                <p class="slds-truncate slds-text-body_small">Status: {record.EtapaBO__c}</p>
-                                            </div>
+                                           
                                         </div>
                                     </div>
                                 </article>

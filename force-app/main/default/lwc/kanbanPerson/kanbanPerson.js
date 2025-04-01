@@ -38,7 +38,7 @@ export default class KanbanPerson extends LightningElement {
       this.formatData(result.data);
     } else if (result.error) {
       this.error = result.error;
-      this.showToast("Error", "Error loading records", "error");
+      this.showToast("Erro", "Erro ao carregar registros", "error");
     }
   }
 
@@ -80,6 +80,7 @@ export default class KanbanPerson extends LightningElement {
         records: recordsWithIcons,
         recordCount: statusRecords.length,
         isEmpty: statusRecords.length === 0,
+        iconName: this.statusIconMap[status],
         // Propriedades para CSS dinâmico das abas
         tabClass: `slds-tabs_default__item ${isActive ? "slds-is-active" : ""}`,
         tabPanelClass: `slds-tabs_default__content ${isActive ? "slds-show" : "slds-hide"}`,
@@ -119,6 +120,9 @@ export default class KanbanPerson extends LightningElement {
 
     // Adicionar classe para estilo durante drag
     event.target.classList.add("dragging");
+
+    // Configurar o efeito de arrastar
+    event.dataTransfer.effectAllowed = "move";
   }
 
   /**
@@ -126,6 +130,17 @@ export default class KanbanPerson extends LightningElement {
    */
   allowDrop(event) {
     event.preventDefault();
+
+    // Adicionar feedback visual durante o drag
+    const dropTarget = event.currentTarget;
+
+    // Remover classe drag-over de todos os elementos
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    // Adicionar classe drag-over ao elemento atual
+    dropTarget.classList.add("drag-over");
   }
 
   /**
@@ -135,19 +150,42 @@ export default class KanbanPerson extends LightningElement {
     event.preventDefault();
     const newStatus = event.currentTarget.dataset.status;
 
-    // Remover classe de drag de todos os elementos
-    this.template.querySelectorAll(".kanban-card").forEach((card) => {
-      card.classList.remove("dragging");
-    });
+    // Remover todas as classes de feedback visual
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
 
-    updateRecordStatus({ recordId: this.draggedRecordId, newStatus: newStatus })
-      .then(() => {
-        this.showToast("Sucesso", "Registro atualizado com sucesso", "success");
-        return refreshApex(this.wiredRecordsResult);
+    this.template
+      .querySelectorAll(".kanban-card")
+      .forEach((card) => card.classList.remove("dragging"));
+
+    if (this.draggedRecordId && newStatus) {
+      updateRecordStatus({
+        recordId: this.draggedRecordId,
+        newStatus: newStatus
       })
-      .catch((error) => {
-        this.showToast("Erro", error.body.message, "error");
-      });
+        .then(() => {
+          this.showToast(
+            "Sucesso",
+            "Registro atualizado com sucesso",
+            "success"
+          );
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToast("Erro", error.body.message, "error");
+        });
+    }
+  }
+
+  // Adicionar evento para remover feedback visual quando o drag termina
+  handleDragEnd(event) {
+    event.preventDefault();
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    event.target.classList.remove("dragging");
   }
 
   /**
