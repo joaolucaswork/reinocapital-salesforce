@@ -18,19 +18,76 @@
     overflow-y: auto;
 }
 
+/* Estilos para o componente Pipeline Kanban */
+
+/* Estilos para o sistema de abas */
+.slds-tabs_default__nav {
+    border-bottom: 2px solid #dddbda;
+    position: relative;
+}
+
+.slds-tabs_default__item {
+    position: relative;
+    color: #706e6b;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.slds-tabs_default__item:hover {
+    color: #0070d2;
+    background-color: rgba(0, 112, 210, 0.05);
+}
+
+.slds-tabs_default__item.slds-is-active {
+    color: #0070d2;
+}
+
+.slds-tabs_default__item.slds-is-active:after {
+    content: '';
+    width: 100%;
+    height: 3px;
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    background-color: #0070d2;
+}
+
+/* Estilos para o container de registros */
+.records-container {
+    min-height: 300px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* Estilos para os cards do Kanban */
 .kanban-card {
     transition: all 0.3s ease;
     background: #ffffff;
     border: 1px solid #d8dde6;
+    border-left: 4px solid #0070d2;
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    position: relative;
 }
 
 .kanban-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.dragging {
-    opacity: 0.5;
+/* Estilos para cards durante o drag */
+.kanban-card.dragging {
+    opacity: 0.6;
+    transform: scale(0.98);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Cores personalizadas por status */
+article[data-id] .slds-media__figure .slds-icon_container {
+    padding: 0.25rem;
+    border-radius: 50%;
+    background-color: #f3f2f2;
 }
 
 /* Estilização da barra de rolagem */
@@ -57,6 +114,15 @@
     .kanban-column {
         height: auto;
         min-height: 200px;
+        max-height: 400px;
+    }
+    
+    .slds-tabs_default__item {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .records-container {
         max-height: 400px;
     }
 }
