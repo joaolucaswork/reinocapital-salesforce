@@ -116,6 +116,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         iconName: this.statusIconMap[record.StageName] || "utility:record",
         Name: record.Name || "N/A",
         Amount: record.Amount || 0,
+        Probability: record.Probabilidade_da_Oportunidade__c || 0,
         CloseDate: record.CloseDate || null,
         AccountName: record.Account?.Name || "N/A"
       }));
@@ -567,5 +568,15 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       return record.Account?.Name;
     }
     return record[field];
+  }
+
+  handleCreateNew() {
+    this[NavigationMixin.Navigate]({
+      type: "standard__objectPage",
+      attributes: {
+        objectApiName: "Opportunity",
+        actionName: "new"
+      }
+    });
   }
 }

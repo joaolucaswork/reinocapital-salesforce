@@ -9,284 +9,436 @@
     4. Cards arrastáveis dentro de cada aba
 -->
 <template>
-    <!-- Container principal com estilo de card do SLDS -->
-    <div class="slds-card slds-card_boundary">
-        <div class="slds-card__header">
-            <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
-                <!-- Título e ícone -->
-                <div class="slds-col slds-size_1-of-2 slds-grid slds-grid_vertical-align-center">
-                    <div class="slds-media slds-media_center slds-p-around_medium">
-                        <div class="slds-media__figure">
-                            <lightning-icon icon-name="standard:opportunity" 
-                                          size="medium" 
-                                          alternative-text="Oportunidades"
-                                          title="Oportunidades">
-                            </lightning-icon>
-                        </div>
-                        <div class="slds-media__body">
-                            <h1 class="slds-text-heading_medium">Oportunidades - Kanban </h1>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Campo de pesquisa e botões -->
-                <div class="slds-col slds-size_1-of-2 slds-grid slds-grid_align-end slds-grid_vertical-align-center">
-                    <div class="slds-form-element header-search">
-                        <div class="slds-form-element__control">
-                            <lightning-input 
-                                type="search"
-                                label="Pesquisar oportunidades"
-                                onchange={handleSearch}
-                                variant="label-hidden"
-                                placeholder="Pesquisa nesta lista..."
-                                class="search-box">
-                            </lightning-input>
-                        </div>
-                    </div>
-                    
-                    <!-- Botões de ação -->
-                    <div class="slds-grid slds-grid_align-end">
-                        <template if:true={showBulkActions}>
-                            <div class="slds-button-group slds-m-right_medium">
-                                <lightning-button
-                                    variant="destructive"
-                                    label="Excluir Selecionados"
-                                    title="Excluir Registros"
-                                    onclick={handleBulkDelete}
-                                    class="slds-m-right_x-small">
-                                </lightning-button>
-                            </div>
-                        </template>
-                        <lightning-button-icon 
-                            icon-name="utility:refresh" 
-                            variant="border-filled" 
-                            alternative-text="Atualizar" 
-                            title="Atualizar"
-                            class="slds-m-left_x-small"
-                            onclick={handleRefresh}>
-                        </lightning-button-icon>
-                    </div>
-                </div>
+  <!-- Container principal com estilo de card do SLDS -->
+  <div class="slds-card slds-card_boundary">
+    <div class="slds-card__header">
+      <!-- Título, ícone, descrição e ações na mesma linha -->
+      <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
+        <!-- Coluna do título -->
+        <div class="slds-col slds-size_1-of-2">
+          <div class="slds-media slds-media_center slds-p-around_medium">
+            <div class="slds-media__figure">
+              <lightning-icon
+                icon-name="standard:opportunity"
+                size="medium"
+                alternative-text="Oportunidades"
+                title="Oportunidades"
+              >
+              </lightning-icon>
             </div>
-        </div>
-        
-        <div class="slds-card__body">
-            <!-- Sistema de abas do SLDS -->
-            <div class="slds-tabs_default">
-                <!-- Navegação entre abas com suporte a drop -->
-                <ul class="slds-tabs_default__nav" role="tablist">
-                    <template for:each={columns} for:item="column" for:index="index">
-                        <li key={column.label} class={column.tabClass} role="presentation"
-                            ondrop={handleDrop} 
-                            ondragover={allowDrop} 
-                            data-status={column.value}>
-                            <a class="slds-tabs_default__link" role="tab" tabindex={column.tabIndex} 
-                               aria-selected={column.isActive} aria-controls={column.tabPanelId} 
-                               data-index={index} onclick={handleTabClick}>
-                                <div class="slds-media slds-media_center">
-                                    <div class="slds-media__figure">
-                                        <lightning-icon icon-name={column.iconName} size="x-small"></lightning-icon>
-                                    </div>
-                                    <div class="slds-media__body">
-                                        <span>{column.label}</span>
-                                        <span class="slds-badge slds-badge_lightest slds-m-left_small">{column.recordCount}</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                    </template>
-                </ul>
-                
-                <!-- Conteúdo de cada aba -->
-                <template for:each={columns} for:item="column" for:index="index">
-                    <div key={column.label} id={column.tabPanelId} class={column.tabPanelClass} role="tabpanel" 
-                         aria-labelledby={column.tabId}>
-                        
-                        <!-- Container dos cartões com scroll vertical -->
-                        <div class="slds-p-around_x-small records-container" 
-                             ondrop={handleDrop} ondragover={allowDrop} data-status={column.value}>
-                            
-                            <!-- Cabeçalhos das colunas -->
-                            <div class="slds-grid slds-grid_vertical-align-center slds-border_bottom slds-p-bottom_x-small list-header">
-                                <!-- Checkbox (vazio para manter alinhamento) -->
-                                <div class="slds-col col-checkbox">
-                                </div>
-                                <!-- Tipo -->
-                                <div class="slds-col col-type">
-                                    <div class="slds-text-title_caps slds-text-color_weak">Tipo</div>
-                                </div>
-                                <!-- Nome da Oportunidade -->
-                                <div class="slds-col col-name">
-                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
-                                         onclick={handleSort} 
-                                         data-field="Name">
-                                        Nome da Oportunidade
-                                    </div>
-                                </div>
-                                <!-- Nome da Conta -->
-                                <div class="slds-col col-account">
-                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
-                                         onclick={handleSort} 
-                                         data-field="AccountName">
-                                        Nome da Conta
-                                    </div>
-                                </div>
-                                <!-- Valor -->
-                                <div class="slds-col col-amount">
-                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
-                                         onclick={handleSort} 
-                                         data-field="Amount">
-                                        Valor
-                                    </div>
-                                </div>
-                                <!-- Data de Fechamento -->
-                                <div class="slds-col col-date">
-                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
-                                         onclick={handleSort} 
-                                         data-field="CloseDate">
-                                        Data de Fechamento
-                                    </div>
-                                </div>
-                                <!-- Estágio -->
-                                <div class="slds-col col-stage">
-                                    <div class="slds-text-title_caps slds-text-color_weak">Estágio</div>
-                                </div>
-                                <!-- Ações -->
-                                <div class="slds-col col-actions">
-                                    <div class="slds-text-title_caps slds-text-color_weak">Ações</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Lista de registros -->
-                            <ul class="slds-has-dividers_around-space slds-has-list-interactions slds-m-top_x-small">
-                                <template for:each={column.records} for:item="record">
-                                    <li key={record.Id} class="slds-item record-item"
-                                        draggable="true"
-                                        ondragstart={handleDrag}
-                                        ondragend={handleDragEnd}
-                                        data-id={record.Id}>
-                                        <div class="slds-grid slds-grid_vertical-align-center">
-                                            <!-- Checkbox -->
-                                            <div class="slds-col col-checkbox">
-                                                <lightning-input 
-                                                    type="checkbox" 
-                                                    data-id={record.Id}
-                                                    checked={record.selected}
-                                                    onchange={handleRecordSelection}
-                                                    variant="label-hidden">
-                                                </lightning-input>
-                                            </div>
-                                            <!-- Tipo -->
-                                            <div class="slds-col col-type">
-                                                <lightning-icon icon-name={record.iconName} 
-                                                              size="x-small" 
-                                                              class="slds-m-right_x-small">
-                                                </lightning-icon>
-                                            </div>
-                                            <!-- Nome da Oportunidade -->
-                                            <div class="slds-col col-name">
-                                                <div class="slds-truncate" title={record.Name}>
-                                                    <a href="javascript:void(0);" 
-                                                       onclick={handleNavigateToRecord} 
-                                                       data-id={record.Id}
-                                                       class="slds-text-link_reset"
-                                                       style="text-decoration: underline;">
-                                                        {record.Name}
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <!-- Nome da Conta -->
-                                            <div class="slds-col col-account">
-                                                <div class="slds-truncate" title={record.AccountName}>
-                                                    {record.AccountName}
-                                                </div>
-                                            </div>
-                                            <!-- Valor -->
-                                            <div class="slds-col col-amount">
-                                                <div class="slds-truncate" title={record.Amount}>
-                                                    <lightning-formatted-number value={record.Amount} 
-                                                                             format-style="currency" 
-                                                                             currency-code="BRL">
-                                                    </lightning-formatted-number>
-                                                </div>
-                                            </div>
-                                            <!-- Data -->
-                                            <div class="slds-col col-date">
-                                                <div class="slds-truncate">
-                                                    <template if:true={record.CloseDate}>
-                                                        <lightning-formatted-date-time value={record.CloseDate} 
-                                                                                    year="2-digit" 
-                                                                                    month="2-digit" 
-                                                                                    day="2-digit">
-                                                        </lightning-formatted-date-time>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                            <!-- Estágio -->
-                                            <div class="slds-col col-stage">
-                                                <div class="stage-selector" data-stage={record.StageName}>
-                                                    <lightning-combobox
-                                                        name="stage"
-                                                        variant="label-hidden"
-                                                        value={record.StageName}
-                                                        options={stageOptions}
-                                                        data-id={record.Id}
-                                                        onchange={handleStageChange}
-                                                        dropdown-class="stage-dropdown">
-                                                    </lightning-combobox>
-                                                </div>
-                                            </div>
-                                            <!-- Ações -->
-                                            <div class="slds-col col-actions slds-text-align_right">
-                                                <div class="slds-dropdown-trigger slds-dropdown-trigger_click">
-                                                    <button class="slds-button slds-button_icon slds-button_icon-border-filled" 
-                                                            onclick={handleActionClick} 
-                                                            data-id={record.Id}
-                                                            aria-haspopup="true">
-                                                        <lightning-icon icon-name="utility:chevrondown" 
-                                                                      size="small"
-                                                                      alternative-text="Mostrar menu">
-                                                        </lightning-icon>
-                                                    </button>
-                                                    <div class="slds-dropdown slds-dropdown_right" role="menu">
-                                                        <ul class="slds-dropdown__list" role="menu">
-                                                            <li class="slds-dropdown__item" role="presentation">
-                                                                <a href="javascript:void(0);" role="menuitem" tabindex="-1"
-                                                                   onclick={handleEdit} data-id={record.Id}>
-                                                                    <span class="slds-truncate">Editar</span>
-                                                                </a>
-                                                            </li>
-                                                            <li class="slds-dropdown__item" role="presentation">
-                                                                <a href="javascript:void(0);" role="menuitem" tabindex="-1"
-                                                                   onclick={handleClone} data-id={record.Id}>
-                                                                    <span class="slds-truncate">Duplicar</span>
-                                                                </a>
-                                                            </li>
-                                                            <li class="slds-dropdown__item" role="presentation">
-                                                                <a href="javascript:void(0);" role="menuitem" tabindex="-1"
-                                                                   onclick={handleDelete} data-id={record.Id}>
-                                                                    <span class="slds-truncate" title="Excluir">Excluir</span>
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                </template>
-                            </ul>
-                            
-                            <!-- Mensagem quando não há registros -->
-                            <template if:true={column.isEmpty}>
-                                <div class="slds-align_absolute-center slds-p-around_medium slds-text-color_weak">
-                                    Não há registros nesta categoria
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </template>
+            <div class="slds-media__body">
+              <h1 class="slds-text-heading_medium">Oportunidades - Kanban</h1>
+              <p class="slds-text-body_small slds-line-height_reset">
+                Gerencie suas oportunidades de negócio de forma visual e
+                eficiente
+              </p>
             </div>
+          </div>
         </div>
+
+        <!-- Coluna das ações alinhada à direita -->
+        <div class="slds-col slds-size_1-of-2">
+          <div class="slds-grid slds-grid_align-end slds-p-horizontal_medium">
+            <div class="slds-form-element header-search">
+              <div class="slds-form-element__control">
+                <lightning-input
+                  type="search"
+                  label="Pesquisar oportunidades"
+                  onchange={handleSearch}
+                  variant="label-hidden"
+                  placeholder="Pesquisa nesta lista..."
+                  class="search-box"
+                >
+                </lightning-input>
+              </div>
+            </div>
+
+            <lightning-button
+              variant="brand"
+              label="Nova Oportunidade"
+              title="Criar nova oportunidade"
+              onclick={handleCreateNew}
+              class="slds-m-right_small"
+            >
+            </lightning-button>
+
+            <template if:true={showBulkActions}>
+              <div class="slds-button-group slds-m-left_small">
+                <lightning-button
+                  variant="destructive"
+                  label="Excluir Selecionados"
+                  title="Excluir Registros"
+                  onclick={handleBulkDelete}
+                >
+                </lightning-button>
+              </div>
+            </template>
+
+            <lightning-button-icon
+              icon-name="utility:refresh"
+              variant="border-filled"
+              alternative-text="Atualizar"
+              title="Atualizar"
+              class="slds-m-left_small"
+              onclick={handleRefresh}
+            >
+            </lightning-button-icon>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <div class="slds-card__body">
+      <!-- Sistema de abas do SLDS -->
+      <div class="slds-tabs_default">
+        <!-- Navegação entre abas com suporte a drop -->
+        <ul class="slds-tabs_default__nav" role="tablist">
+          <template for:each={columns} for:item="column" for:index="index">
+            <li
+              key={column.label}
+              class={column.tabClass}
+              role="presentation"
+              ondrop={handleDrop}
+              ondragover={allowDrop}
+              data-status={column.value}
+            >
+              <a
+                class="slds-tabs_default__link"
+                role="tab"
+                tabindex={column.tabIndex}
+                aria-selected={column.isActive}
+                aria-controls={column.tabPanelId}
+                data-index={index}
+                onclick={handleTabClick}
+              >
+                <div class="slds-media slds-media_center">
+                  <div class="slds-media__figure">
+                    <lightning-icon
+                      icon-name={column.iconName}
+                      size="x-small"
+                    ></lightning-icon>
+                  </div>
+                  <div class="slds-media__body">
+                    <span>{column.label}</span>
+                    <span
+                      class="slds-badge slds-badge_lightest slds-m-left_small"
+                      >{column.recordCount}</span
+                    >
+                  </div>
+                </div>
+              </a>
+            </li>
+          </template>
+        </ul>
+
+        <!-- Conteúdo de cada aba -->
+        <template for:each={columns} for:item="column" for:index="index">
+          <div
+            key={column.label}
+            id={column.tabPanelId}
+            class={column.tabPanelClass}
+            role="tabpanel"
+            aria-labelledby={column.tabId}
+          >
+            <!-- Container dos cartões com scroll vertical -->
+            <div
+              class="slds-p-around_x-small records-container"
+              ondrop={handleDrop}
+              ondragover={allowDrop}
+              data-status={column.value}
+            >
+              <!-- Cabeçalhos das colunas -->
+              <div
+                class="slds-grid slds-grid_vertical-align-center slds-border_bottom slds-p-bottom_x-small list-header"
+              >
+                <!-- Checkbox (vazio para manter alinhamento) -->
+                <div class="slds-col col-checkbox"></div>
+                <!-- Tipo -->
+                <div class="slds-col col-type">
+                  <div class="slds-text-title_caps slds-text-color_weak">
+                    Tipo
+                  </div>
+                </div>
+                <!-- Nome da Oportunidade -->
+                <div class="slds-col col-name">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Name"
+                  >
+                    Nome da Oportunidade
+                  </div>
+                </div>
+                <!-- Nome da Conta -->
+                <div class="slds-col col-account">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="AccountName"
+                  >
+                    Nome da Conta
+                  </div>
+                </div>
+                <!-- Valor -->
+                <div class="slds-col col-amount">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Amount"
+                  >
+                    Valor
+                  </div>
+                </div>
+                <!-- Probabilidade -->
+                <div class="slds-col col-probability">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Probabilidade_da_Oportunidade__c"
+                  >
+                    Probabilidade
+                  </div>
+                </div>
+                <!-- Data de Fechamento -->
+                <div class="slds-col col-date">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="CloseDate"
+                  >
+                    Data de Fechamento
+                  </div>
+                </div>
+                <!-- Estágio -->
+                <div class="slds-col col-stage">
+                  <div class="slds-text-title_caps slds-text-color_weak">
+                    Estágio
+                  </div>
+                </div>
+                <!-- Ações -->
+                <div class="slds-col col-actions">
+                  <div class="slds-text-title_caps slds-text-color_weak">
+                    Ações
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de registros -->
+              <ul
+                class="slds-has-dividers_around-space slds-has-list-interactions slds-m-top_x-small"
+              >
+                <template for:each={column.records} for:item="record">
+                  <li
+                    key={record.Id}
+                    class="slds-item record-item"
+                    draggable="true"
+                    ondragstart={handleDrag}
+                    ondragend={handleDragEnd}
+                    data-id={record.Id}
+                  >
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                      <!-- Checkbox -->
+                      <div class="slds-col col-checkbox">
+                        <lightning-input
+                          type="checkbox"
+                          data-id={record.Id}
+                          checked={record.selected}
+                          onchange={handleRecordSelection}
+                          variant="label-hidden"
+                        >
+                        </lightning-input>
+                      </div>
+                      <!-- Tipo -->
+                      <div class="slds-col col-type">
+                        <lightning-icon
+                          icon-name={record.iconName}
+                          size="x-small"
+                          class="slds-m-right_x-small"
+                        >
+                        </lightning-icon>
+                      </div>
+                      <!-- Nome da Oportunidade -->
+                      <div class="slds-col col-name">
+                        <div class="slds-truncate" title={record.Name}>
+                          <a
+                            href="javascript:void(0);"
+                            onclick={handleNavigateToRecord}
+                            data-id={record.Id}
+                            class="slds-text-link_reset"
+                            style="text-decoration: underline"
+                          >
+                            {record.Name}
+                          </a>
+                        </div>
+                      </div>
+                      <!-- Nome da Conta -->
+                      <div class="slds-col col-account">
+                        <div class="slds-truncate" title={record.AccountName}>
+                          {record.AccountName}
+                        </div>
+                      </div>
+                      <!-- Valor -->
+                      <div class="slds-col col-amount">
+                        <div class="slds-truncate" title={record.Amount}>
+                          <lightning-formatted-number
+                            value={record.Amount}
+                            format-style="currency"
+                            currency-code="BRL"
+                          >
+                          </lightning-formatted-number>
+                        </div>
+                      </div>
+                      <!-- Probabilidade -->
+                      <div class="slds-col col-probability">
+                        <div
+                          class="slds-truncate"
+                          title={record.Probabilidade_da_Oportunidade__c}
+                        >
+                          <lightning-formatted-number
+                            value={record.Probabilidade_da_Oportunidade__c}
+                            format-style="percent-fixed"
+                            minimum-fraction-digits="0"
+                            maximum-fraction-digits="0"
+                          >
+                          </lightning-formatted-number>
+                        </div>
+                      </div>
+                      <!-- Data -->
+                      <div class="slds-col col-date">
+                        <div class="slds-truncate">
+                          <template if:true={record.CloseDate}>
+                            <lightning-formatted-date-time
+                              value={record.CloseDate}
+                              year="2-digit"
+                              month="2-digit"
+                              day="2-digit"
+                            >
+                            </lightning-formatted-date-time>
+                          </template>
+                        </div>
+                      </div>
+                      <!-- Estágio -->
+                      <div class="slds-col col-stage">
+                        <div
+                          class="stage-selector"
+                          data-stage={record.StageName}
+                        >
+                          <lightning-combobox
+                            name="stage"
+                            variant="label-hidden"
+                            value={record.StageName}
+                            options={stageOptions}
+                            data-id={record.Id}
+                            onchange={handleStageChange}
+                            dropdown-class="stage-dropdown"
+                          >
+                          </lightning-combobox>
+                        </div>
+                      </div>
+                      <!-- Ações -->
+                      <div class="slds-col col-actions slds-text-align_right">
+                        <div
+                          class="slds-dropdown-trigger slds-dropdown-trigger_click"
+                        >
+                          <button
+                            class="slds-button slds-button_icon slds-button_icon-border-filled"
+                            onclick={handleActionClick}
+                            data-id={record.Id}
+                            aria-haspopup="true"
+                          >
+                            <lightning-icon
+                              icon-name="utility:chevrondown"
+                              size="small"
+                              alternative-text="Mostrar menu"
+                            >
+                            </lightning-icon>
+                          </button>
+                          <div
+                            class="slds-dropdown slds-dropdown_right"
+                            role="menu"
+                          >
+                            <ul class="slds-dropdown__list" role="menu">
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleEdit}
+                                  data-id={record.Id}
+                                >
+                                  <span class="slds-truncate">Editar</span>
+                                </a>
+                              </li>
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleClone}
+                                  data-id={record.Id}
+                                >
+                                  <span class="slds-truncate">Duplicar</span>
+                                </a>
+                              </li>
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleDelete}
+                                  data-id={record.Id}
+                                >
+                                  <span class="slds-truncate" title="Excluir"
+                                    >Excluir</span
+                                  >
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </template>
+              </ul>
+
+              <!-- Mensagem quando não há registros -->
+              <template if:true={column.isEmpty}>
+                <div
+                  class="slds-illustration slds-illustration_small slds-p-around_medium"
+                >
+                  <div class="slds-text-align_center slds-m-vertical_medium">
+                    <h3 class="slds-text-heading_medium">
+                      Nenhuma oportunidade nesta categoria
+                    </h3>
+                    <p class="slds-text-body_regular slds-m-vertical_small">
+                      Comece adicionando uma nova oportunidade nesta fase do
+                      pipeline
+                    </p>
+                    <lightning-button
+                      variant="brand"
+                      label="Nova Oportunidade"
+                      title="Criar nova oportunidade"
+                      onclick={handleCreateNew}
+                      class="slds-m-top_small"
+                    >
+                    </lightning-button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
 </template>

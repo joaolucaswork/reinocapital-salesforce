@@ -1,361 +1,488 @@
 /* Estilos base */
 .slds-box {
-    transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+/* Estilos do cabeçalho */
+.slds-card__header {
+  padding: 0;
+  border-bottom: 1px solid var(--lwc-colorBorder, #dddbda);
+}
+
+.slds-media__body {
+  padding-right: 1rem;
+}
+
+/* Ajustes para o grid do cabeçalho */
+.header-search {
+  min-width: 240px;
+  margin-bottom: 0;
+}
+
+.slds-media__figure lightning-icon {
+  --sds-c-icon-color-background: #0176d3;
+}
+
+/* Alinhamento vertical dos elementos do cabeçalho */
+.slds-card__header .slds-grid {
+  min-height: 88px;
+}
+
+.slds-card__header .slds-col:last-child .slds-grid {
+  height: 100%;
+  align-items: center;
 }
 
 .kanban-column {
-    min-height: 300px;
-    height: calc(100vh - 200px);
-    overflow-y: auto;
+  min-height: 300px;
+  height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
 .records-container {
-    position: relative;
-    height: calc(100vh - 150px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0.5rem;
-    transition: background-color 0.3s ease;
+  position: relative;
+  height: calc(100vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  transition: background-color 0.3s ease;
 }
 
 /* Sistema de abas do Kanban */
 .slds-tabs_default__nav {
-    border-bottom: 2px solid #dddbda;
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 0;
-    overflow-x: auto;
-    background: white;
+  border-bottom: 0px solid var(--lwc-colorBorder, #dddbda);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-gap: 1rem;
+
+  align-items: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
 }
 
 .slds-tabs_default__item {
-    position: relative;
-    padding: 0.75rem 1.5rem;
-    background: #f8f9fd;
-    border-radius: 0.25rem;
-    margin-right: 0.5rem;
-    color: #16325c;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    cursor: pointer;
+  position: relative;
+  padding: 0;
+  background: var(--lwc-colorBackgroundAlt, #f8f9fd);
+  border-radius: var(--lwc-borderRadiusMedium, 0.25rem);
+  margin-right: 0.5rem;
+  color: var(--lwc-colorTextDefault, #16325c);
+  font-weight: 500;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .slds-tabs_default__item:last-child {
-    margin-right: 0;
+  margin-right: 0;
+}
+
+.slds-tabs_default__item .slds-tabs_default__link {
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .slds-tabs_default__item.slds-is-active {
-    background-color: #eef4ff;
-    color: #0070d2;
-    border-bottom: 2px solid #0070d2;
+  background-color: var(--lwc-brandAccessible, #0176d3);
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: var(--lwc-shadowSoftPrimary, 0 2px 2px 0 rgba(0, 0, 0, 0.1));
+}
+
+.slds-tabs_default__item.slds-is-active .slds-badge.slds-badge_lightest {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.slds-tabs_default__item.slds-is-active lightning-icon {
+  --sds-c-icon-color-foreground-default: white;
 }
 
 .slds-tabs_default__item:hover {
-    background-color: #f3f7ff;
+  background-color: var(--lwc-colorBackgroundRowHover, #f3f7ff);
+  border-color: var(--lwc-brandAccessible, #0176d3);
+  transform: translateY(-1px);
+  box-shadow: var(--lwc-shadowSoftPrimary, 0 2px 2px 0 rgba(0, 0, 0, 0.1));
+}
+
+.slds-tabs_default__item:active {
+  transform: translateY(0);
+}
+
+.slds-tabs_default__item.slds-is-active:hover {
+  background-color: var(--lwc-brandAccessibleActive, #014486);
+  transform: none;
+}
+
+.slds-tabs_default__item.drag-over {
+  background-color: var(
+    --lwc-brandBackgroundPrimaryTransparent,
+    rgba(1, 118, 211, 0.1)
+  );
+  border: 2px dashed var(--lwc-brandAccessible, #0176d3);
+  box-shadow: var(--lwc-shadowDrag, 0 2px 4px 0 rgba(0, 0, 0, 0.1));
 }
 
 /* Remove todos os pseudo-elementos e setas */
 .slds-tabs_default__item::after {
-    display: none;
+  display: none;
 }
 
 /* Badge de contagem */
 .slds-badge.slds-badge_lightest {
-    background-color: rgba(0, 112, 210, 0.05);
-    color: #0070d2;
-    font-weight: 400;
-    margin-left: 0.5rem;
-    font-size: 0.75rem;
+  background-color: var(--lwc-colorBackgroundAlt, #f8f9fd);
+  color: #926f1b;
+  font-weight: var(--lwc-fontWeightBold, 600);
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Para o badge na aba ativa, mantemos o background transparente e texto branco para contraste */
+.slds-tabs_default__item.slds-is-active .slds-badge.slds-badge_lightest {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 /* Estilos para os cards e containers */
 .records-container.drag-over {
-    background-color: rgba(0, 112, 210, 0.1);
-    border: 2px dashed #0070d2;
+  background-color: var(
+    --lwc-brandBackgroundPrimaryTransparent,
+    rgba(0, 112, 210, 0.1)
+  );
+  border: 2px dashed var(--lwc-brandAccessible, #0070d2);
 }
 
 .kanban-card {
-    background: #ffffff;
-    border: 1px solid #d8dde6;
-    border-left: 4px solid #0070d2;
-    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.05);
-    cursor: move;
-    position: relative;
-    transition: all 0.3s ease;
+  background: var(--lwc-colorBackground, #ffffff);
+  border: 1px solid var(--lwc-colorBorder, #d8dde6);
+  border-left: 4px solid var(--lwc-brandAccessible, #0070d2);
+  box-shadow: var(--lwc-shadowDrag, 0 2px 3px 0 rgba(0, 0, 0, 0.05));
+  cursor: move;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
 .kanban-card:hover {
-    transform: translateY(-2px);
+  transform: translateY(-2px);
+  box-shadow: var(--lwc-shadowDropDown, 0 2px 3px 0 rgba(0, 0, 0, 0.16));
 }
 
 .kanban-card.dragging {
-    opacity: 0.7;
-    transform: scale(0.98);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+  opacity: 0.7;
+  transform: scale(0.98);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
 }
 
 /* Estilo do grid e colunas */
 .slds-grid {
-    display: flex;
-    align-items: center;
-    margin: 0;
-    width: 100%;
-    min-width: 0;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .slds-col {
-    position: relative;
-    padding: 0.25rem;
-    min-width: 0;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  position: relative;
+  padding: 0.25rem;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Tamanhos fixos das colunas */
 .col-checkbox {
-    width: 30px;
-    min-width: 30px;
-    max-width: 40px;
+  width: 30px;
+  min-width: 30px;
+  max-width: 40px;
 }
 
 .col-type {
-    width: 50px;
-    min-width: 50px;
+  width: 50px;
+  min-width: 50px;
 }
 
 .col-name {
-    width: 200px;
-    min-width: 100px;
+  width: 200px;
+  min-width: 100px;
+}
+
+.col-account {
+  width: 180px;
+  min-width: 100px;
+}
+
+.col-amount {
+  width: 120px;
+  min-width: 100px;
+}
+
+.col-probability {
+  width: 100px;
+  min-width: 80px;
+}
+
+.col-date {
+  width: 100px;
+  min-width: 80px;
+}
+
+.col-stage {
+  width: 140px;
+  min-width: 120px;
+}
+
+.col-actions {
+  width: 60px;
+  min-width: 50px;
 }
 
 /* Cabeçalhos ordenáveis */
 .sortable-header {
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    padding-right: 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 1.5rem;
 }
 
 .sortable-header:hover {
-    background-color: #f3f3f3;
+  background-color: var(--lwc-colorBackgroundRowHover, #f3f3f3);
 }
 
 .sortable-header::after {
-    content: '↕';
-    position: absolute;
-    right: 0.5rem;
-    opacity: 0.5;
+  content: "↕";
+  position: absolute;
+  right: 0.5rem;
+  opacity: 0.5;
 }
 
 .sortable-header[data-sort="asc"]::after {
-    content: '↑';
-    opacity: 1;
+  content: "↑";
+  opacity: 1;
 }
 
-.sortable-header[data-sort="desc"]::after {
-    content: '↓';
-    opacity: 1;
+sorta-header[data-sort="desc"]::after {
+  content: "↓";
+  opacity: 1;
 }
 
 /* Estilização da barra de rolagem */
 .records-container::-webkit-scrollbar {
-    width: 5px;
+  width: 5px;
 }
 
 .records-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
+  background: var(--lwc-colorBackgroundAlt, #f1f1f1);
+  border-radius: var(--lwc-borderRadiusSmall, 3px);
 }
 
 .records-container::-webkit-scrollbar-thumb {
-    background: #d8dde6;
-    border-radius: 3px;
+  background: var(--lwc-colorBorder, #d8dde6);
+  border-radius: var(--lwc-borderRadiusSmall, 3px);
 }
 
 .records-container::-webkit-scrollbar-thumb:hover {
-    background: #b5bcc9;
+  background: #b5bcc9;
 }
 
 /* Menu dropdown e ações */
 .slds-dropdown-trigger {
-    position: relative;
-    margin-left: auto;
+  position: relative;
+  margin-left: auto;
 }
 
 .slds-dropdown-trigger .slds-dropdown {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 100%;
-    width: 200px;
-    background: white;
-    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.16);
-    border: 1px solid #dddbda;
-    border-radius: 0.25rem;
-    z-index: 9000;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 200px;
+  background: var(--lwc-colorBackground, white);
+  box-shadow: var(--lwc-shadowDropDown, 0 2px 3px 0 rgba(0, 0, 0, 0.16));
+  border: 1px solid var(--lwc-colorBorder, #dddbda);
+  border-radius: var(--lwc-borderRadiusMedium, 0.25rem);
+  z-index: 9000;
 }
 
 .slds-dropdown-trigger.slds-is-open .slds-dropdown {
-    display: block !important;
+  display: block !important;
 }
 
 .slds-dropdown__item > a {
-    display: block;
-    padding: 0.5rem 0.75rem;
-    color: #000000;
-    white-space: nowrap;
-    cursor: pointer;
+  display: block;
+  padding: 0.5rem 0.75rem;
+  color: var(--lwc-colorTextDefault, #000000);
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .slds-dropdown__item > a:hover,
 .slds-dropdown__item > a:focus {
-    background-color: #f3f2f2;
-    text-decoration: none;
-    outline: 0;
+  background-color: var(--lwc-colorBackgroundRowHover, #f3f2f2);
+  text-decoration: none;
+  outline: 0;
 }
 
 /* Combobox de estágio */
 .stage-selector lightning-combobox {
-    --sds-c-combobox-color-background: transparent;
-    --sds-c-combobox-color-border: transparent;
+  --sds-c-combobox-color-background: transparent;
+  --sds-c-combobox-color-border: transparent;
 }
 
 .stage-selector .slds-combobox_container {
-    min-width: 140px;
+  min-width: 140px;
 }
 
 .stage-selector .slds-combobox__input {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    padding: 0.25rem 0.75rem;
-    background-color: #f3f3f3;
-    border-radius: 0.25rem;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    color: #444444;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  background-color: #f3f3f3;
+  border-radius: 0.25rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: #444444;
 }
 
 .stage-selector .slds-combobox__input:hover {
-    background-color: #e5e5e5;
-    border-color: #dddbda;
+  background-color: #e5e5e5;
+  border-color: #dddbda;
 }
 
 .stage-selector .slds-combobox__input:focus {
-    background-color: white;
-    border-color: #0070d2;
-    box-shadow: 0 0 3px #0070d2;
+  background-color: white;
+  border-color: #0070d2;
+  box-shadow: 0 0 3px #0070d2;
 }
 
-/* Cores por estágio */
+/* Cores por estágio específicas da instituição */
 .stage-selector[data-stage="Sem contato"] .slds-combobox__input {
-    background-color: #f3f3f3;
-    color: #444444;
+  background-color: #f3f3f3;
+  color: #16325c;
 }
 
 .stage-selector[data-stage="Primeiro Contato"] .slds-combobox__input {
-    background-color: #faf3dd;
-    color: #514f4d;
+  background-color: #fdf0d4;
+  color: #514f4d;
 }
 
 .stage-selector[data-stage="Primeira Reunião"] .slds-combobox__input {
-    background-color: #e1f3fc;
-    color: #0070d2;
+  background-color: #d8e6fe;
+  color: #1b5297;
 }
 
 .stage-selector[data-stage="Em Negociação"] .slds-combobox__input {
-    background-color: #d8edff;
-    color: #0070d2;
+  background-color: #cce9ff;
+  color: #1b5297;
 }
 
 .stage-selector[data-stage="Análise Contratual"] .slds-combobox__input {
-    background-color: #cdefc4;
-    color: #2e844a;
+  background-color: #45c65a;
+  color: #ffffff;
 }
 
 .stage-selector[data-stage="Convertido"] .slds-combobox__input {
-    background-color: #45c65a;
-    color: white;
+  background-color: #027e46;
+  color: #ffffff;
 }
 
 .stage-selector[data-stage="Perdido"] .slds-combobox__input {
-    background-color: #ffeded;
-    color: #ba0517;
+  background-color: #ffe3e3;
+  color: #ba0517;
 }
 
 /* Animação de loading durante atualização do estágio */
 .stage-selector.stage-updating {
-    position: relative;
+  position: relative;
 }
 
 .stage-selector.stage-updating::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.4),
-        transparent
-    );
-    animation: shimmer 1.5s infinite;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
 }
 
 @keyframes shimmer {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(100%);
-    }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Pesquisa e cabeçalho */
 .header-search {
-    min-width: 300px;
-    padding-right: 1rem;
+  min-width: 240px;
+  padding-right: 1rem;
 }
 
 .search-box {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* Ajustes para o ícone de oportunidade */
 .slds-media__figure lightning-icon {
-    --sds-c-icon-color-background: #0176d3;
+  --sds-c-icon-color-background: #0176d3;
+}
+
+.slds-card__header .slds-text-heading_medium {
+  margin-bottom: 4px;
+}
+
+.records-container .slds-illustration_small {
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 /* Responsividade */
 @media screen and (max-width: 768px) {
-    .kanban-column {
-        height: auto;
-        min-height: 200px;
-        max-height: 400px;
-    }
+  .kanban-column {
+    height: auto;
+    min-height: 200px;
+    max-height: 400px;
+  }
 
-    .slds-tabs_default__item {
-        padding: 0.5rem;
-        font-size: 0.8rem;
-    }
+  .slds-tabs_default__item {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
 
-    .records-container {
-        height: calc(100vh - 200px);
-        max-height: 400px;
-    }
+  .records-container {
+    height: calc(100vh - 200px);
+    max-height: 400px;
+  }
 
-    .slds-grid {
-        flex-wrap: wrap;
-    }
+  .slds-grid {
+    flex-wrap: wrap;
+  }
 
-    .slds-col {
-        flex: 1 1 50%;
-    }
+  .slds-col {
+    flex: 1 1 50%;
+  }
 
-    .list-header {
-        display: none;
-    }
+  .list-header {
+    display: none;
+  }
 }
