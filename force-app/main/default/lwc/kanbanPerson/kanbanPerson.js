@@ -10,6 +10,7 @@ import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
 import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
 import deleteRecord from "@salesforce/apex/KanbanDataController.deleteRecord";
 import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
+import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
 
 export default class KanbanPerson extends NavigationMixin(LightningElement) {
   // Propriedades reativas do componente
@@ -20,6 +21,16 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   activeTabIndex = 0; // Índice da aba ativa
 
   activeActionButton = null;
+
+  @track selectedRecords = new Set();
+  @track showBulkActions = false;
+
+  @track searchTerm = "";
+  originalRecordsData;
+
+  get hasSelectedRecords() {
+    return this.selectedRecords.size > 0;
+  }
 
   // Mapeamento de status para ícones com os estágios corretos de Oportunidade
   statusIconMap = {
@@ -40,10 +51,30 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     this.wiredRecordsResult = result;
     if (result.data) {
       this.error = undefined;
-      this.formatData(result.data);
+      this.originalRecordsData = result.data;
+      this.formatData(this.filterRecords(result.data));
     } else if (result.error) {
       this.error = result.error;
       this.showToast("Erro", "Erro ao carregar registros", "error");
+    }
+  }
+
+  filterRecords(records) {
+    if (!this.searchTerm) return records;
+
+    const searchTermLower = this.searchTerm.toLowerCase();
+    return records.filter(
+      (record) =>
+        record.Name?.toLowerCase().includes(searchTermLower) ||
+        record.Account?.Name?.toLowerCase().includes(searchTermLower) ||
+        record.StageName?.toLowerCase().includes(searchTermLower)
+    );
+  }
+
+  handleSearch(event) {
+    this.searchTerm = event.target.value;
+    if (this.originalRecordsData) {
+      this.formatData(this.filterRecords(this.originalRecordsData));
     }
   }
 
@@ -126,12 +157,21 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
    */
   handleDrag(event) {
     this.draggedRecordId = event.target.dataset.id;
+    const item = event.currentTarget;
 
     // Adicionar classe para estilo durante drag
-    event.target.classList.add("dragging");
+    item.classList.add("dragging");
 
     // Configurar o efeito de arrastar
     event.dataTransfer.effectAllowed = "move";
+
+    // Adicionar dica visual
+    const dropTargets = this.template.querySelectorAll(".records-container");
+    dropTargets.forEach((target) => {
+      if (!target.classList.contains("drag-over")) {
+        target.classList.add("potential-drop");
+      }
+    });
   }
 
   /**
@@ -268,23 +308,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     });
   }
 
-  handleChangeOwner(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const recordId = event.currentTarget.dataset.id;
-
-    // Navega para a página de alteração de proprietário
-    this[NavigationMixin.Navigate]({
-      type: "standard__recordPage",
-      attributes: {
-        recordId: recordId,
-        objectApiName: "Opportunity",
-        actionName: "changeOwner"
-      }
-    });
-  }
-
   handleDelete(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -340,5 +363,67 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         actionName: "view"
       }
     });
+  }
+
+  handleRecordSelection(event) {
+    const recordId = event.target.dataset.id;
+    if (event.target.checked) {
+      this.selectedRecords.add(recordId);
+    } else {
+      this.selectedRecords.delete(recordId);
+    }
+    this.showBulkActions = this.selectedRecords.size > 0;
+  }
+
+  async handleBulkDelete() {
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir todos os registros selecionados?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteRecordsInBulk({
+        recordIds: Array.from(this.selectedRecords)
+      });
+      this.showToast("Sucesso", "Registros excluídos com sucesso", "success");
+      this.selectedRecords.clear();
+      this.showBulkActions = false;
+      return refreshApex(this.wiredRecordsResult);
+    } catch (error) {
+      this.showToast("Erro", error.body.message, "error");
+    }
+  }
+
+  get stageOptions() {
+    return [
+      { label: "Sem contato", value: "Sem contato" },
+      { label: "Primeiro Contato", value: "Primeiro Contato" },
+      { label: "Primeira Reunião", value: "Primeira Reunião" },
+      { label: "Em Negociação", value: "Em Negociação" },
+      { label: "Análise Contratual", value: "Análise Contratual" },
+      { label: "Convertido", value: "Convertido" },
+      { label: "Perdido", value: "Perdido" }
+    ];
+  }
+
+  handleStageChange(event) {
+    event.stopPropagation(); // Previne o evento de propagar para o drag
+    const recordId = event.target.dataset.id;
+    const newStatus = event.target.value;
+
+    updateRecordStatus({
+      recordId: recordId,
+      newStatus: newStatus
+    })
+      .then(() => {
+        this.showToast("Sucesso", "Estágio atualizado com sucesso", "success");
+        return refreshApex(this.wiredRecordsResult);
+      })
+      .catch((error) => {
+        this.showToast("Erro", error.body.message, "error");
+      });
   }
 }
