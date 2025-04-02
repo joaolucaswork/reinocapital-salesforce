@@ -142,15 +142,57 @@ article[data-id] .slds-media__figure .slds-icon_container {
     background: #ffffff;
     border: 1px solid #e5e5e5;
     transition: all 0.2s ease;
-   
+    cursor: grab;
 }
 
-/* Estilo para as células da grid */
+/* Estilos para as células da grid */
 .slds-col {
+    position: relative;
     padding: 0.25rem;
-    min-width: 0; /* Permite que as colunas encolham */
+    min-width: 0;
     white-space: nowrap;
-    
+    text-overflow: ellipsis;
+}
+
+/* Ajuste para o grid principal */
+.slds-grid {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Tamanhos fixos das colunas */
+.col-checkbox { width: 30px; min-width: 30px; max-width: 40px; }
+.col-type { width: 50px; min-width: 50px; }
+.col-name { width: 200px; min-width: 100px; }
+.col-account { width: 200px; min-width: 100px; }
+.col-amount { width: 120px; min-width: 80px; }
+.col-date { width: 100px; min-width: 80px; }
+.col-stage { width: 100px; min-width: 80px; }
+.col-actions { width: 60px; min-width: 60px; max-width: 60px; }
+
+/* Estilo para o header resizeable */
+.resizable-header {
+    position: relative;
+    user-select: none;
+}
+
+.resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    cursor: col-resize;
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+}
+
+.resize-handle:hover,
+.resize-handle.resizing {
+    background-color: #0070d2;
 }
 
 /* Ajuste específico para coluna de ações */
@@ -199,8 +241,8 @@ article[data-id] .slds-media__figure .slds-icon_container {
 /* Estilo para o cabeçalho da lista */
 .list-header {
     position: sticky;
-    top: 0;
     
+    top: 0;
     z-index: 2;
     padding: 0.5rem;
     border-bottom: 1px solid #dddbda;
@@ -233,7 +275,7 @@ article[data-id] .slds-media__figure .slds-icon_container {
 }
 
 .slds-dropdown-trigger.slds-is-open .slds-dropdown {
-    display: block;
+    display: block !important;
 }
 
 .slds-dropdown__item > a {
@@ -261,17 +303,74 @@ article[data-id] .slds-media__figure .slds-icon_container {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid#dddbda;
+    border: 1px solid #dddbda;
     border-radius: 0.25rem;
+    background-color: white;
+    position: relative;
 }
 
-.slds-button_icon-border-filled:hover {
-    
+.slds-button_icon-border-filled:hover,
+.slds-button_icon-border-filled:focus {
+    background-color: #f3f2f2;
     border-color: #dddbda;
 }
 
-.slds-button_icon-border-filled lightning-icon {
-    --sds-c-icon-color-foreground-default: #706e6b;
+/* Estilos para o checkbox e ícones */
+.slds-col.slds-size_1-of-24 lightning-input {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+.slds-col.slds-size_1-of-24 {
+    min-width: 30px;
+    max-width: 30px;
+    padding: 0 2px;
+}
+
+/* Ajuste para o menu de ações */
+.slds-col.slds-size_1-of-12.slds-text-align_right {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 0.5rem;
+}
+
+/* Garantir que o dropdown fique sobre outros elementos */
+.slds-dropdown-trigger .slds-dropdown {
+    z-index: 9000;
+}
+
+/* Ajuste para os botões de ação */
+.slds-button_icon-border-filled {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Estilos para o checkbox e ícones */
+.slds-col.slds-size_1-of-12 lightning-input,
+.slds-col.slds-size_1-of-12 lightning-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ajuste para o menu de ações */
+.slds-col.slds-size_1-of-12.slds-text-align_right {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 0.5rem;
+}
+
+/* Garantir que o dropdown fique sobre outros elementos */
+.slds-dropdown-trigger .slds-dropdown {
+    z-index: 9000;
+}
+
+/* Ajuste para os botões de ação */
+.slds-button_icon-border-filled {
+    width: 2rem;
+    height: 2rem;
 }
 
 /* Responsividade para telas menores */
@@ -311,4 +410,73 @@ article[data-id] .slds-media__figure .slds-icon_container {
     margin: 0;
     width: 100%;
     min-width: 0; /* Previne overflow */
+}
+
+.search-box {
+    min-width: 300px;
+    margin-bottom: 0.5rem;
+}
+
+/* Estilos para o combobox de estágio */
+.stage-selector lightning-combobox {
+    --sds-c-combobox-color-background: transparent;
+    --sds-c-combobox-color-border: transparent;
+}
+
+.stage-selector .slds-combobox_container {
+    min-width: 120px;
+}
+
+.stage-selector .slds-combobox__input {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    padding: 0.125rem 0.5rem;
+    background-color: #f3f3f3;
+    border-radius: 0.25rem;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.stage-selector .slds-combobox__input:hover,
+.stage-selector .slds-combobox__input:focus {
+    background-color: #e5e5e5;
+    border-color: #dddbda;
+}
+
+/* Melhorar feedback visual do drag and drop */
+.record-item.dragging {
+    opacity: 0.7;
+    border: 2px dashed #0070d2;
+    background-color: #f3f3f3;
+    transform: scale(0.98);
+    cursor: grabbing;
+}
+
+.records-container.drag-over {
+    background-color: rgba(0, 112, 210, 0.1);
+    border: 2px dashed #0070d2;
+}
+
+.slds-tabs_default__item.drag-over::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #0070d2;
+    animation: pulse 1.5s infinite;
+}
+
+/* Dica visual para drag and drop */
+.record-item::before {
+    content: '↕';
+    position: absolute;
+    left: -20px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.record-item:hover::before {
+    opacity: 0.5;
 }

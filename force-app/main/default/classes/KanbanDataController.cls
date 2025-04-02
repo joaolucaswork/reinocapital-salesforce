@@ -143,4 +143,26 @@ public with sharing class KanbanDataController {
       throw new AuraHandledException(e.getMessage());
     }
   }
+
+  @AuraEnabled
+  public static void deleteRecordsInBulk(List<Id> recordIds) {
+    // Verificar permissões CRUD
+    if (!Schema.sObjectType.Opportunity.isDeletable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para excluir oportunidades.'
+      );
+    }
+
+    try {
+      List<Opportunity> oppsToDelete = [
+        SELECT Id
+        FROM Opportunity
+        WHERE Id IN :recordIds
+        WITH SECURITY_ENFORCED
+      ];
+      delete oppsToDelete;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
 }
