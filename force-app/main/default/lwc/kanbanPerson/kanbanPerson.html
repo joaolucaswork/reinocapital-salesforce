@@ -11,41 +11,62 @@
 <template>
     <!-- Container principal com estilo de card do SLDS -->
     <div class="slds-card slds-card_boundary">
-        <div class="slds-card__header slds-grid slds-grid_align-spread">
-            <div class="slds-grid slds-grid_vertical">
-                <h1 class="slds-text-heading_medium slds-p-around_medium">Oportunidades - Kanban</h1>
-                <div class="slds-p-horizontal_medium">
-                    <lightning-input 
-                        type="search"
-                        label="Pesquisar oportunidades"
-                        onchange={handleSearch}
-                        variant="label-hidden"
-                        placeholder="Digite para pesquisar..."
-                        class="search-box">
-                    </lightning-input>
-                </div>
-            </div>
-            <div class="slds-grid slds-grid_align-end">
-                <!-- Botões de ação em massa -->
-                <template if:true={showBulkActions}>
-                    <div class="slds-button-group slds-m-right_medium">
-                        <lightning-button
-                            variant="destructive"
-                            label="Excluir Selecionados"
-                            title="Excluir Registros"
-                            onclick={handleBulkDelete}
-                            class="slds-m-right_x-small">
-                        </lightning-button>
+        <div class="slds-card__header">
+            <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
+                <!-- Título e ícone -->
+                <div class="slds-col slds-size_1-of-2 slds-grid slds-grid_vertical-align-center">
+                    <div class="slds-media slds-media_center slds-p-around_medium">
+                        <div class="slds-media__figure">
+                            <lightning-icon icon-name="standard:opportunity" 
+                                          size="medium" 
+                                          alternative-text="Oportunidades"
+                                          title="Oportunidades">
+                            </lightning-icon>
+                        </div>
+                        <div class="slds-media__body">
+                            <h1 class="slds-text-heading_medium">Oportunidades - Kanban </h1>
+                        </div>
                     </div>
-                </template>
-                <lightning-button-icon 
-                    icon-name="utility:refresh" 
-                    variant="border-filled" 
-                    alternative-text="Atualizar" 
-                    title="Atualizar"
-                    class="slds-m-right_medium"
-                    onclick={handleRefresh}>
-                </lightning-button-icon>
+                </div>
+                
+                <!-- Campo de pesquisa e botões -->
+                <div class="slds-col slds-size_1-of-2 slds-grid slds-grid_align-end slds-grid_vertical-align-center">
+                    <div class="slds-form-element header-search">
+                        <div class="slds-form-element__control">
+                            <lightning-input 
+                                type="search"
+                                label="Pesquisar oportunidades"
+                                onchange={handleSearch}
+                                variant="label-hidden"
+                                placeholder="Pesquisa nesta lista..."
+                                class="search-box">
+                            </lightning-input>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões de ação -->
+                    <div class="slds-grid slds-grid_align-end">
+                        <template if:true={showBulkActions}>
+                            <div class="slds-button-group slds-m-right_medium">
+                                <lightning-button
+                                    variant="destructive"
+                                    label="Excluir Selecionados"
+                                    title="Excluir Registros"
+                                    onclick={handleBulkDelete}
+                                    class="slds-m-right_x-small">
+                                </lightning-button>
+                            </div>
+                        </template>
+                        <lightning-button-icon 
+                            icon-name="utility:refresh" 
+                            variant="border-filled" 
+                            alternative-text="Atualizar" 
+                            title="Atualizar"
+                            class="slds-m-left_x-small"
+                            onclick={handleRefresh}>
+                        </lightning-button-icon>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -96,19 +117,35 @@
                                 </div>
                                 <!-- Nome da Oportunidade -->
                                 <div class="slds-col col-name">
-                                    <div class="slds-text-title_caps slds-text-color_weak">Nome da Oportunidade</div>
+                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
+                                         onclick={handleSort} 
+                                         data-field="Name">
+                                        Nome da Oportunidade
+                                    </div>
                                 </div>
                                 <!-- Nome da Conta -->
                                 <div class="slds-col col-account">
-                                    <div class="slds-text-title_caps slds-text-color_weak">Nome da Conta</div>
+                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
+                                         onclick={handleSort} 
+                                         data-field="AccountName">
+                                        Nome da Conta
+                                    </div>
                                 </div>
                                 <!-- Valor -->
                                 <div class="slds-col col-amount">
-                                    <div class="slds-text-title_caps slds-text-color_weak">Valor</div>
+                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
+                                         onclick={handleSort} 
+                                         data-field="Amount">
+                                        Valor
+                                    </div>
                                 </div>
                                 <!-- Data de Fechamento -->
                                 <div class="slds-col col-date">
-                                    <div class="slds-text-title_caps slds-text-color_weak">Data de Fechamento</div>
+                                    <div class="slds-text-title_caps slds-text-color_weak sortable-header" 
+                                         onclick={handleSort} 
+                                         data-field="CloseDate">
+                                        Data de Fechamento
+                                    </div>
                                 </div>
                                 <!-- Estágio -->
                                 <div class="slds-col col-stage">
@@ -187,7 +224,7 @@
                                             </div>
                                             <!-- Estágio -->
                                             <div class="slds-col col-stage">
-                                                <div class="stage-selector">
+                                                <div class="stage-selector" data-stage={record.StageName}>
                                                     <lightning-combobox
                                                         name="stage"
                                                         variant="label-hidden"

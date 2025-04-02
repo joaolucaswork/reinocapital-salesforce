@@ -13,20 +13,19 @@ import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
 import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
 
 export default class KanbanPerson extends NavigationMixin(LightningElement) {
-  // Propriedades reativas do componente
-  @track columns = []; // Array de colunas do Kanban
-  @track error; // Armazena erros para exibição
-  wiredRecordsResult; // Armazena resultado do wire para refresh
-  draggedRecordId; // ID do registro sendo arrastado
-  activeTabIndex = 0; // Índice da aba ativa
-
-  activeActionButton = null;
-
+  @track columns = [];
+  @track error;
+  @track searchTerm = "";
+  @track sortBy = "Name";
+  @track sortDirection = "asc";
   @track selectedRecords = new Set();
   @track showBulkActions = false;
 
-  @track searchTerm = "";
+  wiredRecordsResult;
   originalRecordsData;
+  draggedRecordId;
+  activeTabIndex = 0;
+  activeActionButton = null;
 
   get hasSelectedRecords() {
     return this.selectedRecords.size > 0;
@@ -52,11 +51,25 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     if (result.data) {
       this.error = undefined;
       this.originalRecordsData = result.data;
-      this.formatData(this.filterRecords(result.data));
+      this.processData();
     } else if (result.error) {
       this.error = result.error;
       this.showToast("Erro", "Erro ao carregar registros", "error");
     }
+  }
+
+  // Novo método para processar os dados com todas as transformações necessárias
+  processData() {
+    if (!this.originalRecordsData) return;
+
+    // 1. Aplicar filtro de pesquisa
+    let processedData = this.filterRecords(this.originalRecordsData);
+
+    // 2. Aplicar ordenação
+    processedData = this.sortRecords(processedData);
+
+    // 3. Formatar dados para o kanban
+    this.formatData(processedData);
   }
 
   filterRecords(records) {
@@ -73,9 +86,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
 
   handleSearch(event) {
     this.searchTerm = event.target.value;
-    if (this.originalRecordsData) {
-      this.formatData(this.filterRecords(this.originalRecordsData));
-    }
+    this.processData();
   }
 
   /**
@@ -95,7 +106,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
 
     this.columns = statuses.map((status, index) => {
       // Filtrar registros por status
-      const statusRecords = records.filter(
+      let statusRecords = records.filter(
         (record) => record.StageName === status
       );
 
@@ -209,6 +220,14 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       .forEach((card) => card.classList.remove("dragging"));
 
     if (this.draggedRecordId && newStatus) {
+      // Encontrar o registro atual para comparar o estágio
+      const currentRecord = this.findRecordById(this.draggedRecordId);
+      if (currentRecord && currentRecord.StageName === newStatus) {
+        // Se o estágio é o mesmo, apenas atualiza a UI sem mostrar mensagem
+        return;
+      }
+
+      // Se chegou aqui, o estágio é diferente, então atualiza
       updateRecordStatus({
         recordId: this.draggedRecordId,
         newStatus: newStatus
@@ -314,17 +333,34 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
 
     const recordId = event.currentTarget.dataset.id;
 
-    // Confirma antes de deletar
-    if (confirm("Tem certeza que deseja excluir este registro?")) {
-      deleteRecord({ recordId: recordId })
-        .then(() => {
-          this.showToast("Sucesso", "Registro excluído com sucesso", "success");
-          return refreshApex(this.wiredRecordsResult);
-        })
-        .catch((error) => {
-          this.showToast("Erro", error.body.message, "error");
-        });
-    }
+    // Usando ShowToastEvent para confirmação
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Confirmar exclusão",
+        message: "Tem certeza que deseja excluir este registro?",
+        variant: "warning",
+        mode: "sticky",
+        actions: [
+          { label: "Sim", name: "confirm" },
+          { label: "Não", name: "cancel" }
+        ]
+      })
+    ).then((response) => {
+      if (response === "confirm") {
+        deleteRecord({ recordId: recordId })
+          .then(() => {
+            this.showToast(
+              "Sucesso",
+              "Registro excluído com sucesso",
+              "success"
+            );
+            return refreshApex(this.wiredRecordsResult);
+          })
+          .catch((error) => {
+            this.showToast("Erro", error.body.message, "error");
+          });
+      }
+    });
   }
 
   handleClone(event) {
@@ -375,26 +411,40 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     this.showBulkActions = this.selectedRecords.size > 0;
   }
 
-  async handleBulkDelete() {
-    if (
-      !confirm(
-        "Tem certeza que deseja excluir todos os registros selecionados?"
-      )
-    ) {
-      return;
-    }
-
-    try {
-      await deleteRecordsInBulk({
-        recordIds: Array.from(this.selectedRecords)
-      });
-      this.showToast("Sucesso", "Registros excluídos com sucesso", "success");
-      this.selectedRecords.clear();
-      this.showBulkActions = false;
-      return refreshApex(this.wiredRecordsResult);
-    } catch (error) {
-      this.showToast("Erro", error.body.message, "error");
-    }
+  handleBulkDelete() {
+    // Usando ShowToastEvent para confirmação em massa
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Confirmar exclusão em massa",
+        message:
+          "Tem certeza que deseja excluir todos os registros selecionados?",
+        variant: "warning",
+        mode: "sticky",
+        actions: [
+          { label: "Sim", name: "confirm" },
+          { label: "Não", name: "cancel" }
+        ]
+      })
+    ).then((response) => {
+      if (response === "confirm") {
+        deleteRecordsInBulk({
+          recordIds: Array.from(this.selectedRecords)
+        })
+          .then(() => {
+            this.showToast(
+              "Sucesso",
+              "Registros excluídos com sucesso",
+              "success"
+            );
+            this.selectedRecords.clear();
+            this.showBulkActions = false;
+            refreshApex(this.wiredRecordsResult);
+          })
+          .catch((error) => {
+            this.showToast("Erro", error.body.message, "error");
+          });
+      }
+    });
   }
 
   get stageOptions() {
@@ -410,9 +460,29 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   }
 
   handleStageChange(event) {
-    event.stopPropagation(); // Previne o evento de propagar para o drag
+    event.preventDefault();
+    event.stopPropagation();
+
     const recordId = event.target.dataset.id;
     const newStatus = event.target.value;
+    const element = event.target.closest(".stage-selector");
+
+    // Encontrar o registro atual para comparar o estágio
+    const currentRecord = this.findRecordById(recordId);
+    if (currentRecord && currentRecord.StageName === newStatus) {
+      // Se o estágio é o mesmo, apenas atualiza a UI sem mostrar mensagem
+      return;
+    }
+
+    // Atualizar atributo para mudança visual imediata
+    if (element) {
+      element.dataset.stage = newStatus;
+    }
+
+    // Adicionar classe de loading
+    if (element) {
+      element.classList.add("stage-updating");
+    }
 
     updateRecordStatus({
       recordId: recordId,
@@ -420,10 +490,82 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     })
       .then(() => {
         this.showToast("Sucesso", "Estágio atualizado com sucesso", "success");
+        // Remover classe de loading
+        if (element) {
+          element.classList.remove("stage-updating");
+        }
         return refreshApex(this.wiredRecordsResult);
       })
       .catch((error) => {
+        // Em caso de erro, reverter a mudança visual
+        if (element && currentRecord) {
+          element.dataset.stage = currentRecord.StageName;
+        }
+        if (element) {
+          element.classList.remove("stage-updating");
+        }
         this.showToast("Erro", error.body.message, "error");
       });
+  }
+
+  // Método auxiliar para encontrar um registro pelo Id
+  findRecordById(recordId) {
+    for (const column of this.columns) {
+      const record = column.records.find((rec) => rec.Id === recordId);
+      if (record) {
+        return record;
+      }
+    }
+    return null;
+  }
+
+  handleSort(event) {
+    const field = event.currentTarget.dataset.field;
+    const currentSortDir = this.sortDirection;
+
+    // Toggle sort direction
+    this.sortDirection =
+      field === this.sortBy && currentSortDir === "asc" ? "desc" : "asc";
+    this.sortBy = field;
+
+    // Atualizar ícone de ordenação
+    this.template.querySelectorAll(".sortable-header").forEach((header) => {
+      header.setAttribute(
+        "data-sort",
+        header.dataset.field === field ? this.sortDirection : ""
+      );
+    });
+
+    this.processData();
+  }
+
+  sortRecords(records) {
+    const isReverse = this.sortDirection === "desc";
+    const field = this.sortBy;
+
+    return [...records].sort((a, b) => {
+      let valueA = this.getFieldValue(a, field);
+      let valueB = this.getFieldValue(b, field);
+
+      // Tratar valores nulos/undefined
+      if (valueA === null || valueA === undefined) return isReverse ? -1 : 1;
+      if (valueB === null || valueB === undefined) return isReverse ? 1 : -1;
+
+      // Converter para string para comparação de texto
+      if (typeof valueA === "string") {
+        valueA = valueA.toLowerCase();
+        valueB = valueB.toLowerCase();
+      }
+
+      return isReverse ? (valueA < valueB ? 1 : -1) : valueA < valueB ? -1 : 1;
+    });
+  }
+
+  getFieldValue(record, field) {
+    // Tratar campos aninhados (ex: Account.Name)
+    if (field === "AccountName") {
+      return record.Account?.Name;
+    }
+    return record[field];
   }
 }
