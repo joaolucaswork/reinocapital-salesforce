@@ -194,7 +194,7 @@
                   <div
                     class="slds-text-title_caps slds-text-color_weak sortable-header"
                     onclick={handleSort}
-                    data-field="Probabilidade_da_Oportunidade__c"
+                    data-field="Probability"
                   >
                     Probabilidade
                   </div>
@@ -290,17 +290,8 @@
                       </div>
                       <!-- Probabilidade -->
                       <div class="slds-col col-probability">
-                        <div
-                          class="slds-truncate"
-                          title={record.Probabilidade_da_Oportunidade__c}
-                        >
-                          <lightning-formatted-number
-                            value={record.Probabilidade_da_Oportunidade__c}
-                            format-style="percent-fixed"
-                            minimum-fraction-digits="0"
-                            maximum-fraction-digits="0"
-                          >
-                          </lightning-formatted-number>
+                        <div class="slds-truncate probability-value">
+                          {record.Probabilidade_da_Oportunidade__c}
                         </div>
                       </div>
                       <!-- Data -->

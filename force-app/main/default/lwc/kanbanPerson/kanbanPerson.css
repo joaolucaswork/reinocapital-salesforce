@@ -92,27 +92,24 @@
 }
 
 .slds-tabs_default__item.slds-is-active {
-  background-color: var(--lwc-brandAccessible, #0176d3);
-  color: white;
-  border: none;
+  background-color: rgba(146, 111, 27, 0.15);
+  color: var(--lwc-colorTextDefault, #16325c);
+  border: 1px solid #926f1b;
   font-weight: 600;
-  box-shadow: var(--lwc-shadowSoftPrimary, 0 2px 2px 0 rgba(0, 0, 0, 0.1));
 }
 
 .slds-tabs_default__item.slds-is-active .slds-badge.slds-badge_lightest {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  background-color: #ffffff;
+  color: #926f1b;
 }
 
 .slds-tabs_default__item.slds-is-active lightning-icon {
-  --sds-c-icon-color-foreground-default: white;
+  --sds-c-icon-color-foreground-default: var(--lwc-colorTextDefault, #16325c);
 }
 
 .slds-tabs_default__item:hover {
   background-color: var(--lwc-colorBackgroundRowHover, #f3f7ff);
-  border-color: var(--lwc-brandAccessible, #0176d3);
-  transform: translateY(-1px);
-  box-shadow: var(--lwc-shadowSoftPrimary, 0 2px 2px 0 rgba(0, 0, 0, 0.1));
+  border-color: #926f1b;
 }
 
 .slds-tabs_default__item:active {
@@ -120,16 +117,13 @@
 }
 
 .slds-tabs_default__item.slds-is-active:hover {
-  background-color: var(--lwc-brandAccessibleActive, #014486);
+  background-color: rgba(146, 111, 27, 0.15);
   transform: none;
 }
 
 .slds-tabs_default__item.drag-over {
-  background-color: var(
-    --lwc-brandBackgroundPrimaryTransparent,
-    rgba(1, 118, 211, 0.1)
-  );
-  border: 2px dashed var(--lwc-brandAccessible, #0176d3);
+  background-color: rgba(146, 111, 27, 0.1);
+  border: 2px dashed #926f1b;
   box-shadow: var(--lwc-shadowDrag, 0 2px 4px 0 rgba(0, 0, 0, 0.1));
 }
 
@@ -140,32 +134,29 @@
 
 /* Badge de contagem */
 .slds-badge.slds-badge_lightest {
-  background-color: var(--lwc-colorBackgroundAlt, #f8f9fd);
   color: #926f1b;
   font-weight: var(--lwc-fontWeightBold, 600);
   margin-left: 0.5rem;
   font-size: 0.75rem;
 }
 
-/* Para o badge na aba ativa, mantemos o background transparente e texto branco para contraste */
+/* Para o badge na aba ativa, mantemos a mesma cor amarela */
 .slds-tabs_default__item.slds-is-active .slds-badge.slds-badge_lightest {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  background-color: #926f1b;
+  color: #ffffff;
+  border-color: transparent;
 }
 
 /* Estilos para os cards e containers */
 .records-container.drag-over {
-  background-color: var(
-    --lwc-brandBackgroundPrimaryTransparent,
-    rgba(0, 112, 210, 0.1)
-  );
-  border: 2px dashed var(--lwc-brandAccessible, #0070d2);
+  background-color: rgba(146, 111, 27, 0.1);
+  border: 2px dashed #926f1b;
 }
 
 .kanban-card {
   background: var(--lwc-colorBackground, #ffffff);
   border: 1px solid var(--lwc-colorBorder, #d8dde6);
-  border-left: 4px solid var(--lwc-brandAccessible, #0070d2);
+  border-left: 4px solid #926f1b;
   box-shadow: var(--lwc-shadowDrag, 0 2px 3px 0 rgba(0, 0, 0, 0.05));
   cursor: move;
   position: relative;
@@ -271,7 +262,7 @@
   opacity: 1;
 }
 
-sorta-header[data-sort="desc"]::after {
+.sortable-header[data-sort="desc"]::after {
   content: "↓";
   opacity: 1;
 }
@@ -485,4 +476,19 @@ sorta-header[data-sort="desc"]::after {
   .list-header {
     display: none;
   }
+}
+
+.probability-value {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #f3f3f3;
+  text-align: center;
+  font-weight: 500;
+  width: fit-content;
+  min-width: min-content;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.5rem;
 }
