@@ -105,17 +105,19 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     ];
 
     this.columns = statuses.map((status, index) => {
-      // Filtrar registros por status
       let statusRecords = records.filter(
         (record) => record.StageName === status
       );
 
-      // Adicionar ícone e tratar campos undefined
       const recordsWithIcons = statusRecords.map((record) => ({
         ...record,
         iconName: this.statusIconMap[record.StageName] || "utility:record",
         Name: record.Name || "N/A",
         Amount: record.Amount || 0,
+        Probabilidade_da_Oportunidade__c:
+          record.Probabilidade_da_Oportunidade__c
+            ? record.Probabilidade_da_Oportunidade__c
+            : "Não definido",
         CloseDate: record.CloseDate || null,
         AccountName: record.Account?.Name || "N/A"
       }));
@@ -132,7 +134,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         recordCount: statusRecords.length,
         isEmpty: statusRecords.length === 0,
         iconName: this.statusIconMap[status],
-        // Propriedades para CSS dinâmico das abas
         tabClass: `slds-tabs_default__item ${isActive ? "slds-is-active" : ""}`,
         tabPanelClass: `slds-tabs_default__content ${isActive ? "slds-show" : "slds-hide"}`,
         tabIndex: isActive ? 0 : -1,
@@ -225,6 +226,21 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       if (currentRecord && currentRecord.StageName === newStatus) {
         // Se o estágio é o mesmo, apenas atualiza a UI sem mostrar mensagem
         return;
+      }
+
+      // Encontrar o índice da nova aba e ativá-la
+      const newTabIndex = this.columns.findIndex(
+        (col) => col.value === newStatus
+      );
+      if (newTabIndex !== -1) {
+        this.activeTabIndex = newTabIndex;
+        // Atualizar classes das abas
+        this.columns = this.columns.map((column, index) => ({
+          ...column,
+          tabClass: `slds-tabs_default__item ${index === this.activeTabIndex ? "slds-is-active" : ""}`,
+          isActive: index === this.activeTabIndex,
+          tabIndex: index === this.activeTabIndex ? "0" : "-1"
+        }));
       }
 
       // Se chegou aqui, o estágio é diferente, então atualiza
@@ -459,53 +475,35 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     ];
   }
 
-  handleStageChange(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
+  async handleStageChange(event) {
     const recordId = event.target.dataset.id;
-    const newStatus = event.target.value;
-    const element = event.target.closest(".stage-selector");
+    const newStatus = event.detail.value;
 
-    // Encontrar o registro atual para comparar o estágio
-    const currentRecord = this.findRecordById(recordId);
-    if (currentRecord && currentRecord.StageName === newStatus) {
-      // Se o estágio é o mesmo, apenas atualiza a UI sem mostrar mensagem
-      return;
+    try {
+      await updateRecordStatus({ recordId, newStatus });
+
+      // Encontrar o índice da nova aba e atualizar
+      const newTabIndex = this.columns.findIndex(
+        (column) => column.value === newStatus
+      );
+      if (newTabIndex !== -1) {
+        this.activeTabIndex = newTabIndex;
+        // Atualizar classes das abas
+        this.columns = this.columns.map((column, index) => ({
+          ...column,
+          tabClass: `slds-tabs_default__item ${index === this.activeTabIndex ? "slds-is-active" : ""}`,
+          tabPanelClass: `slds-tabs_default__content ${index === this.activeTabIndex ? "slds-show" : "slds-hide"}`,
+          isActive: index === this.activeTabIndex,
+          tabIndex: index === this.activeTabIndex ? 0 : -1
+        }));
+      }
+
+      await refreshApex(this.wiredRecordsResult);
+      this.showToast("Sucesso", "Registro atualizado com sucesso", "success");
+    } catch (error) {
+      this.showToast("Erro", "Erro ao atualizar o registro", "error");
+      console.error("Erro ao atualizar status:", error);
     }
-
-    // Atualizar atributo para mudança visual imediata
-    if (element) {
-      element.dataset.stage = newStatus;
-    }
-
-    // Adicionar classe de loading
-    if (element) {
-      element.classList.add("stage-updating");
-    }
-
-    updateRecordStatus({
-      recordId: recordId,
-      newStatus: newStatus
-    })
-      .then(() => {
-        this.showToast("Sucesso", "Estágio atualizado com sucesso", "success");
-        // Remover classe de loading
-        if (element) {
-          element.classList.remove("stage-updating");
-        }
-        return refreshApex(this.wiredRecordsResult);
-      })
-      .catch((error) => {
-        // Em caso de erro, reverter a mudança visual
-        if (element && currentRecord) {
-          element.dataset.stage = currentRecord.StageName;
-        }
-        if (element) {
-          element.classList.remove("stage-updating");
-        }
-        this.showToast("Erro", error.body.message, "error");
-      });
   }
 
   // Método auxiliar para encontrar um registro pelo Id
@@ -547,16 +545,30 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       let valueA = this.getFieldValue(a, field);
       let valueB = this.getFieldValue(b, field);
 
-      // Tratar valores nulos/undefined
+      // Tratamento especial para o campo de probabilidade
+      if (field === "Probabilidade_da_Oportunidade__c") {
+        const probabilityOrder = {
+          "Muito Alta": 5,
+          Alta: 4,
+          Média: 3,
+          Baixa: 2,
+          "Muito Baixa": 1
+        };
+        valueA = probabilityOrder[valueA] || 0;
+        valueB = probabilityOrder[valueB] || 0;
+      }
+
+      // Tratamento para valores nulos/undefined
       if (valueA === null || valueA === undefined) return isReverse ? -1 : 1;
       if (valueB === null || valueB === undefined) return isReverse ? 1 : -1;
 
-      // Converter para string para comparação de texto
-      if (typeof valueA === "string") {
+      // Converter para string minúscula para comparação de texto
+      if (typeof valueA === "string" && typeof valueB === "string") {
         valueA = valueA.toLowerCase();
         valueB = valueB.toLowerCase();
       }
 
+      // Comparação final
       return isReverse ? (valueA < valueB ? 1 : -1) : valueA < valueB ? -1 : 1;
     });
   }
@@ -566,6 +578,26 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     if (field === "AccountName") {
       return record.Account?.Name;
     }
+    // Tratar o campo Name diretamente
+    if (field === "Name") {
+      return record.Name || "";
+    }
     return record[field];
+  }
+
+  handleCreateNew() {
+    this[NavigationMixin.Navigate]({
+      type: "standard__objectPage",
+      attributes: {
+        objectApiName: "Opportunity",
+        actionName: "new"
+      }
+    });
+  }
+
+  handleProbabilityChange(event) {
+    const recordId = event.target.dataset.recordId;
+    const probability = event.detail.value;
+    this.updateProbability(recordId, probability);
   }
 }

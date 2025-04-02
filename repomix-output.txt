@@ -1,0 +1,2761 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+
+Additional Info:
+----------------
+
+================================================================
+Directory Structure
+================================================================
+.forceignore
+.github/workflows/validate-salesforce.yml
+.gitignore
+.prettierignore
+.prettierrc
+config/project-scratch-def.json
+force-app/main/default/aura/.eslintrc.json
+force-app/main/default/classes/KanbanDataController.cls
+force-app/main/default/classes/KanbanDataController.cls-meta.xml
+force-app/main/default/lwc/.eslintrc.json
+force-app/main/default/lwc/homeButtons/__tests__/homeButtons.test.js
+force-app/main/default/lwc/homeButtons/homeButtons.html
+force-app/main/default/lwc/homeButtons/homeButtons.js
+force-app/main/default/lwc/homeButtons/homeButtons.js-meta.xml
+force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
+force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
+force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
+force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
+force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
+instructions-files/Campo File Upload.md
+instructions-files/Guia Prático de Configuração de Permissões, Grupos e Chatter no Salesforce.md
+instructions-files/instructions-april-2025/Bulk Transferr.md
+instructions-files/Notificacoes - Classe Apex.md
+instructions-files/Prompt - Compartilhar vs alterar proprietario.md
+instructions-files/Regras Compartilhamento.md
+instructions-files/Resposta - Compartilhar vs alterar proprietario (copy).md
+instructions-files/Strings - Sales Force.md
+instructions-files/Uma task por vez.md
+jest.config.js
+mydomain.html
+package.json
+README.md
+reinocapital-salesforce.code-workspace
+scripts/apex/hello.apex
+scripts/soql/account.soql
+scripts/soql/api-test.soql
+sfdx-project.json
+
+================================================================
+Files
+================================================================
+
+================
+File: instructions-files/Guia Prático de Configuração de Permissões, Grupos e Chatter no Salesforce.md
+================
+# Guia Prático de Configuração de Permissões, Grupos e Chatter no Salesforce
+
+Este guia apresenta um passo a passo “mão na massa” para você criar os conjuntos de permissões, os grupos de conjuntos de permissões e configurar o Chatter com notificações no Salesforce. O objetivo é que você consiga montar um esqueleto robusto e seguro, exatamente como um profissional sênior faria, garantindo a correta divisão de acessos e um fluxo de trabalho otimizado.
+
+---
+
+## Sumário
+
+- [1. Mapeamento dos Requisitos e Fluxo](#1-mapeamento-dos-requisitos-e-fluxo)
+  - [1.1 Resumo dos Perfis e Acessos](#11-resumo-dos-perfis-e-acessos)
+  - [1.2 Fluxo dos Registros](#12-fluxo-dos-registros)
+- [2. Criação dos Conjuntos de Permissões (Permission Sets)](#2-criação-dos-conjuntos-de-permissões-permission-sets)
+  - [2.1 Acessando a Área de Conjuntos de Permissões](#21-acessando-a-área-de-conjuntos-de-permissões)
+  - [2.2 Conjunto para o Head de Operações](#22-conjunto-para-o-head-de-operações)
+  - [2.3 Conjunto para o Gestor de Operações](#23-conjunto-para-o-gestor-de-operações)
+  - [2.4 Conjuntos para o Grupo Back Office](#24-conjuntos-para-o-grupo-back-office)
+- [3. Criação dos Grupos de Conjuntos de Permissões (Permission Set Groups)](#3-criação-dos-grupos-de-conjuntos-de-permissões-permission-set-groups)
+  - [3.1 Grupo para Operações](#31-grupo-para-operações)
+  - [3.2 Grupo para Back Office](#32-grupo-para-back-office)
+- [4. Mapeamento Visual do Fluxo e Melhorias](#4-mapeamento-visual-do-fluxo-e-melhorias)
+- [5. Configuração do Chatter e Notificações](#5-configuração-do-chatter-e-notificações)
+  - [5.1 Configurando o Chatter](#51-configurando-o-chatter)
+  - [5.2 Configurando Notificações no Chatter e Alternativas](#52-configurando-notificações-no-chatter-e-alternativas)
+- [6. Resumo Final e Recomendações](#6-resumo-final-e-recomendações)
+
+---
+
+## 1. Mapeamento dos Requisitos e Fluxo
+
+### 1.1 Resumo dos Perfis e Acessos
+
+**Grupo 01 – Operações**
+
+- **Head de Operações**
+
+  - **Operações de Investimento:** Acesso total (Criar, Editar, Excluir) a **todos** os registros.
+  - **Contas (Clientes):** Acesso para **editar** e **visualizar** todos os registros e suas movimentações.
+  - **Contas Bancárias:** Acesso para **criar** e **visualizar** todos os registros.
+  - **Chatter:** Acesso completo – visualiza, posta, edita e interage livremente.
+
+- **Gestor de Operações**
+  - **Operações de Investimento:** Acesso para **criar** e **visualizar** apenas os registros designados a ele.
+  - **Contas (Clientes):** Acesso para **visualizar** somente os registros designados a ele.
+  - **Contas Bancárias:** Acesso para **visualizar** somente os registros designados a ele.
+  - **Chatter:** Acesso restrito – vê apenas as atividades relevantes ao seu grupo.
+
+**Grupo 02 – Back Office**
+
+- **Head de Back Office**
+
+  - **Operações Back Office:** Acesso total (Criar, Editar, Ler e Excluir) a **todos** os registros.
+  - **Chatter:** Acesso completo.
+
+- **Assistente de Back Office**
+  - **Operações Back Office:** Acesso para **criar**, **editar** e **ler** apenas os registros atribuídos a ele.
+  - **Chatter:** Acesso parcial – visualiza somente as atividades atribuídas a ele.
+
+### 1.2 Fluxo dos Registros
+
+- **Criação:**  
+  Quando um registro é criado no objeto **Operação de Investimento**, o Flow Builder dispara a criação de um registro correspondente no objeto **Operação Back Office**. Esse registro é exibido em modo Kanban.
+
+- **Atribuição e Notificação:**  
+  Os **Heads** (tanto de Operações quanto de Back Office) designam registros para os subordinados (Gestor de Operações e Assistente de Back Office). Neste momento, o fluxo deve notificar os responsáveis por meio de posts no Chatter ou envio de emails.
+
+---
+
+## 2. Criação dos Conjuntos de Permissões (Permission Sets)
+
+### 2.1 Acessando a Área de Conjuntos de Permissões
+
+1. **Acesse o Setup:**  
+   Clique no ícone de **Setup** no canto superior direito.
+
+2. **Localize “Permission Sets”:**  
+   Use a caixa de pesquisa rápida (Setup Quick Find) e digite `Permission Sets`. Selecione a opção.
+
+### 2.2 Conjunto para o Head de Operações
+
+1. **Clique em “New”:**  
+   No canto superior da página de Permission Sets, clique em **New**.
+
+2. **Preencha os Dados:**
+
+   - **Label:** `Head_Operacoes_Investimentos`
+   - **Descrição:** `Permissões completas para o Head de Operações – Acesso total aos objetos: Operações de Investimento, Contas (Clientes) e Contas Bancárias.`
+   - **Licença do Usuário:** Selecione a licença adequada (geralmente "Salesforce").
+
+3. **Clique em Salvar.**
+
+4. **Configurar as Permissões de Objeto:**
+
+   - **Operações de Investimento:**
+     - Vá em **Object Settings** → Selecione o objeto → Clique em **Edit** e marque **Create**, **Read**, **Edit**, **Delete**.
+   - **Contas (Clientes):**
+     - Em **Object Settings**, selecione o objeto e marque **Read** e **Edit**.
+   - **Contas Bancárias:**
+     - Em **Object Settings**, selecione o objeto e marque **Create** e **Read**.
+
+5. **Configurações Adicionais:**
+   - Ajuste permissões de **Field-Level Security** se necessário.
+   - Verifique as configurações de **Chatter** para garantir o acesso total.
+
+### 2.3 Conjunto para o Gestor de Operações
+
+1. **Clique em “New”:**
+
+   - **Label:** `Gestor_Operacoes`
+   - **Descrição:** `Permissões limitadas para o Gestor de Operações – acesso somente aos registros que lhe são designados.`
+   - Selecione a licença de usuário adequada e clique em **Salvar**.
+
+2. **Configurar as Permissões de Objeto:**
+
+   - **Operações de Investimento:**
+     - Marque **Create** e **Read** (não marque **Edit** ou **Delete**).
+     - Lembre-se: a limitação aos registros deve ser feita via regras de compartilhamento ou critérios de propriedade.
+   - **Contas (Clientes):**
+     - Marque apenas **Read**.
+   - **Contas Bancárias:**
+     - Marque apenas **Read**.
+
+3. **Chatter:**
+   - Configure para limitar o que o usuário pode ver ou postar, se necessário, usando **Custom Permissions** ou configurações específicas de Chatter.
+
+### 2.4 Conjuntos para o Grupo Back Office
+
+#### Head de Back Office
+
+1. **Criar Novo Conjunto:**
+
+   - **Label:** `Head_BackOffice`
+   - **Descrição:** `Permissões completas para o Head de Back Office – Acesso total ao objeto Back Office.`
+   - Clique em **Salvar**.
+
+2. **Configurar Permissões de Objeto:**
+
+   - Em **Object Settings**, selecione o objeto **Back Office** e marque **Create**, **Read**, **Edit**, **Delete**.
+
+3. **Chatter:**
+   - Garanta que as configurações de Chatter estejam configuradas para acesso completo.
+
+#### Assistente de Back Office
+
+1. **Criar Novo Conjunto:**
+
+   - **Label:** `Assistente_BackOffice`
+   - **Descrição:** `Permissões restritas para o Assistente de Back Office – Acesso somente aos registros atribuídos, com permissão para criar, editar e ler.`
+   - Clique em **Salvar**.
+
+2. **Configurar Permissões de Objeto:**
+
+   - Em **Object Settings**, selecione o objeto **Back Office** e marque **Create**, **Read**, **Edit** (não marque **Delete**).
+
+3. **Chatter:**
+   - Configure para que o usuário visualize apenas as atividades atribuídas a ele.
+
+---
+
+## 3. Criação dos Grupos de Conjuntos de Permissões (Permission Set Groups)
+
+### 3.1 Grupo para Operações
+
+1. **Acesse “Permission Set Groups”:**  
+   Utilize a caixa de pesquisa no Setup e digite `Permission Set Groups`.
+
+2. **Clique em “New”:**
+
+   - **Label:** `Grupo_Operacoes`
+   - **Descrição:** `Agrupa as permissões para Head e Gestor de Operações.`
+   - Clique em **Salvar**.
+
+3. **Adicionar Conjuntos ao Grupo:**
+   - Na página do grupo, clique em **Add Permission Sets**.
+   - Selecione os conjuntos `Head_Operacoes_Investimentos` e `Gestor_Operacoes`.
+   - Clique em **Add** para confirmar.
+
+### 3.2 Grupo para Back Office
+
+1. **Clique em “New”:**
+
+   - **Label:** `Grupo_BackOffice`
+   - **Descrição:** `Agrupa as permissões para Head e Assistente de Back Office.`
+   - Clique em **Salvar**.
+
+2. **Adicionar Conjuntos ao Grupo:**
+   - Adicione os conjuntos `Head_BackOffice` e `Assistente_BackOffice`.
+   - Salve as alterações.
+
+---
+
+## 4. Mapeamento Visual do Fluxo e Melhorias
+
+### 4.1 Esboço do Fluxo Atual
+
+1. **Criação do Registro no Objeto “Operação de Investimento”:**
+
+   - Registro criado manualmente ou via integração.
+   - Flow Builder aciona a criação do registro correspondente no objeto **Operação Back Office**.
+
+2. **Atribuição dos Registros:**
+
+   - O **Head de Operações** e o **Head de Back Office** designam registros para os subordinados.
+
+3. **Notificação:**
+   - Notificação (via Chatter ou email) é disparada informando o responsável sobre o novo registro.
+
+### 4.2 Melhorias e Ajustes Sugeridos
+
+- **Regras de Compartilhamento:**  
+  Configure regras para que os usuários com acesso limitado vejam somente os registros que lhes foram atribuídos.  
+  _(Utilize critérios de propriedade ou regras de compartilhamento manual.)_
+
+- **Padronização da Atribuição:**  
+  Crie um campo “Status de Atribuição” e utilize o Flow Builder para atualizar automaticamente esse status quando um registro for designado.
+
+- **Diagrama do Fluxo:**
+
+  ```mermaid
+  graph TD;
+      A[Operação de Investimento] --> B[Flow Builder aciona criação];
+      B --> C[Operação Back Office Criada];
+      C --> D[Head de Operações];
+      C --> E[Head de Back Office];
+      D --> F[Gestor de Operações];
+      E --> G[Assistente de Back Office];
+  ```
+
+================
+File: .forceignore
+================
+# List files or directories below to ignore them when running force:source:push, force:source:pull, and force:source:status
+# More information: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_exclude_source.htm
+#
+
+package.xml
+
+# LWC configuration files
+**/jsconfig.json
+**/.eslintrc.json
+
+# LWC Jest
+**/__tests__/**
+
+================
+File: .gitignore
+================
+# This file is used for Git repositories to specify intentionally untracked files that Git should ignore. 
+# If you are not using git, you can delete this file. For more information see: https://git-scm.com/docs/gitignore
+# For useful gitignore templates see: https://github.com/github/gitignore
+
+# Salesforce cache
+.sf/
+.sfdx/
+.localdevserver/
+deploy-options.json
+
+# LWC VSCode autocomplete
+**/lwc/jsconfig.json
+
+# LWC Jest coverage reports
+coverage/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+
+# Eslint cache
+.eslintcache
+
+# MacOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Local environment variables
+.env
+
+# Python Salesforce Functions
+**/__pycache__/
+**/.venv/
+**/venv/
+
+================
+File: .prettierignore
+================
+# List files or directories below to ignore them when running prettier
+# More information: https://prettier.io/docs/en/ignore.html
+#
+
+**/staticresources/**
+.localdevserver
+.sfdx
+.sf
+.vscode
+
+coverage/
+
+================
+File: .prettierrc
+================
+{
+  "trailingComma": "none",
+  "plugins": [
+    "prettier-plugin-apex",
+    "@prettier/plugin-xml"
+  ],
+  "overrides": [
+    {
+      "files": "**/lwc/**/*.html",
+      "options": { "parser": "lwc" }
+    },
+    {
+      "files": "*.{cmp,page,component}",
+      "options": { "parser": "html" }
+    }
+  ]
+}
+
+================
+File: force-app/main/default/aura/.eslintrc.json
+================
+{
+  "plugins": ["@salesforce/eslint-plugin-aura"],
+  "extends": ["plugin:@salesforce/eslint-plugin-aura/recommended"],
+  "rules": {
+    "vars-on-top": "off",
+    "no-unused-expressions": "off"
+  }
+}
+
+================
+File: force-app/main/default/classes/KanbanDataController.cls-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
+
+================
+File: force-app/main/default/lwc/.eslintrc.json
+================
+{
+  "extends": ["@salesforce/eslint-config-lwc/recommended"],
+  "overrides": [
+    {
+      "files": ["*.test.js"],
+      "rules": {
+        "@lwc/lwc/no-unexpected-wire-adapter-usages": "off"
+      },
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}
+
+================
+File: force-app/main/default/lwc/homeButtons/__tests__/homeButtons.test.js
+================
+import { createElement } from 'lwc';
+import HomeButtons from 'c/homeButtons';
+
+describe('c-home-buttons', () => {
+    afterEach(() => {
+        // The jsdom instance is shared across test cases in a single file so reset the DOM
+        while (document.body.firstChild) {
+            document.body.removeChild(document.body.firstChild);
+        }
+    });
+
+    it('TODO: test case generated by CLI command, please fill in test logic', () => {
+        // Arrange
+        const element = createElement('c-home-buttons', {
+            is: HomeButtons
+        });
+
+        // Act
+        document.body.appendChild(element);
+
+        // Assert
+        // const div = element.shadowRoot.querySelector('div');
+        expect(1).toBe(1);
+    });
+});
+
+================
+File: force-app/main/default/lwc/homeButtons/homeButtons.html
+================
+<template>
+    
+</template>
+
+================
+File: force-app/main/default/lwc/homeButtons/homeButtons.js
+================
+import { LightningElement } from 'lwc';
+
+export default class HomeButtons extends LightningElement {}
+
+================
+File: force-app/main/default/lwc/homeButtons/homeButtons.js-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+</LightningComponentBundle>
+
+================
+File: force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
+================
+import { createElement } from 'lwc';
+import KanbanPerson from 'c/kanbanPerson';
+
+describe('c-kanban-person', () => {
+    afterEach(() => {
+        // The jsdom instance is shared across test cases in a single file so reset the DOM
+        while (document.body.firstChild) {
+            document.body.removeChild(document.body.firstChild);
+        }
+    });
+
+    it('TODO: test case generated by CLI command, please fill in test logic', () => {
+        // Arrange
+        const element = createElement('c-kanban-person', {
+            is: KanbanPerson
+        });
+
+        // Act
+        document.body.appendChild(element);
+
+        // Assert
+        // const div = element.shadowRoot.querySelector('div');
+        expect(1).toBe(1);
+    });
+});
+
+================
+File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Kanban Board</masterLabel>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+</LightningComponentBundle>
+
+================
+File: instructions-files/Campo File Upload.md
+================
+No sales force, depois do usuario passar por uma tela de "Tipo de registro (Registertype) e selecionar uma opção especificar (Nome de API EnviarArquivo) aparecer um campo para envio de arquivos.
+
+Nativamente o Sales force só habilita a criação do campo de URL como campo customizado. Só consigo criar um campo de subri arquivo pelo Flow.
+
+Como façõ isso sem precisar usar o Flow, ou usando um LWC customizado, para servir como um campo customizado
+
+================
+File: instructions-files/instructions-april-2025/Bulk Transferr.md
+================
+Any chance we can do this for opportunities? I didn't happen to see open opportunities on the list :(
+
+You can't mass transfer Opportunities with this tool without also transferring Accounts. Easiest thing to do in this case is to export a report of Opportunities, update the Owner ID and then import through Import Wizard or Data Loader.
+
+================
+File: instructions-files/Notificacoes - Classe Apex.md
+================
+me ajude a criar uma classe apex para eu usar em uma automação do flow. observe:
+
+hoje eu uso uma automação no flow acionada por registro, ela funciona assim:
+
+quando alguma pessoa atualiza um registro no objeto "Operação Back Office" (Nome da API é BackOffice**c) (expecificamente o campo "Etapa" Api = Etapa**c) é rodado uma ação que publica essa mensagem no chatter
+
+A operação {!$Record.Name} ({!$Record.TipoAtivoBO**c} / {!$Record.TipoOperacaoBO**c}) do cliente {!$Record.NomeClienteInfo__c} foi atualizada para o status {!$Record.Etapa\_\_c}
+
+Porém, no chatter essa mensagem não faz o que eu quero (que é marcar o registro e o cliente), por que o flow não tem essa função.
+
+Esqueci de falar que não existe um campo customizado Account no objeto Back Office, ele não cuida disso. quem cuida é outro fluxo que, quando uma operação é criada no objeto OperacaoInvestimento**c ele cria um novo registro no objeto BackOffice**c e manda o nome do cliente para um campo personalizado de texto no objeto BackOffice**c ("NomeClienteInfo**c)
+
+então preciso criar uma classe apex para fazer isso funcionar, me ajude a figurar e como construir isso, ou otimizar no sales force, ou fazer de uma forma mais simples
+
+================
+File: instructions-files/Prompt - Compartilhar vs alterar proprietario.md
+================
+# Compartilhamento de registro ou Proprietario
+
+Sobre o app da reino que estou criando no SalesForce, pense em qual é a melhor opção (Para uso fácil e para relatório, e outras coisas, pensando no geral):
+
+Tenho 2 funcionários
+
+1 é o head do back office e o outro é o assistente de Back Office
+
+Quando um registro criado pelo Gestor de operações chega no Head do Back Office (Através de uma automação feita no Flow Builder, onde sempre quando é criado um registro no objeto OperacaoInvestimento um novo registro é criado no objeto BackOffice, onde alguns campos vindo do objeto OperacaoInvestimento desse objeto são preenchidos em formato de texto em campos do objeto BackOffice) a função dele é escolher um usuario já criado no sales force para compartilhar o acesso ao registro e monitorar o caminho daquele registro (todas as atividades relativas a ele), qual a melhor forma de passar esse compartilhamente? atraves de alterar proprietario ou compartilhar registro?
+
+Analise qual das duas opções é melhor e me dê um passo a passo de como fazer a melhor opção escolhida.
+
+================
+File: instructions-files/Regras Compartilhamento.md
+================
+# Guia Prático: Criando Regras de Compartilhamento do Zero
+
+Este guia detalhado vai te orientar passo a passo para criar regras de compartilhamento no Salesforce, de forma a garantir que cada usuário veja somente os registros que lhe foram designados – conforme o seu cenário para os objetos **Operações de Investimento**, **Contas (Clientes)**, **Contas Bancárias** e **Operações Back Office**.
+
+> **Observação:**  
+> Para que as regras de compartilhamento funcionem, recomenda-se que os **Organizational-Wide Defaults (OWD)** desses objetos estejam definidos como **Privado**. Assim, somente o dono dos registros e os usuários com regras explícitas terão acesso.
+
+---
+
+## 1. Conceitos Básicos
+
+- **OWD (Organizational-Wide Defaults):**  
+  Define o acesso padrão para registros de cada objeto. Em nosso caso, defina como “Privado” para que as regras de compartilhamento sejam necessárias.
+
+- **Regras de Compartilhamento:**  
+  São regras que permitem estender o acesso a registros para usuários que não são os donos. Elas podem ser:
+
+  - **Baseadas em Propriedade (Owner-based):** Compartilham registros de acordo com o dono do registro.
+  - **Baseadas em Critérios (Criteria-based):** Compartilham registros que atendam a determinados critérios (por exemplo, se um campo “Atribuído a” for igual a um valor específico).
+
+- **Public Groups:**  
+  Em alguns cenários, você pode criar grupos públicos para compartilhar registros com um conjunto de usuários. **Atenção:** Se o objetivo é que cada usuário veja somente seus próprios registros designados, o ideal é usar regras baseadas em critérios direcionadas a cada usuário individualmente – especialmente se os registros não forem de propriedade do usuário.
+
+---
+
+## 2. Cenário Específico
+
+### 2.1 Para o Objeto **Operações de Investimento**
+
+- **Head de Operações:**  
+  Já terá acesso completo por meio dos conjuntos de permissões e, se estiver acima na hierarquia, acessará todos os registros.
+- **Gestor de Operações:**  
+  Deve visualizar (e, se necessário, editar) somente os registros que foram **designados a ele** – mesmo que o registro não seja o seu (ou seja, não seja o owner).
+
+### 2.2 Para o Objeto **Operações Back Office**
+
+- **Head de Back Office:**  
+  Tem acesso total, normalmente via hierarquia e conjuntos de permissões.
+- **Assistente de Back Office:**  
+  Deve visualizar e editar somente os registros que foram **atribuídos a ele**.
+
+_Nota:_ Se o campo “Atribuído a” (por exemplo, `Atribuido_a__c`) for um lookup para o usuário, você poderá usar regras baseadas em critérios para compartilhar os registros.
+
+---
+
+## 3. Passo a Passo: Criando Regras de Compartilhamento
+
+### 3.1 Configurar o OWD (Organizational-Wide Defaults)
+
+1. **Acesse o Setup:**
+
+   - Clique no ícone de **Setup** no canto superior direito.
+
+2. **Pesquise por “Sharing Settings”:**
+
+   - Na caixa de pesquisa rápida, digite `Sharing Settings` e selecione a opção.
+
+3. **Verifique os OWD:**
+   - Para cada objeto (Operações de Investimento, Contas, Contas Bancárias e Operações Back Office), certifique-se de que o **Default Internal Access** está definido como **Private**.
+
+---
+
+### 3.2 Criando Regras para **Operações de Investimento**
+
+#### Cenário:
+
+- **Gestor de Operações** deve ter acesso aos registros **designados a ele**.
+
+#### Passos:
+
+1. **No Setup, acesse as Sharing Settings:**
+
+   - Dentro de **Sharing Settings**, role até a seção referente ao objeto **Operações de Investimento**.
+
+2. **Clique em “New” na seção de Regras de Compartilhamento para o objeto:**
+
+   - Será aberta a tela para criar uma nova regra.
+
+3. **Selecione o Tipo da Regra:**
+
+   - **Critérios-based Sharing Rule** (Regra baseada em critérios).
+
+4. **Defina os Detalhes da Regra:**
+
+   - **Nome da Regra:**  
+     Exemplo: `Compartilhar_Operacoes_Com_Gestor_[NomeDoGestor]`
+   - **Critério da Regra:**
+
+     - Selecione o campo que identifica a designação, por exemplo: `Atribuido_a__c` (ou o nome que você tenha definido para indicar a atribuição).
+     - Configure o critério para: **igual a** o ID do Gestor de Operações.
+
+     > **Dica:** Se houver apenas 1 Gestor para o grupo, você pode inserir o valor fixo. Caso haja mais de um, considere criar uma regra separada para cada usuário ou usar uma lógica de campo (por exemplo, um checkbox específico) que seja marcado quando o registro for atribuído a um Gestor.
+
+5. **Defina o Grupo de Usuários para Compartilhamento:**
+
+   - Escolha **Users** e, em seguida, selecione o usuário específico (ou um Public Group contendo somente aquele Gestor – se for possível manter o acesso individualizado).
+
+6. **Selecione o Nível de Acesso:**
+   - Marque **Read/Write** se o Gestor precisar editar os registros; caso contrário, **Read Only**.
+7. **Salvar a Regra.**
+
+> **Repita o mesmo processo para os objetos "Contas (Clientes)" e "Contas Bancárias"** se os mesmos critérios de designação (campo "Atribuido_a\_\_c") forem aplicáveis e se os Gestores precisarem ter acesso aos registros designados.
+
+---
+
+### 3.3 Criando Regras para **Operações Back Office**
+
+#### Cenário:
+
+- **Assistente de Back Office** deve ter acesso somente aos registros **atribuídos a ele**.
+
+#### Passos:
+
+1. **No Setup, acesse as Sharing Settings:**
+
+   - Na seção referente ao objeto **Operações Back Office**.
+
+2. **Clique em “New” para criar uma nova regra de compartilhamento.**
+
+3. **Selecione o Tipo da Regra:**
+
+   - **Critérios-based Sharing Rule**.
+
+4. **Defina os Detalhes da Regra:**
+
+   - **Nome da Regra:**  
+     Exemplo: `Compartilhar_BackOffice_Com_Assistente_[NomeDoAssistente]`
+   - **Critério da Regra:**
+     - Utilize o campo de atribuição, por exemplo: `Atribuido_a__c`.
+     - Configure para **igual a** o ID do Assistente de Back Office.
+
+5. **Defina o Grupo de Usuários:**
+
+   - Selecione o usuário específico ou crie um grupo (caso haja somente este assistente no grupo) que contenha somente ele.
+
+6. **Selecione o Nível de Acesso:**
+
+   - Normalmente, **Read/Write** se ele deve editar os registros.
+
+7. **Salvar a Regra.**
+
+---
+
+## 4. Considerações Adicionais e Melhores Práticas
+
+- **Utilize Public Groups com Cuidado:**  
+  Se o grupo de usuários contiver mais de um usuário e o objetivo é que cada um veja apenas os seus registros, a utilização de Public Groups pode não ser ideal. Nesse caso, a criação de regras individuais (mesmo que em menor escala) pode ser necessária.
+
+- **Atualização do Dono do Registro:**  
+  Uma alternativa ao uso de regras de compartilhamento é atualizar o campo **Owner** do registro para o usuário designado. O proprietário do registro sempre tem acesso total sem necessidade de regras adicionais.
+
+- **Testes em Sandbox:**  
+  Sempre teste as regras de compartilhamento em um ambiente sandbox antes de aplicá-las em produção. Crie registros de teste e simule a atribuição para confirmar que somente os usuários desejados têm acesso.
+
+- **Documentação:**  
+  Mantenha um registro detalhado de cada regra criada, com o nome da regra, critério utilizado, grupo ou usuário compartilhado e nível de acesso. Essa documentação é essencial para futuras auditorias e ajustes.
+
+- **Monitoramento:**  
+  Utilize os **Sharing Recalculation Logs** e os relatórios de auditoria do Salesforce para verificar se as regras estão sendo aplicadas corretamente.
+
+---
+
+## 5. Exemplo Prático para o Objeto **Operações de Investimento**
+
+1. **Acesse Setup → Sharing Settings.**
+2. **Localize o objeto “Operações de Investimento”.**
+3. **Clique em “New” ao lado de “Operações de Investimento Sharing Rules”.**
+4. **Tipo de Regra:** Selecione “Based on Criteria”.
+5. **Nome da Regra:** `Compartilhar_Operacoes_Com_Gestor_Joao`  
+   _(Substitua “Joao” pelo nome do Gestor)_
+6. **Critério da Regra:**
+   - Campo: `Atribuido_a__c`
+   - Operador: `igual a`
+   - Valor: _[ID do usuário Gestor – copie do registro de usuário ou do lookup]_
+7. **Compartilhar Com:**
+   - Selecione “Users” e escolha o Gestor de Operações.
+8. **Nível de Acesso:** Selecione “Read/Write” (ou “Read Only” se a edição não for necessária).
+9. **Clique em Save.**
+
+---
+
+## 6. Exemplo Prático para o Objeto **Operações Back Office**
+
+1. **Acesse Setup → Sharing Settings.**
+2. **Localize o objeto “Operações Back Office”.**
+3. **Clique em “New” na seção de regras para este objeto.**
+4. **Tipo de Regra:** Selecione “Based on Criteria”.
+5. **Nome da Regra:** `Compartilhar_BackOffice_Com_Assistente_Maria`  
+   _(Substitua “Maria” pelo nome do Assistente)_
+6. **Critério da Regra:**
+   - Campo: `Atribuido_a__c`
+   - Operador: `igual a`
+   - Valor: _[ID do usuário Assistente]_
+7. **Compartilhar Com:**
+   - Selecione “Users” e escolha o Assistente de Back Office.
+8. **Nível de Acesso:** Selecione “Read/Write”.
+9. **Clique em Save.**
+
+---
+
+## Conclusão
+
+Seguindo estes passos detalhados, você será capaz de configurar regras de compartilhamento personalizadas para que os registros dos objetos **Operações de Investimento** e **Operações Back Office** fiquem acessíveis somente aos usuários designados (Gestor de Operações e Assistente de Back Office, respectivamente).
+
+Essas regras, combinadas com as configurações de OWD e os conjuntos de permissões, garantem que a segurança e a integridade dos dados sejam mantidas, permitindo que cada usuário tenha exatamente o acesso necessário para desempenhar suas funções.
+
+_Boa sorte na implementação – e lembre-se de sempre testar e documentar cada mudança!_
+
+================
+File: instructions-files/Resposta - Compartilhar vs alterar proprietario (copy).md
+================
+Para esse cenário, a recomendação é utilizar o **compartilhamento do registro** em vez de alterar o proprietário. Isso porque:
+
+- **Manutenção da propriedade original:** Ao manter o proprietário original (por exemplo, o Gestor de operações), você preserva o histórico e a responsabilidade inicial do registro.
+- **Flexibilidade de acesso:** Com o compartilhamento, é possível conceder acessos adicionais (como leitura ou edição) para o Head do Back Office ou até para outros usuários sem “mudar” a cadeia de custódia do registro.
+- **Relatórios e auditoria:** O registro mantém sua origem e, ao mesmo tempo, registra quem recebeu o acesso extra. Assim, os relatórios podem diferenciar entre o dono original e os usuários com acesso compartilhado, facilitando a análise e a auditoria das atividades.
+
+Campo: NomeClienteInfo\_\_c
+
+Valor: {!$Record.Contas_Bancarias**r.Carteira**r.Name}
+
+Campo: TipoAtivoBO\_\_c
+
+Valor: {!$Record.RecordType.Name}
+
+Campo: ContaBancariaBO\_\_c
+
+Valor: {!$Record.Contas_Bancarias__r.Banco__c} - {!$Record.Contas_Bancarias\_\_r.Name}
+
+Campo: TipoOperacaoBO\_\_c
+
+Valor: {!$Record.TipoOperacaoRelacionamento\_\_r.Name}
+
+A operação {!$Record.Name} – ({!$Record.TipoAtivoBO**c} • {!$Record.TipoOperacaoBO**c}) | na conta {!$Record.ContaBancariaBO__c} | do cliente {!$Record.NomeClienteInfo**c} foi atualizada para o status: {!$Record.Etapa**c}
+
+================
+File: instructions-files/Strings - Sales Force.md
+================
+A operação {!$Record.Name} ({!$Record.TipoAtivoBO**c} / {!$Record.TipoOperacaoBO**c}) do cliente {!$Record.NomeClienteInfo__c} foi atualizada para o status {!$Record.Etapa\_\_c}
+
+{!$Record.NomeClienteInfo\_\_c}
+
+{!$Record.} - Após o ponto colocamos o nome da API do campo que gostaríamos de colocar na nossa mensagem.
+
+{!$Record.Contas_Bancarias__r.Banco__c} - {!$Record.Contas_Bancarias\_\_r.Name}
+
+# Mensagem Back Office
+
+A operação {!$Record.Name} ({!$Record.TipoAtivoBO**c} / {!$Record.TipoOperacaoBO**c}) na Conta {!$Record.ContaBancariaBO__c} do cliente {!$Record.NomeClienteInfo**c} foi atualizada para o status {!$Record.Etapa**c}
+
+================
+File: instructions-files/Uma task por vez.md
+================
+# Uma task por vez
+
+No sales force tenho um kanban de um objeto que está sendo agrupado pelo campo lista de opções com o nome de API Etapa onde tenho um registro. Quero fazer uma opção (regra de validação ou Flow builder) para um usuario conseguir mover somente uma task (um registro) por vez.
+
+as opções são
+
+Recebidas (Todas chegam com essa por padrão)
+
+Em análise
+
+Pendências internas
+
+Pendências externas
+
+Em validação
+
+Finalizadas
+
+Canceladas
+
+O que eu pensei: usar o campo lista de opções, e quando um card estiver com uma opção selecionada bloquear outros cards. mas está muito vago na minha mente, me ajude a figurar como fazer da melhor forma.
+
+## Reposta
+
+### Abordagem com Flow Builder
+
+1. **Disparo do Fluxo:**
+   Crie um fluxo disparado por registro (Record-Triggered Flow) no objeto em questão. Configure-o para disparar tanto na criação quanto na atualização, se necessário.
+2. **Identificação do Usuário e Status:**
+   No fluxo, use um elemento “Get Records” para buscar outros registros da task que:
+   - Pertencem ao mesmo usuário (ou estejam associados à mesma “responsabilidade”);
+   - Já tenham sido movidos de “Recebidas” para algum dos outros status (por exemplo, “Em análise”, “Pendências internas”, etc.), dependendo da lógica de negócio.
+3. **Lógica de Decisão:**
+   Após a consulta, insira um elemento “Decision” para verificar se existe algum registro que atenda a esses critérios.
+   - **Se houver um registro ativo em um status diferente de “Recebidas”:**
+     O fluxo deve impedir que o usuário mova outro card.
+   - **Se não houver:**
+     Permita que a atualização prossiga.
+4. **Mensagem de Erro:**
+   Caso a condição de “uma task por vez” seja violada, o fluxo pode interromper a operação e retornar uma mensagem de erro personalizada, informando o usuário que ele já possui uma task ativa e que deverá finalizá-la ou cancelá-la antes de mover outra.
+
+### Pontos a Considerar
+
+- **Limitações da Regra de Validação:**
+  Como mencionado, a regra de validação não pode acessar outros registros, logo não é possível usá-la para essa verificação de “unicidade” no contexto do usuário.
+- **Cenários Específicos:**
+  Pense bem nos status que deverão ser considerados “ativos” (por exemplo, pode ser que apenas os status “Em análise”, “Pendências internas/externas” e “Em validação” sejam contados, deixando “Finalizadas” e “Canceladas” de fora).
+- **Testes:**
+  Após configurar o fluxo, faça testes com diferentes cenários para garantir que a lógica está bloqueando corretamente a movimentação de múltiplos cards pelo mesmo usuário.
+
+================
+File: mydomain.html
+================
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reino Capital</title>
+    <style>
+           body { 
+             background-color: white;
+             -webkit-background-size: cover;
+             -moz-background-size: cover;
+             -o-background-size: cover;
+             background-size: cover;
+           }
+    </style>
+</head>
+<body>
+    <header class="content-top">
+    </header>
+    <main class="content">
+    </main>
+</body>
+</html>
+
+================
+File: reinocapital-salesforce.code-workspace
+================
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"salesforce.einsteinForDevelopers.enable": true,
+		"salesforcedx-vscode-core.show-cli-success-msg": false
+	}
+}
+
+================
+File: scripts/apex/hello.apex
+================
+// Use .apex files to store anonymous Apex.
+// You can execute anonymous Apex in VS Code by selecting the
+//     apex text and running the command:
+//     SFDX: Execute Anonymous Apex with Currently Selected Text
+// You can also execute the entire file by running the command:
+//     SFDX: Execute Anonymous Apex with Editor Contents
+
+string tempvar = 'Enter_your_name_here';
+System.debug('Hello World!');
+System.debug('My name is ' + tempvar);
+
+================
+File: scripts/soql/account.soql
+================
+// Use .soql files to store SOQL queries.
+// You can execute queries in VS Code by selecting the
+//     query text and running the command:
+//     SFDX: Execute SOQL Query with Currently Selected Text
+
+SELECT Id, Name FROM Account
+
+================
+File: scripts/soql/api-test.soql
+================
+SELECT Id, Profile.PermissionsApiOnlyUser FROM User
+
+================
+File: sfdx-project.json
+================
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "name": "dx-project",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "62.0"
+}
+
+================
+File: .github/workflows/validate-salesforce.yml
+================
+name: Salesforce Validation Check
+
+on:
+  pull_request:
+    branches:
+      - sandbox
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Salesforce CLI
+        run: npm install --global sfdx-cli
+
+      - name: Authenticate Salesforce (Sandbox)
+        run: echo "${{ secrets.SF_SANDBOX_AUTH_URL }}" | sf auth sfdx-url store --alias sandReino --set-default
+
+      - name: Validate Deployment
+        run: sf project deploy validate --target-org sandReino --wait 10
+
+================
+File: config/project-scratch-def.json
+================
+{
+  "orgName": "codebuilder company",
+  "edition": "Developer",
+  "features": ["EnableSetPasswordInApi"],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true,
+      "enableLightningPreviewPref": true
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    }
+  }
+}
+
+================
+File: jest.config.js
+================
+// @ts-check
+const config = require("@salesforce/sfdx-lwc-jest/config");
+
+/** @type {import('@jest/types').Config.InitialOptions} */
+const jestConfig = {
+  ...config,
+  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"]
+};
+
+module.exports = jestConfig;
+
+================
+File: package.json
+================
+{
+  "name": "salesforce-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Salesforce App",
+  "scripts": {
+    "lint": "eslint **/{aura,lwc}/**/*.js",
+    "test": "npm run test:unit",
+    "test:unit": "sfdx-lwc-jest",
+    "test:unit:watch": "sfdx-lwc-jest --watch",
+    "test:unit:debug": "sfdx-lwc-jest --debug",
+    "test:unit:coverage": "sfdx-lwc-jest --coverage",
+    "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
+    "prettier:verify": "prettier --check \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
+    "postinstall": "husky install",
+    "precommit": "lint-staged"
+  },
+  "devDependencies": {
+    "@lwc/eslint-plugin-lwc": "^2.0.0",
+    "@prettier/plugin-xml": "^3.2.2",
+    "@salesforce/eslint-config-lwc": "^3.7.1",
+    "@salesforce/eslint-plugin-aura": "^2.0.0",
+    "@salesforce/eslint-plugin-lightning": "^1.0.0",
+    "@salesforce/sfdx-lwc-jest": "^7.0.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jest": "^28.8.1",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.1.0",
+    "prettier": "^3.1.0",
+    "prettier-plugin-apex": "^2.0.1"
+  },
+  "lint-staged": {
+    "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}": [
+      "prettier --write"
+    ],
+    "**/{aura,lwc}/**/*.js": [
+      "eslint"
+    ]
+  }
+}
+
+================
+File: README.md
+================
+# Projeto Salesforce DX: Próximos Passos
+
+Agora que você criou um projeto Salesforce DX, o que vem a seguir? Aqui estão alguns recursos de documentação para ajudá-lo a começar.
+
+## Como você planeja implantar suas alterações?
+
+Você deseja implantar um conjunto de alterações ou criar um aplicativo independente? Escolha um [modelo de desenvolvimento](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
+
+## Configure seu Projeto Salesforce DX
+
+O arquivo `sfdx-project.json` contém informações úteis de configuração para o seu projeto. Consulte a [Configuração do Projeto Salesforce DX](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) no _Guia do Desenvolvedor Salesforce DX_ para mais detalhes sobre este arquivo.
+
+## Leia tudo sobre isso
+
+- [Documentação das Extensões do Salesforce](https://developer.salesforce.com/tools/vscode/)
+- [Guia de Configuração do Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
+- [Guia do Desenvolvedor Salesforce DX](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
+- [Referência de Comandos do Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+
+================
+File: force-app/main/default/classes/KanbanDataController.cls
+================
+/**
+ * @description Controlador Apex para o componente Kanban LWC
+ * Gerencia as operações de busca e atualização dos registros do BackOffice
+ *
+ * Boas Práticas implementadas:
+ * - Usa "with sharing" para respeitar regras de compartilhamento
+ * - Implementa WITH SECURITY_ENFORCED para segurança em nível de objeto/campo
+ * - Utiliza controle de erros e validações de negócio
+ */
+public with sharing class KanbanDataController {
+  /**
+   * @description Busca registros do objeto Opportunity para exibição no Kanban
+   * @return List<Opportunity> Lista de registros do BackOffice
+   *
+   * Anotações importantes:
+   * - @AuraEnabled(cacheable=true): Permite caching dos resultados para melhor performance
+   * - WITH SECURITY_ENFORCED: Garante verificação de permissões FLS/CRUD
+   * - LIMIT 1000: Boa prática para evitar problemas de performance e limites do Salesforce
+   */
+  @AuraEnabled(cacheable=true)
+  public static List<Opportunity> getRecords() {
+    return [
+      SELECT
+        Id,
+        Name,
+        StageName,
+        Amount,
+        CloseDate,
+        Account.Name,
+        OwnerId,
+        CreatedDate,
+        LastModifiedDate
+      FROM Opportunity
+      WITH SECURITY_ENFORCED
+      ORDER BY CreatedDate DESC
+      LIMIT 1000
+    ];
+  }
+
+  /**
+   * @description Atualiza o status de um registro com validação de regra de negócio
+   * @param recordId ID do registro a ser atualizado
+   * @param newStatus Novo status para o registro
+   *
+   * Regra de Negócio:
+   * - Um usuário só pode ter uma tarefa em andamento por vez
+   * - Exceção: Registros podem ser movidos para 'Finalizadas' ou 'Canceladas'
+   *
+   * Dicas de implementação:
+   * 1. Usa SOQL parametrizado para evitar SOQL injection
+   * 2. Implementa tratamento de exceções
+   * 3. Valida regras de negócio antes da atualização
+   */
+  @AuraEnabled
+  public static void updateRecordStatus(Id recordId, String newStatus) {
+    // Verificar permissões CRUD
+    if (
+      !Schema.sObjectType.Opportunity.isUpdateable() ||
+      !Schema.sObjectType.Opportunity.fields.StageName.isUpdateable()
+    ) {
+      throw new AuraHandledException(
+        'Você não tem permissão para atualizar oportunidades.'
+      );
+    }
+
+    // Verificação de registros ativos para o usuário atual
+    List<Opportunity> activeOpps = [
+      SELECT Id
+      FROM Opportunity
+      WHERE
+        OwnerId = :UserInfo.getUserId()
+        AND StageName = 'Em Negociação'
+        AND Id != :recordId
+      WITH SECURITY_ENFORCED
+      LIMIT 1
+    ];
+
+    // Validação de regra de negócio: uma oportunidade em negociação por vez
+    if (!activeOpps.isEmpty() && newStatus == 'Em Negociação') {
+      throw new AuraHandledException(
+        'Você já possui uma oportunidade em negociação. Finalize-a antes de mover outra.'
+      );
+    }
+
+    // Atualização do registro após validação
+    Opportunity opp = new Opportunity(Id = recordId, StageName = newStatus);
+
+    try {
+      update opp;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled
+  public static void deleteRecord(Id recordId) {
+    // Verificar permissões CRUD
+    if (!Schema.sObjectType.Opportunity.isDeletable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para excluir oportunidades.'
+      );
+    }
+
+    try {
+      Opportunity opp = new Opportunity(Id = recordId);
+      delete opp;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled
+  public static Id cloneRecord(Id recordId) {
+    // Verificar permissões CRUD
+    if (!Schema.sObjectType.Opportunity.isCreateable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para criar oportunidades.'
+      );
+    }
+
+    try {
+      // Buscar a oportunidade original com todos os campos necessários
+      Opportunity originalOpp = [
+        SELECT Name, StageName, Amount, CloseDate, AccountId
+        FROM Opportunity
+        WHERE Id = :recordId
+        WITH SECURITY_ENFORCED
+        LIMIT 1
+      ];
+
+      // Criar nova oportunidade com os mesmos dados
+      Opportunity clonedOpp = new Opportunity(
+        Name = originalOpp.Name + ' - Cópia',
+        StageName = 'Sem contato', // Sempre começa como sem contato
+        Amount = originalOpp.Amount,
+        CloseDate = originalOpp.CloseDate,
+        AccountId = originalOpp.AccountId
+      );
+
+      insert clonedOpp;
+      return clonedOpp.Id;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled
+  public static void deleteRecordsInBulk(List<Id> recordIds) {
+    // Verificar permissões CRUD
+    if (!Schema.sObjectType.Opportunity.isDeletable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para excluir oportunidades.'
+      );
+    }
+
+    try {
+      List<Opportunity> oppsToDelete = [
+        SELECT Id
+        FROM Opportunity
+        WHERE Id IN :recordIds
+        WITH SECURITY_ENFORCED
+      ];
+      delete oppsToDelete;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+}
+
+================
+File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
+================
+/* Estilos base */
+.slds-box {
+  transition: all 0.3s ease;
+}
+
+.kanban-column {
+  min-height: 300px;
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.records-container {
+  position: relative;
+  height: calc(100vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+/* Sistema de abas do Kanban */
+.slds-tabs_default__nav {
+  border-bottom: 2px solid var(--lwc-colorBorder, #dddbda);
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  overflow-x: auto;
+  background: var(--lwc-colorBackground, white);
+}
+
+.slds-tabs_default__item {
+  position: relative;
+  padding: 0;
+  background: var(--lwc-colorBackgroundAlt, #f8f9fd);
+  border-radius: var(--lwc-borderRadiusMedium, 0.25rem);
+  margin-right: 0.5rem;
+  color: var(--lwc-colorTextDefault, #16325c);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.slds-tabs_default__item:last-child {
+  margin-right: 0;
+}
+
+.slds-tabs_default__item .slds-tabs_default__link {
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.slds-tabs_default__item.slds-is-active {
+  background-color: var(--lwc-brandBackgroundPrimary, #eef4ff);
+  color: var(--lwc-brandAccessible, #0070d2);
+  border-bottom: 2px solid var(--lwc-brandAccessible, #0070d2);
+}
+
+.slds-tabs_default__item:hover {
+  background-color: var(--lwc-colorBackgroundRowHover, #f3f7ff);
+  transform: translateY(-1px);
+}
+
+.slds-tabs_default__item:active {
+  transform: translateY(0);
+}
+
+/* Remove todos os pseudo-elementos e setas */
+.slds-tabs_default__item::after {
+  display: none;
+}
+
+/* Badge de contagem */
+.slds-badge.slds-badge_lightest {
+  background-color: var(--lwc-brandBackgroundPrimaryTransparent, rgba(0, 112, 210, 0.05));
+  color: var(--lwc-brandAccessible, #0070d2);
+  font-weight: var(--lwc-fontWeightRegular, 400);
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Estilos para os cards e containers */
+.records-container.drag-over {
+  background-color: var(--lwc-brandBackgroundPrimaryTransparent, rgba(0, 112, 210, 0.1));
+  border: 2px dashed var(--lwc-brandAccessible, #0070d2);
+}
+
+.kanban-card {
+  background: var(--lwc-colorBackground, #ffffff);
+  border: 1px solid var(--lwc-colorBorder, #d8dde6);
+  border-left: 4px solid var(--lwc-brandAccessible, #0070d2);
+  box-shadow: var(--lwc-shadowDrag, 0 2px 3px 0 rgba(0, 0, 0, 0.05));
+  cursor: move;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lwc-shadowDropDown, 0 2px 3px 0 rgba(0, 0, 0, 0.16));
+}
+
+.kanban-card.dragging {
+  opacity: 0.7;
+  transform: scale(0.98);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo do grid e colunas */
+.slds-grid {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.slds-col {
+  position: relative;
+  padding: 0.25rem;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Tamanhos fixos das colunas */
+.col-checkbox {
+  width: 30px;
+  min-width: 30px;
+  max-width: 40px;
+}
+
+.col-type {
+  width: 50px;
+  min-width: 50px;
+}
+
+.col-name {
+  width: 200px;
+  min-width: 100px;
+}
+
+.col-account {
+  width: 180px;
+  min-width: 100px;
+}
+
+.col-amount {
+  width: 120px;
+  min-width: 100px;
+}
+
+.col-probability {
+  width: 100px;
+  min-width: 80px;
+}
+
+.col-date {
+  width: 100px;
+  min-width: 80px;
+}
+
+.col-stage {
+  width: 140px;
+  min-width: 120px;
+}
+
+.col-actions {
+  width: 60px;
+  min-width: 50px;
+}
+
+/* Cabeçalhos ordenáveis */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 1.5rem;
+}
+
+.sortable-header:hover {
+  background-color: var(--lwc-colorBackgroundRowHover, #f3f3f3);
+}
+
+.sortable-header::after {
+  content: "↕";
+  position: absolute;
+  right: 0.5rem;
+  opacity: 0.5;
+}
+
+.sortable-header[data-sort="asc"]::after {
+  content: "↑";
+  opacity: 1;
+}
+
+sorta-header[data-sort="desc"]::after {
+  content: "↓";
+  opacity: 1;
+}
+
+/* Estilização da barra de rolagem */
+.records-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.records-container::-webkit-scrollbar-track {
+  background: var(--lwc-colorBackgroundAlt, #f1f1f1);
+  border-radius: var(--lwc-borderRadiusSmall, 3px);
+}
+
+.records-container::-webkit-scrollbar-thumb {
+  background: var(--lwc-colorBorder, #d8dde6);
+  border-radius: var(--lwc-borderRadiusSmall, 3px);
+}
+
+.records-container::-webkit-scrollbar-thumb:hover {
+  background: #b5bcc9;
+}
+
+/* Menu dropdown e ações */
+.slds-dropdown-trigger {
+  position: relative;
+  margin-left: auto;
+}
+
+.slds-dropdown-trigger .slds-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 200px;
+  background: var(--lwc-colorBackground, white);
+  box-shadow: var(--lwc-shadowDropDown, 0 2px 3px 0 rgba(0, 0, 0, 0.16));
+  border: 1px solid var(--lwc-colorBorder, #dddbda);
+  border-radius: var(--lwc-borderRadiusMedium, 0.25rem);
+  z-index: 9000;
+}
+
+.slds-dropdown-trigger.slds-is-open .slds-dropdown {
+  display: block !important;
+}
+
+.slds-dropdown__item > a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  color: var(--lwc-colorTextDefault, #000000);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.slds-dropdown__item > a:hover,
+.slds-dropdown__item > a:focus {
+  background-color: var(--lwc-colorBackgroundRowHover, #f3f2f2);
+  text-decoration: none;
+  outline: 0;
+}
+
+/* Combobox de estágio */
+.stage-selector lightning-combobox {
+  --sds-c-combobox-color-background: transparent;
+  --sds-c-combobox-color-border: transparent;
+}
+
+.stage-selector .slds-combobox_container {
+  min-width: 140px;
+}
+
+.stage-selector .slds-combobox__input {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  background-color: #f3f3f3;
+  border-radius: 0.25rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: #444444;
+}
+
+.stage-selector .slds-combobox__input:hover {
+  background-color: #e5e5e5;
+  border-color: #dddbda;
+}
+
+.stage-selector .slds-combobox__input:focus {
+  background-color: white;
+  border-color: #0070d2;
+  box-shadow: 0 0 3px #0070d2;
+}
+
+/* Cores por estágio */
+.stage-selector[data-stage="Sem contato"] .slds-combobox__input {
+  background-color: var(--lwc-colorBackgroundInput, #f3f3f3);
+  color: var(--lwc-colorTextLabel, #444444);
+}
+
+.stage-selector[data-stage="Primeiro Contato"] .slds-combobox__input {
+  background-color: var(--lwc-colorBackgroundWarning, #faf3dd);
+  color: var(--lwc-colorTextDefault, #514f4d);
+}
+
+.stage-selector[data-stage="Primeira Reunião"] .slds-combobox__input {
+  background-color: var(--lwc-colorBackgroundInfo, #e1f3fc);
+  color: var(--lwc-brandAccessible, #0070d2);
+}
+
+.stage-selector[data-stage="Em Negociação"] .slds-combobox__input {
+  background-color: var(--lwc-brandBackgroundPrimary, #d8edff);
+  color: var(--lwc-brandAccessible, #0070d2);
+}
+
+.stage-selector[data-stage="Análise Contratual"] .slds-combobox__input {
+  background-color: var(--lwc-colorBackgroundSuccess, #cdefc4);
+  color: var(--lwc-colorTextSuccess, #2e844a);
+}
+
+.stage-selector[data-stage="Convertido"] .slds-combobox__input {
+  background-color: var(--lwc-colorBackgroundToastSuccess, #45c65a);
+  color: var(--lwc-colorTextInverse, white);
+}
+
+.stage-selector[data-stage="Perdido"] .slds-combobox__input {
+  background-color: var(--lwc-colorBackgroundDestructive, #ffeded);
+  color: var(--lwc-colorTextError, #ba0517);
+}
+
+/* Animação de loading durante atualização do estágio */
+.stage-selector.stage-updating {
+  position: relative;
+}
+
+.stage-selector.stage-updating::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Pesquisa e cabeçalho */
+.header-search {
+  min-width: 240px;
+  padding-right: 1rem;
+}
+
+.search-box {
+  margin-bottom: 0;
+}
+
+/* Ajustes para o ícone de oportunidade */
+.slds-media__figure lightning-icon {
+  --sds-c-icon-color-background: #0176d3;
+}
+
+.slds-card__header .slds-text-heading_medium {
+  margin-bottom: 4px;
+}
+
+.records-container .slds-illustration_small {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Responsividade */
+@media screen and (max-width: 768px) {
+  .kanban-column {
+    height: auto;
+    min-height: 200px;
+    max-height: 400px;
+  }
+
+  .slds-tabs_default__item {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .records-container {
+    height: calc(100vh - 200px);
+    max-height: 400px;
+  }
+
+  .slds-grid {
+    flex-wrap: wrap;
+  }
+
+  .slds-col {
+    flex: 1 1 50%;
+  }
+
+  .list-header {
+    display: none;
+  }
+}
+
+================
+File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
+================
+<!-- 
+    Componente Kanban LWC com layout de Pipeline
+    Este template implementa um sistema de abas similar ao Pipeline do Salesforce
+    
+    Estrutura do componente:
+    1. Container principal (slds-card)
+    2. Sistema de navegação por abas (slds-tabs_default)
+    3. Conteúdo de cada aba com os cards do Kanban
+    4. Cards arrastáveis dentro de cada aba
+-->
+<template>
+  <!-- Container principal com estilo de card do SLDS -->
+  <div class="slds-card slds-card_boundary">
+    <div class="slds-card__header">
+      <!-- Título, ícone e descrição -->
+      <div class="slds-grid slds-grid_vertical">
+        <div class="slds-col">
+          <div class="slds-media slds-media_center slds-p-around_medium">
+            <div class="slds-media__figure">
+              <lightning-icon
+                icon-name="standard:opportunity"
+                size="medium"
+                alternative-text="Oportunidades"
+                title="Oportunidades"
+              >
+              </lightning-icon>
+            </div>
+            <div class="slds-media__body">
+              <h1 class="slds-text-heading_medium">Oportunidades - Kanban</h1>
+              <p class="slds-text-body_small slds-line-height_reset">
+                Gerencie suas oportunidades de negócio de forma visual e
+                eficiente
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de ações (Pesquisa, Botão Criar e Refresh) -->
+        <div
+          class="slds-col slds-grid slds-grid_align-end slds-p-horizontal_medium slds-p-bottom_medium"
+        >
+          <div class="slds-grid slds-grid_vertical-align-center">
+            <lightning-button
+              variant="brand"
+              label="Nova Oportunidade"
+              title="Criar nova oportunidade"
+              onclick={handleCreateNew}
+              class="slds-m-right_small"
+            >
+            </lightning-button>
+
+            <div class="slds-form-element header-search">
+              <div class="slds-form-element__control">
+                <lightning-input
+                  type="search"
+                  label="Pesquisar oportunidades"
+                  onchange={handleSearch}
+                  variant="label-hidden"
+                  placeholder="Pesquisa nesta lista..."
+                  class="search-box"
+                >
+                </lightning-input>
+              </div>
+            </div>
+
+            <template if:true={showBulkActions}>
+              <div class="slds-button-group slds-m-left_small">
+                <lightning-button
+                  variant="destructive"
+                  label="Excluir Selecionados"
+                  title="Excluir Registros"
+                  onclick={handleBulkDelete}
+                >
+                </lightning-button>
+              </div>
+            </template>
+
+            <lightning-button-icon
+              icon-name="utility:refresh"
+              variant="border-filled"
+              alternative-text="Atualizar"
+              title="Atualizar"
+              class="slds-m-left_small"
+              onclick={handleRefresh}
+            >
+            </lightning-button-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slds-card__body">
+      <!-- Sistema de abas do SLDS -->
+      <div class="slds-tabs_default">
+        <!-- Navegação entre abas com suporte a drop -->
+        <ul class="slds-tabs_default__nav" role="tablist">
+          <template for:each={columns} for:item="column" for:index="index">
+            <li
+              key={column.label}
+              class={column.tabClass}
+              role="presentation"
+              ondrop={handleDrop}
+              ondragover={allowDrop}
+              data-status={column.value}
+            >
+              <a
+                class="slds-tabs_default__link"
+                role="tab"
+                tabindex={column.tabIndex}
+                aria-selected={column.isActive}
+                aria-controls={column.tabPanelId}
+                data-index={index}
+                onclick={handleTabClick}
+              >
+                <div class="slds-media slds-media_center">
+                  <div class="slds-media__figure">
+                    <lightning-icon
+                      icon-name={column.iconName}
+                      size="x-small"
+                    ></lightning-icon>
+                  </div>
+                  <div class="slds-media__body">
+                    <span>{column.label}</span>
+                    <span
+                      class="slds-badge slds-badge_lightest slds-m-left_small"
+                      >{column.recordCount}</span
+                    >
+                  </div>
+                </div>
+              </a>
+            </li>
+          </template>
+        </ul>
+
+        <!-- Conteúdo de cada aba -->
+        <template for:each={columns} for:item="column" for:index="index">
+          <div
+            key={column.label}
+            id={column.tabPanelId}
+            class={column.tabPanelClass}
+            role="tabpanel"
+            aria-labelledby={column.tabId}
+          >
+            <!-- Container dos cartões com scroll vertical -->
+            <div
+              class="slds-p-around_x-small records-container"
+              ondrop={handleDrop}
+              ondragover={allowDrop}
+              data-status={column.value}
+            >
+              <!-- Cabeçalhos das colunas -->
+              <div
+                class="slds-grid slds-grid_vertical-align-center slds-border_bottom slds-p-bottom_x-small list-header"
+              >
+                <!-- Checkbox (vazio para manter alinhamento) -->
+                <div class="slds-col col-checkbox"></div>
+                <!-- Tipo -->
+                <div class="slds-col col-type">
+                  <div class="slds-text-title_caps slds-text-color_weak">
+                    Tipo
+                  </div>
+                </div>
+                <!-- Nome da Oportunidade -->
+                <div class="slds-col col-name">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Name"
+                  >
+                    Nome da Oportunidade
+                  </div>
+                </div>
+                <!-- Nome da Conta -->
+                <div class="slds-col col-account">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="AccountName"
+                  >
+                    Nome da Conta
+                  </div>
+                </div>
+                <!-- Valor -->
+                <div class="slds-col col-amount">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Amount"
+                  >
+                    Valor
+                  </div>
+                </div>
+                <!-- Probabilidade -->
+                <div class="slds-col col-probability">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Probabilidade_da_Oportunidade__c"
+                  >
+                    Probabilidade
+                  </div>
+                </div>
+                <!-- Data de Fechamento -->
+                <div class="slds-col col-date">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="CloseDate"
+                  >
+                    Data de Fechamento
+                  </div>
+                </div>
+                <!-- Estágio -->
+                <div class="slds-col col-stage">
+                  <div class="slds-text-title_caps slds-text-color_weak">
+                    Estágio
+                  </div>
+                </div>
+                <!-- Ações -->
+                <div class="slds-col col-actions">
+                  <div class="slds-text-title_caps slds-text-color_weak">
+                    Ações
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de registros -->
+              <ul
+                class="slds-has-dividers_around-space slds-has-list-interactions slds-m-top_x-small"
+              >
+                <template for:each={column.records} for:item="record">
+                  <li
+                    key={record.Id}
+                    class="slds-item record-item"
+                    draggable="true"
+                    ondragstart={handleDrag}
+                    ondragend={handleDragEnd}
+                    data-id={record.Id}
+                  >
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                      <!-- Checkbox -->
+                      <div class="slds-col col-checkbox">
+                        <lightning-input
+                          type="checkbox"
+                          data-id={record.Id}
+                          checked={record.selected}
+                          onchange={handleRecordSelection}
+                          variant="label-hidden"
+                        >
+                        </lightning-input>
+                      </div>
+                      <!-- Tipo -->
+                      <div class="slds-col col-type">
+                        <lightning-icon
+                          icon-name={record.iconName}
+                          size="x-small"
+                          class="slds-m-right_x-small"
+                        >
+                        </lightning-icon>
+                      </div>
+                      <!-- Nome da Oportunidade -->
+                      <div class="slds-col col-name">
+                        <div class="slds-truncate" title={record.Name}>
+                          <a
+                            href="javascript:void(0);"
+                            onclick={handleNavigateToRecord}
+                            data-id={record.Id}
+                            class="slds-text-link_reset"
+                            style="text-decoration: underline"
+                          >
+                            {record.Name}
+                          </a>
+                        </div>
+                      </div>
+                      <!-- Nome da Conta -->
+                      <div class="slds-col col-account">
+                        <div class="slds-truncate" title={record.AccountName}>
+                          {record.AccountName}
+                        </div>
+                      </div>
+                      <!-- Valor -->
+                      <div class="slds-col col-amount">
+                        <div class="slds-truncate" title={record.Amount}>
+                          <lightning-formatted-number
+                            value={record.Amount}
+                            format-style="currency"
+                            currency-code="BRL"
+                          >
+                          </lightning-formatted-number>
+                        </div>
+                      </div>
+                      <!-- Probabilidade -->
+                      <div class="slds-col col-probability">
+                        <div
+                          class="slds-truncate"
+                          title={record.Probabilidade_da_Oportunidade__c}
+                        >
+                          <lightning-formatted-number
+                            value={record.Probabilidade_da_Oportunidade__c}
+                            format-style="percent-fixed"
+                            minimum-fraction-digits="0"
+                            maximum-fraction-digits="0"
+                          >
+                          </lightning-formatted-number>
+                        </div>
+                      </div>
+                      <!-- Data -->
+                      <div class="slds-col col-date">
+                        <div class="slds-truncate">
+                          <template if:true={record.CloseDate}>
+                            <lightning-formatted-date-time
+                              value={record.CloseDate}
+                              year="2-digit"
+                              month="2-digit"
+                              day="2-digit"
+                            >
+                            </lightning-formatted-date-time>
+                          </template>
+                        </div>
+                      </div>
+                      <!-- Estágio -->
+                      <div class="slds-col col-stage">
+                        <div
+                          class="stage-selector"
+                          data-stage={record.StageName}
+                        >
+                          <lightning-combobox
+                            name="stage"
+                            variant="label-hidden"
+                            value={record.StageName}
+                            options={stageOptions}
+                            data-id={record.Id}
+                            onchange={handleStageChange}
+                            dropdown-class="stage-dropdown"
+                          >
+                          </lightning-combobox>
+                        </div>
+                      </div>
+                      <!-- Ações -->
+                      <div class="slds-col col-actions slds-text-align_right">
+                        <div
+                          class="slds-dropdown-trigger slds-dropdown-trigger_click"
+                        >
+                          <button
+                            class="slds-button slds-button_icon slds-button_icon-border-filled"
+                            onclick={handleActionClick}
+                            data-id={record.Id}
+                            aria-haspopup="true"
+                          >
+                            <lightning-icon
+                              icon-name="utility:chevrondown"
+                              size="small"
+                              alternative-text="Mostrar menu"
+                            >
+                            </lightning-icon>
+                          </button>
+                          <div
+                            class="slds-dropdown slds-dropdown_right"
+                            role="menu"
+                          >
+                            <ul class="slds-dropdown__list" role="menu">
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleEdit}
+                                  data-id={record.Id}
+                                >
+                                  <span class="slds-truncate">Editar</span>
+                                </a>
+                              </li>
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleClone}
+                                  data-id={record.Id}
+                                >
+                                  <span class="slds-truncate">Duplicar</span>
+                                </a>
+                              </li>
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleDelete}
+                                  data-id={record.Id}
+                                >
+                                  <span class="slds-truncate" title="Excluir"
+                                    >Excluir</span
+                                  >
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </template>
+              </ul>
+
+              <!-- Mensagem quando não há registros -->
+              <template if:true={column.isEmpty}>
+                <div
+                  class="slds-illustration slds-illustration_small slds-p-around_medium"
+                >
+                  <div class="slds-text-align_center slds-m-vertical_medium">
+                    <h3 class="slds-text-heading_medium">
+                      Nenhuma oportunidade nesta categoria
+                    </h3>
+                    <p class="slds-text-body_regular slds-m-vertical_small">
+                      Comece adicionando uma nova oportunidade nesta fase do
+                      pipeline
+                    </p>
+                    <lightning-button
+                      variant="brand"
+                      label="Nova Oportunidade"
+                      title="Criar nova oportunidade"
+                      onclick={handleCreateNew}
+                      class="slds-m-top_small"
+                    >
+                    </lightning-button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
+
+================
+File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
+================
+/**
+ * @description Componente Kanban para visualização e gerenciamento de registros do BackOffice
+ * com navegação por abas no estilo Pipeline do Salesforce
+ */
+import { LightningElement, wire, track } from "lwc";
+import { refreshApex } from "@salesforce/apex";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { NavigationMixin } from "lightning/navigation";
+import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
+import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
+import deleteRecord from "@salesforce/apex/KanbanDataController.deleteRecord";
+import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
+import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
+
+export default class KanbanPerson extends NavigationMixin(LightningElement) {
+  @track columns = [];
+  @track error;
+  @track searchTerm = "";
+  @track sortBy = "Name";
+  @track sortDirection = "asc";
+  @track selectedRecords = new Set();
+  @track showBulkActions = false;
+
+  wiredRecordsResult;
+  originalRecordsData;
+  draggedRecordId;
+  activeTabIndex = 0;
+  activeActionButton = null;
+
+  get hasSelectedRecords() {
+    return this.selectedRecords.size > 0;
+  }
+
+  // Mapeamento de status para ícones com os estágios corretos de Oportunidade
+  statusIconMap = {
+    "Sem contato": "utility:multi_picklist", // Prospecção inicial
+    "Primeiro Contato": "utility:filter", // Qualificação inicial
+    "Primeira Reunião": "utility:file", // Proposta/Apresentação
+    "Em Negociação": "utility:adjust_value", // Negociação/Revisão
+    "Análise Contratual": "utility:contract", // Contrato/Negociação final
+    Convertido: "utility:success", // Fechado/Ganho
+    Perdido: "utility:error" // Fechado/Perdido
+  };
+
+  /**
+   * @description Wire adapter para buscar registros do Apex
+   */
+  @wire(getRecords)
+  wiredRecords(result) {
+    this.wiredRecordsResult = result;
+    if (result.data) {
+      this.error = undefined;
+      this.originalRecordsData = result.data;
+      this.processData();
+    } else if (result.error) {
+      this.error = result.error;
+      this.showToast("Erro", "Erro ao carregar registros", "error");
+    }
+  }
+
+  // Novo método para processar os dados com todas as transformações necessárias
+  processData() {
+    if (!this.originalRecordsData) return;
+
+    // 1. Aplicar filtro de pesquisa
+    let processedData = this.filterRecords(this.originalRecordsData);
+
+    // 2. Aplicar ordenação
+    processedData = this.sortRecords(processedData);
+
+    // 3. Formatar dados para o kanban
+    this.formatData(processedData);
+  }
+
+  filterRecords(records) {
+    if (!this.searchTerm) return records;
+
+    const searchTermLower = this.searchTerm.toLowerCase();
+    return records.filter(
+      (record) =>
+        record.Name?.toLowerCase().includes(searchTermLower) ||
+        record.Account?.Name?.toLowerCase().includes(searchTermLower) ||
+        record.StageName?.toLowerCase().includes(searchTermLower)
+    );
+  }
+
+  handleSearch(event) {
+    this.searchTerm = event.target.value;
+    this.processData();
+  }
+
+  /**
+   * @description Formata os dados para exibição no Pipeline
+   * Adiciona propriedades para controle da UI de abas
+   */
+  formatData(records) {
+    const statuses = [
+      "Sem contato",
+      "Primeiro Contato",
+      "Primeira Reunião",
+      "Em Negociação",
+      "Análise Contratual",
+      "Convertido",
+      "Perdido"
+    ];
+
+    this.columns = statuses.map((status, index) => {
+      // Filtrar registros por status
+      let statusRecords = records.filter(
+        (record) => record.StageName === status
+      );
+
+      // Adicionar ícone e tratar campos undefined
+      const recordsWithIcons = statusRecords.map((record) => ({
+        ...record,
+        iconName: this.statusIconMap[record.StageName] || "utility:record",
+        Name: record.Name || "N/A",
+        Amount: record.Amount || 0,
+        Probability: record.Probabilidade_da_Oportunidade__c || 0,
+        CloseDate: record.CloseDate || null,
+        AccountName: record.Account?.Name || "N/A"
+      }));
+
+      // Propriedades para o sistema de abas
+      const isActive = index === this.activeTabIndex;
+      const tabId = `tab-${status.toLowerCase().replace(/ /g, "-")}`;
+      const tabPanelId = `tabPanel-${status.toLowerCase().replace(/ /g, "-")}`;
+
+      return {
+        label: status,
+        value: status,
+        records: recordsWithIcons,
+        recordCount: statusRecords.length,
+        isEmpty: statusRecords.length === 0,
+        iconName: this.statusIconMap[status],
+        // Propriedades para CSS dinâmico das abas
+        tabClass: `slds-tabs_default__item ${isActive ? "slds-is-active" : ""}`,
+        tabPanelClass: `slds-tabs_default__content ${isActive ? "slds-show" : "slds-hide"}`,
+        tabIndex: isActive ? 0 : -1,
+        isActive: isActive,
+        tabId: tabId,
+        tabPanelId: tabPanelId
+      };
+    });
+  }
+
+  /**
+   * @description Handler para clique em aba
+   * Atualiza a aba ativa e reformata os dados
+   */
+  handleTabClick(event) {
+    // Evitar comportamento padrão
+    event.preventDefault();
+
+    // Obter índice da aba clicada
+    const clickedTabIndex = parseInt(event.currentTarget.dataset.index, 10);
+
+    // Atualizar aba ativa
+    this.activeTabIndex = clickedTabIndex;
+
+    // Reformatar dados com nova aba ativa
+    if (this.wiredRecordsResult.data) {
+      this.formatData(this.wiredRecordsResult.data);
+    }
+  }
+
+  /**
+   * @description Handler para início do drag de um card
+   */
+  handleDrag(event) {
+    this.draggedRecordId = event.target.dataset.id;
+    const item = event.currentTarget;
+
+    // Adicionar classe para estilo durante drag
+    item.classList.add("dragging");
+
+    // Configurar o efeito de arrastar
+    event.dataTransfer.effectAllowed = "move";
+
+    // Adicionar dica visual
+    const dropTargets = this.template.querySelectorAll(".records-container");
+    dropTargets.forEach((target) => {
+      if (!target.classList.contains("drag-over")) {
+        target.classList.add("potential-drop");
+      }
+    });
+  }
+
+  /**
+   * @description Handler para permitir o drop
+   */
+  allowDrop(event) {
+    event.preventDefault();
+
+    // Adicionar feedback visual durante o drag
+    const dropTarget = event.currentTarget;
+
+    // Remover classe drag-over de todos os elementos
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    // Adicionar classe drag-over ao elemento atual
+    dropTarget.classList.add("drag-over");
+  }
+
+  /**
+   * @description Handler para quando um card é solto em uma coluna
+   */
+  handleDrop(event) {
+    event.preventDefault();
+    const newStatus = event.currentTarget.dataset.status;
+
+    // Remover todas as classes de feedback visual
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    this.template
+      .querySelectorAll(".kanban-card")
+      .forEach((card) => card.classList.remove("dragging"));
+
+    if (this.draggedRecordId && newStatus) {
+      // Encontrar o registro atual para comparar o estágio
+      const currentRecord = this.findRecordById(this.draggedRecordId);
+      if (currentRecord && currentRecord.StageName === newStatus) {
+        // Se o estágio é o mesmo, apenas atualiza a UI sem mostrar mensagem
+        return;
+      }
+
+      // Se chegou aqui, o estágio é diferente, então atualiza
+      updateRecordStatus({
+        recordId: this.draggedRecordId,
+        newStatus: newStatus
+      })
+        .then(() => {
+          this.showToast(
+            "Sucesso",
+            "Registro atualizado com sucesso",
+            "success"
+          );
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToast("Erro", error.body.message, "error");
+        });
+    }
+  }
+
+  // Adicionar evento para remover feedback visual quando o drag termina
+  handleDragEnd(event) {
+    event.preventDefault();
+    this.template
+      .querySelectorAll(".slds-tabs_default__item, .records-container")
+      .forEach((el) => el.classList.remove("drag-over"));
+
+    event.target.classList.remove("dragging");
+  }
+
+  /**
+   * @description Utility para mostrar mensagens toast ao usuário
+   */
+  showToast(title, message, variant) {
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: title,
+        message: message,
+        variant: variant
+      })
+    );
+  }
+
+  handleActionClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Fecha o menu anterior se existir
+    if (
+      this.activeActionButton &&
+      this.activeActionButton !== event.currentTarget
+    ) {
+      this.activeActionButton.parentElement.classList.remove("slds-is-open");
+    }
+
+    // Toggle do menu atual
+    const dropdownTrigger = event.currentTarget.parentElement;
+    dropdownTrigger.classList.toggle("slds-is-open");
+
+    // Atualiza o botão ativo
+    this.activeActionButton = event.currentTarget;
+  }
+
+  // Fecha o dropdown quando clicar fora
+  handleClickOutside = (event) => {
+    if (
+      this.activeActionButton &&
+      !this.activeActionButton.contains(event.target)
+    ) {
+      this.activeActionButton.parentElement.classList.remove("slds-is-open");
+      this.activeActionButton = null;
+    }
+  };
+
+  connectedCallback() {
+    // Adiciona listener para fechar o dropdown quando clicar fora
+    document.addEventListener("click", this.handleClickOutside);
+  }
+
+  disconnectedCallback() {
+    // Remove o listener quando o componente for destruído
+    document.removeEventListener("click", this.handleClickOutside);
+  }
+
+  handleEdit(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    // Navega para a página de edição da oportunidade
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: recordId,
+        objectApiName: "Opportunity",
+        actionName: "edit"
+      }
+    });
+  }
+
+  handleDelete(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    // Usando ShowToastEvent para confirmação
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Confirmar exclusão",
+        message: "Tem certeza que deseja excluir este registro?",
+        variant: "warning",
+        mode: "sticky",
+        actions: [
+          { label: "Sim", name: "confirm" },
+          { label: "Não", name: "cancel" }
+        ]
+      })
+    ).then((response) => {
+      if (response === "confirm") {
+        deleteRecord({ recordId: recordId })
+          .then(() => {
+            this.showToast(
+              "Sucesso",
+              "Registro excluído com sucesso",
+              "success"
+            );
+            return refreshApex(this.wiredRecordsResult);
+          })
+          .catch((error) => {
+            this.showToast("Erro", error.body.message, "error");
+          });
+      }
+    });
+  }
+
+  handleClone(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    cloneRecord({ recordId })
+      .then((newRecordId) => {
+        this.showToast(
+          "Sucesso",
+          "Oportunidade duplicada com sucesso",
+          "success"
+        );
+        return refreshApex(this.wiredRecordsResult);
+      })
+      .catch((error) => {
+        this.showToast("Erro", error.body.message, "error");
+      });
+  }
+
+  handleRefresh() {
+    return refreshApex(this.wiredRecordsResult);
+  }
+
+  handleNavigateToRecord(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: event.currentTarget.dataset.id,
+        objectApiName: "Opportunity",
+        actionName: "view"
+      }
+    });
+  }
+
+  handleRecordSelection(event) {
+    const recordId = event.target.dataset.id;
+    if (event.target.checked) {
+      this.selectedRecords.add(recordId);
+    } else {
+      this.selectedRecords.delete(recordId);
+    }
+    this.showBulkActions = this.selectedRecords.size > 0;
+  }
+
+  handleBulkDelete() {
+    // Usando ShowToastEvent para confirmação em massa
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Confirmar exclusão em massa",
+        message:
+          "Tem certeza que deseja excluir todos os registros selecionados?",
+        variant: "warning",
+        mode: "sticky",
+        actions: [
+          { label: "Sim", name: "confirm" },
+          { label: "Não", name: "cancel" }
+        ]
+      })
+    ).then((response) => {
+      if (response === "confirm") {
+        deleteRecordsInBulk({
+          recordIds: Array.from(this.selectedRecords)
+        })
+          .then(() => {
+            this.showToast(
+              "Sucesso",
+              "Registros excluídos com sucesso",
+              "success"
+            );
+            this.selectedRecords.clear();
+            this.showBulkActions = false;
+            refreshApex(this.wiredRecordsResult);
+          })
+          .catch((error) => {
+            this.showToast("Erro", error.body.message, "error");
+          });
+      }
+    });
+  }
+
+  get stageOptions() {
+    return [
+      { label: "Sem contato", value: "Sem contato" },
+      { label: "Primeiro Contato", value: "Primeiro Contato" },
+      { label: "Primeira Reunião", value: "Primeira Reunião" },
+      { label: "Em Negociação", value: "Em Negociação" },
+      { label: "Análise Contratual", value: "Análise Contratual" },
+      { label: "Convertido", value: "Convertido" },
+      { label: "Perdido", value: "Perdido" }
+    ];
+  }
+
+  handleStageChange(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.target.dataset.id;
+    const newStatus = event.target.value;
+    const element = event.target.closest(".stage-selector");
+
+    // Encontrar o registro atual para comparar o estágio
+    const currentRecord = this.findRecordById(recordId);
+    if (currentRecord && currentRecord.StageName === newStatus) {
+      // Se o estágio é o mesmo, apenas atualiza a UI sem mostrar mensagem
+      return;
+    }
+
+    // Atualizar atributo para mudança visual imediata
+    if (element) {
+      element.dataset.stage = newStatus;
+    }
+
+    // Adicionar classe de loading
+    if (element) {
+      element.classList.add("stage-updating");
+    }
+
+    updateRecordStatus({
+      recordId: recordId,
+      newStatus: newStatus
+    })
+      .then(() => {
+        this.showToast("Sucesso", "Estágio atualizado com sucesso", "success");
+        // Remover classe de loading
+        if (element) {
+          element.classList.remove("stage-updating");
+        }
+        return refreshApex(this.wiredRecordsResult);
+      })
+      .catch((error) => {
+        // Em caso de erro, reverter a mudança visual
+        if (element && currentRecord) {
+          element.dataset.stage = currentRecord.StageName;
+        }
+        if (element) {
+          element.classList.remove("stage-updating");
+        }
+        this.showToast("Erro", error.body.message, "error");
+      });
+  }
+
+  // Método auxiliar para encontrar um registro pelo Id
+  findRecordById(recordId) {
+    for (const column of this.columns) {
+      const record = column.records.find((rec) => rec.Id === recordId);
+      if (record) {
+        return record;
+      }
+    }
+    return null;
+  }
+
+  handleSort(event) {
+    const field = event.currentTarget.dataset.field;
+    const currentSortDir = this.sortDirection;
+
+    // Toggle sort direction
+    this.sortDirection =
+      field === this.sortBy && currentSortDir === "asc" ? "desc" : "asc";
+    this.sortBy = field;
+
+    // Atualizar ícone de ordenação
+    this.template.querySelectorAll(".sortable-header").forEach((header) => {
+      header.setAttribute(
+        "data-sort",
+        header.dataset.field === field ? this.sortDirection : ""
+      );
+    });
+
+    this.processData();
+  }
+
+  sortRecords(records) {
+    const isReverse = this.sortDirection === "desc";
+    const field = this.sortBy;
+
+    return [...records].sort((a, b) => {
+      let valueA = this.getFieldValue(a, field);
+      let valueB = this.getFieldValue(b, field);
+
+      // Tratar valores nulos/undefined
+      if (valueA === null || valueA === undefined) return isReverse ? -1 : 1;
+      if (valueB === null || valueB === undefined) return isReverse ? 1 : -1;
+
+      // Converter para string para comparação de texto
+      if (typeof valueA === "string") {
+        valueA = valueA.toLowerCase();
+        valueB = valueB.toLowerCase();
+      }
+
+      return isReverse ? (valueA < valueB ? 1 : -1) : valueA < valueB ? -1 : 1;
+    });
+  }
+
+  getFieldValue(record, field) {
+    // Tratar campos aninhados (ex: Account.Name)
+    if (field === "AccountName") {
+      return record.Account?.Name;
+    }
+    return record[field];
+  }
+
+  handleCreateNew() {
+    this[NavigationMixin.Navigate]({
+      type: "standard__objectPage",
+      attributes: {
+        objectApiName: "Opportunity",
+        actionName: "new"
+      }
+    });
+  }
+}
+
+
+
+================================================================
+End of Codebase
+================================================================
