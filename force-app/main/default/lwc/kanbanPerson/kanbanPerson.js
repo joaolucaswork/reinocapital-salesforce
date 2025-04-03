@@ -1,10 +1,9 @@
 /**
- * @description Componente Kanban para visualização e gerenciamento de registros do BackOffice
- * com navegação por abas no estilo Pipeline do Salesforce
+ * @description Componente de Visualização de Registros - Oportunidade para gerenciamento
+ * de registros com navegação por abas no estilo Pipeline do Salesforce
  */
-import { LightningElement, wire, track } from "lwc";
+import { LightningElement, wire, track, api } from "lwc";
 import { refreshApex } from "@salesforce/apex";
-import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { NavigationMixin } from "lightning/navigation";
 import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
 import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
@@ -13,6 +12,13 @@ import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
 import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
 
 export default class KanbanPerson extends NavigationMixin(LightningElement) {
+  @api statusField = "StageName";
+  @api titleField = "Name";
+  @api subtitleField = "Account.Name";
+  @api valueField = "Amount";
+  @api dateField = "CloseDate";
+  @api recordLimit = 1000;
+
   @track columns = [];
   @track error;
   @track searchTerm = "";
@@ -20,7 +26,9 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track sortDirection = "asc";
   @track selectedRecords = new Set();
   @track showBulkActions = false;
+  @track showDeleteModal = false;
 
+  recordIdToDelete;
   wiredRecordsResult;
   originalRecordsData;
   draggedRecordId;
@@ -54,7 +62,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       this.processData();
     } else if (result.error) {
       this.error = result.error;
-      this.showToast("Erro", "Erro ao carregar registros", "error");
     }
   }
 
@@ -106,20 +113,21 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
 
     this.columns = statuses.map((status, index) => {
       let statusRecords = records.filter(
-        (record) => record.StageName === status
+        (record) => record[this.statusField] === status
       );
 
       const recordsWithIcons = statusRecords.map((record) => ({
         ...record,
-        iconName: this.statusIconMap[record.StageName] || "utility:record",
-        Name: record.Name || "N/A",
-        Amount: record.Amount || 0,
+        iconName:
+          this.statusIconMap[record[this.statusField]] || "utility:record",
+        Name: this.getFieldValue(record, this.titleField) || "N/A",
+        Amount: this.getFieldValue(record, this.valueField) || 0,
         Probabilidade_da_Oportunidade__c:
           record.Probabilidade_da_Oportunidade__c
             ? record.Probabilidade_da_Oportunidade__c
             : "Não definido",
-        CloseDate: record.CloseDate || null,
-        AccountName: record.Account?.Name || "N/A"
+        CloseDate: this.getFieldValue(record, this.dateField) || null,
+        AccountName: this.getFieldValue(record, this.subtitleField) || "N/A"
       }));
 
       // Propriedades para o sistema de abas
@@ -249,15 +257,10 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         newStatus: newStatus
       })
         .then(() => {
-          this.showToast(
-            "Sucesso",
-            "Registro atualizado com sucesso",
-            "success"
-          );
           return refreshApex(this.wiredRecordsResult);
         })
         .catch((error) => {
-          this.showToast("Erro", error.body.message, "error");
+          console.error("Erro ao atualizar status:", error);
         });
     }
   }
@@ -270,19 +273,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       .forEach((el) => el.classList.remove("drag-over"));
 
     event.target.classList.remove("dragging");
-  }
-
-  /**
-   * @description Utility para mostrar mensagens toast ao usuário
-   */
-  showToast(title, message, variant) {
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: title,
-        message: message,
-        variant: variant
-      })
-    );
   }
 
   handleActionClick(event) {
@@ -346,37 +336,15 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   handleDelete(event) {
     event.preventDefault();
     event.stopPropagation();
-
     const recordId = event.currentTarget.dataset.id;
 
-    // Usando ShowToastEvent para confirmação
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Confirmar exclusão",
-        message: "Tem certeza que deseja excluir este registro?",
-        variant: "warning",
-        mode: "sticky",
-        actions: [
-          { label: "Sim", name: "confirm" },
-          { label: "Não", name: "cancel" }
-        ]
+    deleteRecord({ recordId })
+      .then(() => {
+        return refreshApex(this.wiredRecordsResult);
       })
-    ).then((response) => {
-      if (response === "confirm") {
-        deleteRecord({ recordId: recordId })
-          .then(() => {
-            this.showToast(
-              "Sucesso",
-              "Registro excluído com sucesso",
-              "success"
-            );
-            return refreshApex(this.wiredRecordsResult);
-          })
-          .catch((error) => {
-            this.showToast("Erro", error.body.message, "error");
-          });
-      }
-    });
+      .catch((error) => {
+        console.error("Erro ao excluir registro:", error);
+      });
   }
 
   handleClone(event) {
@@ -386,16 +354,11 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     const recordId = event.currentTarget.dataset.id;
 
     cloneRecord({ recordId })
-      .then((newRecordId) => {
-        this.showToast(
-          "Sucesso",
-          "Oportunidade duplicada com sucesso",
-          "success"
-        );
+      .then(() => {
         return refreshApex(this.wiredRecordsResult);
       })
       .catch((error) => {
-        this.showToast("Erro", error.body.message, "error");
+        console.error("Erro ao clonar registro:", error);
       });
   }
 
@@ -428,39 +391,17 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   }
 
   handleBulkDelete() {
-    // Usando ShowToastEvent para confirmação em massa
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Confirmar exclusão em massa",
-        message:
-          "Tem certeza que deseja excluir todos os registros selecionados?",
-        variant: "warning",
-        mode: "sticky",
-        actions: [
-          { label: "Sim", name: "confirm" },
-          { label: "Não", name: "cancel" }
-        ]
+    deleteRecordsInBulk({
+      recordIds: Array.from(this.selectedRecords)
+    })
+      .then(() => {
+        this.selectedRecords.clear();
+        this.showBulkActions = false;
+        return refreshApex(this.wiredRecordsResult);
       })
-    ).then((response) => {
-      if (response === "confirm") {
-        deleteRecordsInBulk({
-          recordIds: Array.from(this.selectedRecords)
-        })
-          .then(() => {
-            this.showToast(
-              "Sucesso",
-              "Registros excluídos com sucesso",
-              "success"
-            );
-            this.selectedRecords.clear();
-            this.showBulkActions = false;
-            refreshApex(this.wiredRecordsResult);
-          })
-          .catch((error) => {
-            this.showToast("Erro", error.body.message, "error");
-          });
-      }
-    });
+      .catch((error) => {
+        console.error("Erro ao excluir registros em massa:", error);
+      });
   }
 
   get stageOptions() {
@@ -499,9 +440,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       }
 
       await refreshApex(this.wiredRecordsResult);
-      this.showToast("Sucesso", "Registro atualizado com sucesso", "success");
     } catch (error) {
-      this.showToast("Erro", "Erro ao atualizar o registro", "error");
       console.error("Erro ao atualizar status:", error);
     }
   }

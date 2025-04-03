@@ -1,21 +1,19 @@
 /**
- * @description Controlador Apex para o componente Kanban LWC
- * Gerencia as operações de busca e atualização dos registros do BackOffice
- *
- * Boas Práticas implementadas:
- * - Usa "with sharing" para respeitar regras de compartilhamento
- * - Implementa WITH SECURITY_ENFORCED para segurança em nível de objeto/campo
- * - Utiliza controle de erros e validações de negócio
+ * @description Controlador para o componente Kanban
+ * Este controlador pode ser adaptado para qualquer objeto do Salesforce
+ * Para adaptar:
+ * 1. Altere o tipo de retorno da função getRecords
+ * 2. Modifique a query SOQL para selecionar os campos necessários
+ * 3. Ajuste os parâmetros das funções conforme necessário
  */
 public with sharing class KanbanDataController {
   /**
-   * @description Busca registros do objeto Opportunity para exibição no Kanban
-   * @return List<Opportunity> Lista de registros do BackOffice
-   *
-   * Anotações importantes:
-   * - @AuraEnabled(cacheable=true): Permite caching dos resultados para melhor performance
-   * - WITH SECURITY_ENFORCED: Garante verificação de permissões FLS/CRUD
-   * - LIMIT 1000: Boa prática para evitar problemas de performance e limites do Salesforce
+   * @description Retorna a lista de registros para exibição no Kanban
+   * @return List<Opportunity> Lista de oportunidades
+   * Para adaptar para outro objeto:
+   * 1. Altere o tipo de retorno
+   * 2. Modifique os campos na query
+   * 3. Ajuste as condições WHERE conforme necessário
    */
   @AuraEnabled(cacheable=true)
   public static List<Opportunity> getRecords() {
@@ -23,34 +21,25 @@ public with sharing class KanbanDataController {
       SELECT
         Id,
         Name,
-        StageName,
-        Amount,
-        CloseDate,
-        Account.Name,
-        OwnerId,
-        Probabilidade_da_Oportunidade__c,
-        CreatedDate,
-        LastModifiedDate
+        StageName, // Campo que define as colunas do Kanban
+        Amount, // Campo de valor
+        CloseDate, // Campo de data
+        Account.Name, // Campo de relacionamento
+        Probability, // Campo de probabilidade
+        Probabilidade_da_Oportunidade__c // Campo customizado
       FROM Opportunity
-      WITH SECURITY_ENFORCED
       ORDER BY CreatedDate DESC
       LIMIT 1000
     ];
   }
 
   /**
-   * @description Atualiza o status de um registro com validação de regra de negócio
-   * @param recordId ID do registro a ser atualizado
-   * @param newStatus Novo status para o registro
-   *
-   * Regra de Negócio:
-   * - Um usuário só pode ter uma tarefa em andamento por vez
-   * - Exceção: Registros podem ser movidos para 'Finalizadas' ou 'Canceladas'
-   *
-   * Dicas de implementação:
-   * 1. Usa SOQL parametrizado para evitar SOQL injection
-   * 2. Implementa tratamento de exceções
-   * 3. Valida regras de negócio antes da atualização
+   * @description Atualiza o status de um registro
+   * @param recordId Id do registro
+   * @param newStatus Novo status
+   * Para adaptar:
+   * 1. Altere o tipo do objeto
+   * 2. Modifique o campo de status
    */
   @AuraEnabled
   public static void updateRecordStatus(Id recordId, String newStatus) {
@@ -93,6 +82,10 @@ public with sharing class KanbanDataController {
     }
   }
 
+  /**
+   * @description Exclui um registro
+   * @param recordId Id do registro
+   */
   @AuraEnabled
   public static void deleteRecord(Id recordId) {
     // Verificar permissões CRUD
@@ -110,6 +103,10 @@ public with sharing class KanbanDataController {
     }
   }
 
+  /**
+   * @description Clona um registro
+   * @param recordId Id do registro
+   */
   @AuraEnabled
   public static Id cloneRecord(Id recordId) {
     // Verificar permissões CRUD
@@ -145,6 +142,10 @@ public with sharing class KanbanDataController {
     }
   }
 
+  /**
+   * @description Exclui múltiplos registros
+   * @param recordIds Lista de Ids dos registros
+   */
   @AuraEnabled
   public static void deleteRecordsInBulk(List<Id> recordIds) {
     // Verificar permissões CRUD

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Kanban Board User</label>
+    <description>Permissões necessárias para usar o Kanban Board</description>
+    
+    <!-- Permissões da Classe Apex -->
+    <classAccesses>
+        <apexClass>KanbanDataController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+
+    <!-- Permissões do Objeto -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Opportunity</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- Permissões dos Campos Customizados -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Opportunity.Probabilidade_da_Oportunidade__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+</PermissionSet>
