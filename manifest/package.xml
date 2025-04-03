@@ -13,5 +13,13 @@
         <members>Kanban_Board_User</members>
         <name>PermissionSet</name>
     </types>
-    <version>58.0</version>
+    <types>
+        <members>Kanban_Oportunidades</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members>Kanban_Oportunidades</members>
+        <name>CustomTab</name>
+    </types>
+    <version>63.0</version>
 </Package>

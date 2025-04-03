@@ -1,46 +1,22 @@
-/**
- * @description Controlador para o componente Kanban
- * Este controlador pode ser adaptado para qualquer objeto do Salesforce
- * Para adaptar:
- * 1. Altere o tipo de retorno da função getRecords
- * 2. Modifique a query SOQL para selecionar os campos necessários
- * 3. Ajuste os parâmetros das funções conforme necessário
- */
 public with sharing class KanbanDataController {
-  /**
-   * @description Retorna a lista de registros para exibição no Kanban
-   * @return List<Opportunity> Lista de oportunidades
-   * Para adaptar para outro objeto:
-   * 1. Altere o tipo de retorno
-   * 2. Modifique os campos na query
-   * 3. Ajuste as condições WHERE conforme necessário
-   */
   @AuraEnabled(cacheable=true)
   public static List<Opportunity> getRecords() {
     return [
       SELECT
         Id,
         Name,
-        StageName, // Campo que define as colunas do Kanban
-        Amount, // Campo de valor
-        CloseDate, // Campo de data
-        Account.Name, // Campo de relacionamento
-        Probability, // Campo de probabilidade
-        Probabilidade_da_Oportunidade__c // Campo customizado
+        StageName,
+        Amount,
+        CloseDate,
+        Account.Name,
+        Probability,
+        Probabilidade_da_Oportunidade__c
       FROM Opportunity
       ORDER BY CreatedDate DESC
       LIMIT 1000
     ];
   }
 
-  /**
-   * @description Atualiza o status de um registro
-   * @param recordId Id do registro
-   * @param newStatus Novo status
-   * Para adaptar:
-   * 1. Altere o tipo do objeto
-   * 2. Modifique o campo de status
-   */
   @AuraEnabled
   public static void updateRecordStatus(Id recordId, String newStatus) {
     // Verificar permissões CRUD
@@ -51,6 +27,22 @@ public with sharing class KanbanDataController {
       throw new AuraHandledException(
         'Você não tem permissão para atualizar oportunidades.'
       );
+    }
+
+    // Lista de status válidos
+    Set<String> validStatuses = new Set<String>{
+      'Sem contato',
+      'Primeiro Contato',
+      'Primeira Reunião',
+      'Em Negociação',
+      'Análise Contratual',
+      'Convertido',
+      'Perdido'
+    };
+
+    // Verificar se o status é válido
+    if (!validStatuses.contains(newStatus)) {
+      throw new AuraHandledException('Status inválido: ' + newStatus);
     }
 
     // Verificação de registros ativos para o usuário atual
@@ -82,13 +74,8 @@ public with sharing class KanbanDataController {
     }
   }
 
-  /**
-   * @description Exclui um registro
-   * @param recordId Id do registro
-   */
   @AuraEnabled
   public static void deleteRecord(Id recordId) {
-    // Verificar permissões CRUD
     if (!Schema.sObjectType.Opportunity.isDeletable()) {
       throw new AuraHandledException(
         'Você não tem permissão para excluir oportunidades.'
@@ -103,13 +90,8 @@ public with sharing class KanbanDataController {
     }
   }
 
-  /**
-   * @description Clona um registro
-   * @param recordId Id do registro
-   */
   @AuraEnabled
   public static Id cloneRecord(Id recordId) {
-    // Verificar permissões CRUD
     if (!Schema.sObjectType.Opportunity.isCreateable()) {
       throw new AuraHandledException(
         'Você não tem permissão para criar oportunidades.'
@@ -117,7 +99,6 @@ public with sharing class KanbanDataController {
     }
 
     try {
-      // Buscar a oportunidade original com todos os campos necessários
       Opportunity originalOpp = [
         SELECT Name, StageName, Amount, CloseDate, AccountId
         FROM Opportunity
@@ -126,10 +107,9 @@ public with sharing class KanbanDataController {
         LIMIT 1
       ];
 
-      // Criar nova oportunidade com os mesmos dados
       Opportunity clonedOpp = new Opportunity(
         Name = originalOpp.Name + ' - Cópia',
-        StageName = 'Sem contato', // Sempre começa como sem contato
+        StageName = 'Sem contato',
         Amount = originalOpp.Amount,
         CloseDate = originalOpp.CloseDate,
         AccountId = originalOpp.AccountId
@@ -142,13 +122,8 @@ public with sharing class KanbanDataController {
     }
   }
 
-  /**
-   * @description Exclui múltiplos registros
-   * @param recordIds Lista de Ids dos registros
-   */
   @AuraEnabled
   public static void deleteRecordsInBulk(List<Id> recordIds) {
-    // Verificar permissões CRUD
     if (!Schema.sObjectType.Opportunity.isDeletable()) {
       throw new AuraHandledException(
         'Você não tem permissão para excluir oportunidades.'

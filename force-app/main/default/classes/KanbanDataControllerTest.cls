@@ -2,11 +2,9 @@
 private class KanbanDataControllerTest {
   @TestSetup
   static void makeData() {
-    // Criar conta de teste
     Account testAccount = new Account(Name = 'Conta Teste');
     insert testAccount;
 
-    // Criar oportunidades de teste
     List<Opportunity> testOpps = new List<Opportunity>();
     testOpps.add(
       new Opportunity(
@@ -15,7 +13,7 @@ private class KanbanDataControllerTest {
         StageName = 'Sem contato',
         CloseDate = Date.today().addDays(30),
         Amount = 10000,
-        Probabilidade_da_Oportunidade__c = 'Alta'
+        Probabilidade_da_Oportunidade__c = '89%'
       )
     );
     testOpps.add(
@@ -25,7 +23,7 @@ private class KanbanDataControllerTest {
         StageName = 'Em Negociação',
         CloseDate = Date.today().addDays(30),
         Amount = 20000,
-        Probabilidade_da_Oportunidade__c = 'Média'
+        Probabilidade_da_Oportunidade__c = '34%'
       )
     );
     insert testOpps;
@@ -59,7 +57,8 @@ private class KanbanDataControllerTest {
     ];
 
     Test.startTest();
-    KanbanDataController.updateRecordStatus(opp.Id, 'Em Negociação');
+    // Usando um status diferente de "Em Negociação"
+    KanbanDataController.updateRecordStatus(opp.Id, 'Primeiro Contato');
     Test.stopTest();
 
     Opportunity updatedOpp = [
@@ -68,7 +67,7 @@ private class KanbanDataControllerTest {
       WHERE Id = :opp.Id
     ];
     System.assertEquals(
-      'Em Negociação',
+      'Primeiro Contato',
       updatedOpp.StageName,
       'Status não foi atualizado corretamente'
     );

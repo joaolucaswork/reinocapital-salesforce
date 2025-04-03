@@ -42,7 +42,7 @@ const mockOpportunities = [
     Amount: 10000,
     CloseDate: "2025-12-31",
     Account: { Name: "Conta Teste 1" },
-    Probabilidade_da_Oportunidade__c: "Alta"
+    Probabilidade_da_Oportunidade__c: "89%"
   },
   {
     Id: "0065g00000DvGj2AAF",
@@ -51,7 +51,7 @@ const mockOpportunities = [
     Amount: 20000,
     CloseDate: "2025-12-31",
     Account: { Name: "Conta Teste 2" },
-    Probabilidade_da_Oportunidade__c: "Média"
+    Probabilidade_da_Oportunidade__c: "55%"
   }
 ];
 
