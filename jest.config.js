@@ -1,10 +1,18 @@
 // @ts-check
-const config = require("@salesforce/sfdx-lwc-jest/config");
+const { jestConfig } = require("@salesforce/sfdx-lwc-jest/config");
 
-/** @type {import('@jest/types').Config.InitialOptions} */
-const jestConfig = {
-  ...config,
-  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"]
+module.exports = {
+  ...jestConfig,
+  moduleNameMapper: {
+    "^lightning/platformShowToastEvent$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/platformShowToastEvent",
+    "^lightning/navigation$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/navigation",
+    "^lightning/platformViewManager$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/platformViewManager"
+  },
+  testEnvironment: "jsdom",
+  setupFiles: ["jest-canvas-mock"],
+  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"],
+  transformIgnorePatterns: ["/node_modules/(?!@salesforce)"]
 };
-
-module.exports = jestConfig;
