@@ -55,26 +55,21 @@ config/project-scratch-def.json
 force-app/main/default/aura/.eslintrc.json
 force-app/main/default/classes/KanbanDataController.cls
 force-app/main/default/classes/KanbanDataController.cls-meta.xml
+force-app/main/default/classes/KanbanDataControllerTest.cls
+force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
+force-app/main/default/flexipages/Kanban_Oportunidades.flexipage-meta.xml
 force-app/main/default/lwc/.eslintrc.json
-force-app/main/default/lwc/homeButtons/__tests__/homeButtons.test.js
-force-app/main/default/lwc/homeButtons/homeButtons.html
-force-app/main/default/lwc/homeButtons/homeButtons.js
-force-app/main/default/lwc/homeButtons/homeButtons.js-meta.xml
 force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
-instructions-files/Campo File Upload.md
-instructions-files/Guia Prático de Configuração de Permissões, Grupos e Chatter no Salesforce.md
-instructions-files/instructions-april-2025/Bulk Transferr.md
-instructions-files/Notificacoes - Classe Apex.md
-instructions-files/Prompt - Compartilhar vs alterar proprietario.md
-instructions-files/Regras Compartilhamento.md
-instructions-files/Resposta - Compartilhar vs alterar proprietario (copy).md
-instructions-files/Strings - Sales Force.md
-instructions-files/Uma task por vez.md
+force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml
+force-app/main/default/tabs/Kanban_Oportunidades.tab-meta.xml
+force-app/test/jest-mocks/lightning/navigation.js
+force-app/test/jest-mocks/lightning/platformShowToastEvent.js
 jest.config.js
+manifest/package.xml
 mydomain.html
 package.json
 README.md
@@ -89,234 +84,37 @@ Files
 ================================================================
 
 ================
-File: instructions-files/Guia Prático de Configuração de Permissões, Grupos e Chatter no Salesforce.md
+File: force-app/main/default/flexipages/Kanban_Oportunidades.flexipage-meta.xml
 ================
-# Guia Prático de Configuração de Permissões, Grupos e Chatter no Salesforce
-
-Este guia apresenta um passo a passo “mão na massa” para você criar os conjuntos de permissões, os grupos de conjuntos de permissões e configurar o Chatter com notificações no Salesforce. O objetivo é que você consiga montar um esqueleto robusto e seguro, exatamente como um profissional sênior faria, garantindo a correta divisão de acessos e um fluxo de trabalho otimizado.
-
----
-
-## Sumário
-
-- [1. Mapeamento dos Requisitos e Fluxo](#1-mapeamento-dos-requisitos-e-fluxo)
-  - [1.1 Resumo dos Perfis e Acessos](#11-resumo-dos-perfis-e-acessos)
-  - [1.2 Fluxo dos Registros](#12-fluxo-dos-registros)
-- [2. Criação dos Conjuntos de Permissões (Permission Sets)](#2-criação-dos-conjuntos-de-permissões-permission-sets)
-  - [2.1 Acessando a Área de Conjuntos de Permissões](#21-acessando-a-área-de-conjuntos-de-permissões)
-  - [2.2 Conjunto para o Head de Operações](#22-conjunto-para-o-head-de-operações)
-  - [2.3 Conjunto para o Gestor de Operações](#23-conjunto-para-o-gestor-de-operações)
-  - [2.4 Conjuntos para o Grupo Back Office](#24-conjuntos-para-o-grupo-back-office)
-- [3. Criação dos Grupos de Conjuntos de Permissões (Permission Set Groups)](#3-criação-dos-grupos-de-conjuntos-de-permissões-permission-set-groups)
-  - [3.1 Grupo para Operações](#31-grupo-para-operações)
-  - [3.2 Grupo para Back Office](#32-grupo-para-back-office)
-- [4. Mapeamento Visual do Fluxo e Melhorias](#4-mapeamento-visual-do-fluxo-e-melhorias)
-- [5. Configuração do Chatter e Notificações](#5-configuração-do-chatter-e-notificações)
-  - [5.1 Configurando o Chatter](#51-configurando-o-chatter)
-  - [5.2 Configurando Notificações no Chatter e Alternativas](#52-configurando-notificações-no-chatter-e-alternativas)
-- [6. Resumo Final e Recomendações](#6-resumo-final-e-recomendações)
-
----
-
-## 1. Mapeamento dos Requisitos e Fluxo
-
-### 1.1 Resumo dos Perfis e Acessos
-
-**Grupo 01 – Operações**
-
-- **Head de Operações**
-
-  - **Operações de Investimento:** Acesso total (Criar, Editar, Excluir) a **todos** os registros.
-  - **Contas (Clientes):** Acesso para **editar** e **visualizar** todos os registros e suas movimentações.
-  - **Contas Bancárias:** Acesso para **criar** e **visualizar** todos os registros.
-  - **Chatter:** Acesso completo – visualiza, posta, edita e interage livremente.
-
-- **Gestor de Operações**
-  - **Operações de Investimento:** Acesso para **criar** e **visualizar** apenas os registros designados a ele.
-  - **Contas (Clientes):** Acesso para **visualizar** somente os registros designados a ele.
-  - **Contas Bancárias:** Acesso para **visualizar** somente os registros designados a ele.
-  - **Chatter:** Acesso restrito – vê apenas as atividades relevantes ao seu grupo.
-
-**Grupo 02 – Back Office**
-
-- **Head de Back Office**
-
-  - **Operações Back Office:** Acesso total (Criar, Editar, Ler e Excluir) a **todos** os registros.
-  - **Chatter:** Acesso completo.
-
-- **Assistente de Back Office**
-  - **Operações Back Office:** Acesso para **criar**, **editar** e **ler** apenas os registros atribuídos a ele.
-  - **Chatter:** Acesso parcial – visualiza somente as atividades atribuídas a ele.
-
-### 1.2 Fluxo dos Registros
-
-- **Criação:**  
-  Quando um registro é criado no objeto **Operação de Investimento**, o Flow Builder dispara a criação de um registro correspondente no objeto **Operação Back Office**. Esse registro é exibido em modo Kanban.
-
-- **Atribuição e Notificação:**  
-  Os **Heads** (tanto de Operações quanto de Back Office) designam registros para os subordinados (Gestor de Operações e Assistente de Back Office). Neste momento, o fluxo deve notificar os responsáveis por meio de posts no Chatter ou envio de emails.
-
----
-
-## 2. Criação dos Conjuntos de Permissões (Permission Sets)
-
-### 2.1 Acessando a Área de Conjuntos de Permissões
-
-1. **Acesse o Setup:**  
-   Clique no ícone de **Setup** no canto superior direito.
-
-2. **Localize “Permission Sets”:**  
-   Use a caixa de pesquisa rápida (Setup Quick Find) e digite `Permission Sets`. Selecione a opção.
-
-### 2.2 Conjunto para o Head de Operações
-
-1. **Clique em “New”:**  
-   No canto superior da página de Permission Sets, clique em **New**.
-
-2. **Preencha os Dados:**
-
-   - **Label:** `Head_Operacoes_Investimentos`
-   - **Descrição:** `Permissões completas para o Head de Operações – Acesso total aos objetos: Operações de Investimento, Contas (Clientes) e Contas Bancárias.`
-   - **Licença do Usuário:** Selecione a licença adequada (geralmente "Salesforce").
-
-3. **Clique em Salvar.**
-
-4. **Configurar as Permissões de Objeto:**
-
-   - **Operações de Investimento:**
-     - Vá em **Object Settings** → Selecione o objeto → Clique em **Edit** e marque **Create**, **Read**, **Edit**, **Delete**.
-   - **Contas (Clientes):**
-     - Em **Object Settings**, selecione o objeto e marque **Read** e **Edit**.
-   - **Contas Bancárias:**
-     - Em **Object Settings**, selecione o objeto e marque **Create** e **Read**.
-
-5. **Configurações Adicionais:**
-   - Ajuste permissões de **Field-Level Security** se necessário.
-   - Verifique as configurações de **Chatter** para garantir o acesso total.
-
-### 2.3 Conjunto para o Gestor de Operações
-
-1. **Clique em “New”:**
-
-   - **Label:** `Gestor_Operacoes`
-   - **Descrição:** `Permissões limitadas para o Gestor de Operações – acesso somente aos registros que lhe são designados.`
-   - Selecione a licença de usuário adequada e clique em **Salvar**.
-
-2. **Configurar as Permissões de Objeto:**
-
-   - **Operações de Investimento:**
-     - Marque **Create** e **Read** (não marque **Edit** ou **Delete**).
-     - Lembre-se: a limitação aos registros deve ser feita via regras de compartilhamento ou critérios de propriedade.
-   - **Contas (Clientes):**
-     - Marque apenas **Read**.
-   - **Contas Bancárias:**
-     - Marque apenas **Read**.
-
-3. **Chatter:**
-   - Configure para limitar o que o usuário pode ver ou postar, se necessário, usando **Custom Permissions** ou configurações específicas de Chatter.
-
-### 2.4 Conjuntos para o Grupo Back Office
-
-#### Head de Back Office
-
-1. **Criar Novo Conjunto:**
-
-   - **Label:** `Head_BackOffice`
-   - **Descrição:** `Permissões completas para o Head de Back Office – Acesso total ao objeto Back Office.`
-   - Clique em **Salvar**.
-
-2. **Configurar Permissões de Objeto:**
-
-   - Em **Object Settings**, selecione o objeto **Back Office** e marque **Create**, **Read**, **Edit**, **Delete**.
-
-3. **Chatter:**
-   - Garanta que as configurações de Chatter estejam configuradas para acesso completo.
-
-#### Assistente de Back Office
-
-1. **Criar Novo Conjunto:**
-
-   - **Label:** `Assistente_BackOffice`
-   - **Descrição:** `Permissões restritas para o Assistente de Back Office – Acesso somente aos registros atribuídos, com permissão para criar, editar e ler.`
-   - Clique em **Salvar**.
-
-2. **Configurar Permissões de Objeto:**
-
-   - Em **Object Settings**, selecione o objeto **Back Office** e marque **Create**, **Read**, **Edit** (não marque **Delete**).
-
-3. **Chatter:**
-   - Configure para que o usuário visualize apenas as atividades atribuídas a ele.
-
----
-
-## 3. Criação dos Grupos de Conjuntos de Permissões (Permission Set Groups)
-
-### 3.1 Grupo para Operações
-
-1. **Acesse “Permission Set Groups”:**  
-   Utilize a caixa de pesquisa no Setup e digite `Permission Set Groups`.
-
-2. **Clique em “New”:**
-
-   - **Label:** `Grupo_Operacoes`
-   - **Descrição:** `Agrupa as permissões para Head e Gestor de Operações.`
-   - Clique em **Salvar**.
-
-3. **Adicionar Conjuntos ao Grupo:**
-   - Na página do grupo, clique em **Add Permission Sets**.
-   - Selecione os conjuntos `Head_Operacoes_Investimentos` e `Gestor_Operacoes`.
-   - Clique em **Add** para confirmar.
-
-### 3.2 Grupo para Back Office
-
-1. **Clique em “New”:**
-
-   - **Label:** `Grupo_BackOffice`
-   - **Descrição:** `Agrupa as permissões para Head e Assistente de Back Office.`
-   - Clique em **Salvar**.
-
-2. **Adicionar Conjuntos ao Grupo:**
-   - Adicione os conjuntos `Head_BackOffice` e `Assistente_BackOffice`.
-   - Salve as alterações.
-
----
-
-## 4. Mapeamento Visual do Fluxo e Melhorias
-
-### 4.1 Esboço do Fluxo Atual
-
-1. **Criação do Registro no Objeto “Operação de Investimento”:**
-
-   - Registro criado manualmente ou via integração.
-   - Flow Builder aciona a criação do registro correspondente no objeto **Operação Back Office**.
-
-2. **Atribuição dos Registros:**
-
-   - O **Head de Operações** e o **Head de Back Office** designam registros para os subordinados.
-
-3. **Notificação:**
-   - Notificação (via Chatter ou email) é disparada informando o responsável sobre o novo registro.
-
-### 4.2 Melhorias e Ajustes Sugeridos
-
-- **Regras de Compartilhamento:**  
-  Configure regras para que os usuários com acesso limitado vejam somente os registros que lhes foram atribuídos.  
-  _(Utilize critérios de propriedade ou regras de compartilhamento manual.)_
-
-- **Padronização da Atribuição:**  
-  Crie um campo “Status de Atribuição” e utilize o Flow Builder para atualizar automaticamente esse status quando um registro for designado.
-
-- **Diagrama do Fluxo:**
-
-  ```mermaid
-  graph TD;
-      A[Operação de Investimento] --> B[Flow Builder aciona criação];
-      B --> C[Operação Back Office Criada];
-      C --> D[Head de Operações];
-      C --> E[Head de Back Office];
-      D --> F[Gestor de Operações];
-      E --> G[Assistente de Back Office];
-  ```
+<?xml version="1.0" encoding="UTF-8" ?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentName>kanbanPerson</componentName>
+                <identifier>c_kanbanPerson</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>main</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <masterLabel>Kanban Oportunidades</masterLabel>
+    <template>
+        <name>flexipage:defaultAppHomeTemplate</name>
+    </template>
+    <type>AppPage</type>
+</FlexiPage>
+
+================
+File: force-app/main/default/tabs/Kanban_Oportunidades.tab-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Visualização em Kanban das Oportunidades</description>
+    <flexiPage>Kanban_Oportunidades</flexiPage>
+    <label>Kanban Oportunidades</label>
+    <motif>Custom57: Building Block</motif>
+</CustomTab>
 
 ================
 File: .forceignore
@@ -441,6 +239,227 @@ File: force-app/main/default/classes/KanbanDataController.cls-meta.xml
 </ApexClass>
 
 ================
+File: force-app/main/default/classes/KanbanDataControllerTest.cls
+================
+@isTest
+private class KanbanDataControllerTest {
+  @TestSetup
+  static void makeData() {
+    Account testAccount = new Account(Name = 'Conta Teste');
+    insert testAccount;
+
+    List<Opportunity> testOpps = new List<Opportunity>();
+    testOpps.add(
+      new Opportunity(
+        Name = 'Oportunidade Teste 1',
+        AccountId = testAccount.Id,
+        StageName = 'Sem contato',
+        CloseDate = Date.today().addDays(30),
+        Amount = 10000,
+        Probabilidade_da_Oportunidade__c = '89%'
+      )
+    );
+    testOpps.add(
+      new Opportunity(
+        Name = 'Oportunidade Teste 2',
+        AccountId = testAccount.Id,
+        StageName = 'Em Negociação',
+        CloseDate = Date.today().addDays(30),
+        Amount = 20000,
+        Probabilidade_da_Oportunidade__c = '34%'
+      )
+    );
+    insert testOpps;
+  }
+
+  @isTest
+  static void testGetRecords() {
+    Test.startTest();
+    List<Opportunity> records = KanbanDataController.getRecords();
+    Test.stopTest();
+
+    System.assertEquals(2, records.size(), 'Deveria retornar 2 oportunidades');
+    System.assertEquals(
+      'Conta Teste',
+      records[0].Account.Name,
+      'Nome da conta incorreto'
+    );
+    System.assert(
+      records[0].Probabilidade_da_Oportunidade__c != null,
+      'Probabilidade não deve ser nula'
+    );
+  }
+
+  @isTest
+  static void testUpdateRecordStatus() {
+    Opportunity opp = [
+      SELECT Id
+      FROM Opportunity
+      WHERE Name = 'Oportunidade Teste 1'
+      LIMIT 1
+    ];
+
+    Test.startTest();
+    // Usando um status diferente de "Em Negociação"
+    KanbanDataController.updateRecordStatus(opp.Id, 'Primeiro Contato');
+    Test.stopTest();
+
+    Opportunity updatedOpp = [
+      SELECT StageName
+      FROM Opportunity
+      WHERE Id = :opp.Id
+    ];
+    System.assertEquals(
+      'Primeiro Contato',
+      updatedOpp.StageName,
+      'Status não foi atualizado corretamente'
+    );
+  }
+
+  @isTest
+  static void testUpdateRecordStatusWithExistingActiveOpp() {
+    Opportunity opp = [
+      SELECT Id
+      FROM Opportunity
+      WHERE Name = 'Oportunidade Teste 1'
+      LIMIT 1
+    ];
+
+    Test.startTest();
+    try {
+      KanbanDataController.updateRecordStatus(opp.Id, 'Em Negociação');
+      System.assert(false, 'Deveria ter lançado uma exceção');
+    } catch (Exception e) {
+      System.assert(true, 'Exceção esperada foi lançada');
+    }
+    Test.stopTest();
+  }
+
+  @isTest
+  static void testDeleteRecord() {
+    Opportunity opp = [
+      SELECT Id
+      FROM Opportunity
+      WHERE Name = 'Oportunidade Teste 1'
+      LIMIT 1
+    ];
+
+    Test.startTest();
+    KanbanDataController.deleteRecord(opp.Id);
+    Test.stopTest();
+
+    List<Opportunity> remainingOpps = [
+      SELECT Id
+      FROM Opportunity
+      WHERE Id = :opp.Id
+    ];
+    System.assertEquals(
+      0,
+      remainingOpps.size(),
+      'Oportunidade não foi deletada'
+    );
+  }
+
+  @isTest
+  static void testCloneRecord() {
+    Opportunity opp = [
+      SELECT Id
+      FROM Opportunity
+      WHERE Name = 'Oportunidade Teste 1'
+      LIMIT 1
+    ];
+
+    Test.startTest();
+    Id clonedId = KanbanDataController.cloneRecord(opp.Id);
+    Test.stopTest();
+
+    Opportunity clonedOpp = [
+      SELECT Name, StageName
+      FROM Opportunity
+      WHERE Id = :clonedId
+    ];
+    System.assert(
+      clonedOpp.Name.contains('Cópia'),
+      'Nome da oportunidade clonada incorreto'
+    );
+    System.assertEquals(
+      'Sem contato',
+      clonedOpp.StageName,
+      'Status inicial incorreto'
+    );
+  }
+
+  @isTest
+  static void testDeleteRecordsInBulk() {
+    List<Opportunity> opps = [SELECT Id FROM Opportunity];
+    List<Id> oppIds = new List<Id>();
+    for (Opportunity opp : opps) {
+      oppIds.add(opp.Id);
+    }
+
+    Test.startTest();
+    KanbanDataController.deleteRecordsInBulk(oppIds);
+    Test.stopTest();
+
+    List<Opportunity> remainingOpps = [SELECT Id FROM Opportunity];
+    System.assertEquals(
+      0,
+      remainingOpps.size(),
+      'Oportunidades não foram deletadas em massa'
+    );
+  }
+
+  @isTest
+  static void testInvalidStatusUpdate() {
+    Opportunity opp = [
+      SELECT Id
+      FROM Opportunity
+      WHERE Name = 'Oportunidade Teste 1'
+      LIMIT 1
+    ];
+
+    Test.startTest();
+    try {
+      KanbanDataController.updateRecordStatus(opp.Id, 'Status Inválido');
+      System.assert(
+        false,
+        'Deveria ter lançado uma exceção para status inválido'
+      );
+    } catch (Exception e) {
+      System.assert(true, 'Exceção esperada foi lançada para status inválido');
+    }
+    Test.stopTest();
+  }
+
+  @isTest
+  static void testDeleteNonExistentRecord() {
+    Test.startTest();
+    try {
+      KanbanDataController.deleteRecord('006000000000000');
+      System.assert(
+        false,
+        'Deveria ter lançado uma exceção ao tentar deletar registro inexistente'
+      );
+    } catch (Exception e) {
+      System.assert(
+        true,
+        'Exceção esperada foi lançada ao tentar deletar registro inexistente'
+      );
+    }
+    Test.stopTest();
+  }
+}
+
+================
+File: force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
+
+================
 File: force-app/main/default/lwc/.eslintrc.json
 ================
 {
@@ -459,485 +478,114 @@ File: force-app/main/default/lwc/.eslintrc.json
 }
 
 ================
-File: force-app/main/default/lwc/homeButtons/__tests__/homeButtons.test.js
+File: force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml
 ================
-import { createElement } from 'lwc';
-import HomeButtons from 'c/homeButtons';
-
-describe('c-home-buttons', () => {
-    afterEach(() => {
-        // The jsdom instance is shared across test cases in a single file so reset the DOM
-        while (document.body.firstChild) {
-            document.body.removeChild(document.body.firstChild);
-        }
-    });
-
-    it('TODO: test case generated by CLI command, please fill in test logic', () => {
-        // Arrange
-        const element = createElement('c-home-buttons', {
-            is: HomeButtons
-        });
-
-        // Act
-        document.body.appendChild(element);
-
-        // Assert
-        // const div = element.shadowRoot.querySelector('div');
-        expect(1).toBe(1);
-    });
-});
-
-================
-File: force-app/main/default/lwc/homeButtons/homeButtons.html
-================
-<template>
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Kanban Board User</label>
+    <description>Permissões necessárias para usar o Kanban Board</description>
     
-</template>
+    <!-- Permissões da Classe Apex -->
+    <classAccesses>
+        <apexClass>KanbanDataController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+
+    <!-- Permissões do Objeto -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Opportunity</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- Permissões dos Campos Customizados -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Opportunity.Probabilidade_da_Oportunidade__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+</PermissionSet>
 
 ================
-File: force-app/main/default/lwc/homeButtons/homeButtons.js
+File: force-app/test/jest-mocks/lightning/navigation.js
 ================
-import { LightningElement } from 'lwc';
+export const NavigationMixin = (Base) => {
+  return class extends Base {
+    navigate(pageReference) {
+      return Promise.resolve(true);
+    }
+  };
+};
 
-export default class HomeButtons extends LightningElement {}
-
-================
-File: force-app/main/default/lwc/homeButtons/homeButtons.js-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>63.0</apiVersion>
-    <isExposed>true</isExposed>
-    <targets>
-        <target>lightning__AppPage</target>
-        <target>lightning__RecordPage</target>
-        <target>lightning__HomePage</target>
-    </targets>
-</LightningComponentBundle>
+NavigationMixin.Navigate = Symbol("Navigate");
 
 ================
-File: force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
+File: force-app/test/jest-mocks/lightning/platformShowToastEvent.js
 ================
-import { createElement } from 'lwc';
-import KanbanPerson from 'c/kanbanPerson';
-
-describe('c-kanban-person', () => {
-    afterEach(() => {
-        // The jsdom instance is shared across test cases in a single file so reset the DOM
-        while (document.body.firstChild) {
-            document.body.removeChild(document.body.firstChild);
-        }
-    });
-
-    it('TODO: test case generated by CLI command, please fill in test logic', () => {
-        // Arrange
-        const element = createElement('c-kanban-person', {
-            is: KanbanPerson
-        });
-
-        // Act
-        document.body.appendChild(element);
-
-        // Assert
-        // const div = element.shadowRoot.querySelector('div');
-        expect(1).toBe(1);
-    });
-});
+export class ShowToastEvent {
+  constructor(params) {
+    this.title = params.title;
+    this.message = params.message;
+    this.variant = params.variant;
+  }
+}
 
 ================
-File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
+File: manifest/package.xml
 ================
 <?xml version="1.0" encoding="UTF-8" ?>
-<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>63.0</apiVersion>
-    <isExposed>true</isExposed>
-    <masterLabel>Kanban Board</masterLabel>
-    <targets>
-        <target>lightning__AppPage</target>
-        <target>lightning__RecordPage</target>
-        <target>lightning__HomePage</target>
-    </targets>
-</LightningComponentBundle>
-
-================
-File: instructions-files/Campo File Upload.md
-================
-No sales force, depois do usuario passar por uma tela de "Tipo de registro (Registertype) e selecionar uma opção especificar (Nome de API EnviarArquivo) aparecer um campo para envio de arquivos.
-
-Nativamente o Sales force só habilita a criação do campo de URL como campo customizado. Só consigo criar um campo de subri arquivo pelo Flow.
-
-Como façõ isso sem precisar usar o Flow, ou usando um LWC customizado, para servir como um campo customizado
-
-================
-File: instructions-files/instructions-april-2025/Bulk Transferr.md
-================
-Any chance we can do this for opportunities? I didn't happen to see open opportunities on the list :(
-
-You can't mass transfer Opportunities with this tool without also transferring Accounts. Easiest thing to do in this case is to export a report of Opportunities, update the Owner ID and then import through Import Wizard or Data Loader.
-
-================
-File: instructions-files/Notificacoes - Classe Apex.md
-================
-me ajude a criar uma classe apex para eu usar em uma automação do flow. observe:
-
-hoje eu uso uma automação no flow acionada por registro, ela funciona assim:
-
-quando alguma pessoa atualiza um registro no objeto "Operação Back Office" (Nome da API é BackOffice**c) (expecificamente o campo "Etapa" Api = Etapa**c) é rodado uma ação que publica essa mensagem no chatter
-
-A operação {!$Record.Name} ({!$Record.TipoAtivoBO**c} / {!$Record.TipoOperacaoBO**c}) do cliente {!$Record.NomeClienteInfo__c} foi atualizada para o status {!$Record.Etapa\_\_c}
-
-Porém, no chatter essa mensagem não faz o que eu quero (que é marcar o registro e o cliente), por que o flow não tem essa função.
-
-Esqueci de falar que não existe um campo customizado Account no objeto Back Office, ele não cuida disso. quem cuida é outro fluxo que, quando uma operação é criada no objeto OperacaoInvestimento**c ele cria um novo registro no objeto BackOffice**c e manda o nome do cliente para um campo personalizado de texto no objeto BackOffice**c ("NomeClienteInfo**c)
-
-então preciso criar uma classe apex para fazer isso funcionar, me ajude a figurar e como construir isso, ou otimizar no sales force, ou fazer de uma forma mais simples
-
-================
-File: instructions-files/Prompt - Compartilhar vs alterar proprietario.md
-================
-# Compartilhamento de registro ou Proprietario
-
-Sobre o app da reino que estou criando no SalesForce, pense em qual é a melhor opção (Para uso fácil e para relatório, e outras coisas, pensando no geral):
-
-Tenho 2 funcionários
-
-1 é o head do back office e o outro é o assistente de Back Office
-
-Quando um registro criado pelo Gestor de operações chega no Head do Back Office (Através de uma automação feita no Flow Builder, onde sempre quando é criado um registro no objeto OperacaoInvestimento um novo registro é criado no objeto BackOffice, onde alguns campos vindo do objeto OperacaoInvestimento desse objeto são preenchidos em formato de texto em campos do objeto BackOffice) a função dele é escolher um usuario já criado no sales force para compartilhar o acesso ao registro e monitorar o caminho daquele registro (todas as atividades relativas a ele), qual a melhor forma de passar esse compartilhamente? atraves de alterar proprietario ou compartilhar registro?
-
-Analise qual das duas opções é melhor e me dê um passo a passo de como fazer a melhor opção escolhida.
-
-================
-File: instructions-files/Regras Compartilhamento.md
-================
-# Guia Prático: Criando Regras de Compartilhamento do Zero
-
-Este guia detalhado vai te orientar passo a passo para criar regras de compartilhamento no Salesforce, de forma a garantir que cada usuário veja somente os registros que lhe foram designados – conforme o seu cenário para os objetos **Operações de Investimento**, **Contas (Clientes)**, **Contas Bancárias** e **Operações Back Office**.
-
-> **Observação:**  
-> Para que as regras de compartilhamento funcionem, recomenda-se que os **Organizational-Wide Defaults (OWD)** desses objetos estejam definidos como **Privado**. Assim, somente o dono dos registros e os usuários com regras explícitas terão acesso.
-
----
-
-## 1. Conceitos Básicos
-
-- **OWD (Organizational-Wide Defaults):**  
-  Define o acesso padrão para registros de cada objeto. Em nosso caso, defina como “Privado” para que as regras de compartilhamento sejam necessárias.
-
-- **Regras de Compartilhamento:**  
-  São regras que permitem estender o acesso a registros para usuários que não são os donos. Elas podem ser:
-
-  - **Baseadas em Propriedade (Owner-based):** Compartilham registros de acordo com o dono do registro.
-  - **Baseadas em Critérios (Criteria-based):** Compartilham registros que atendam a determinados critérios (por exemplo, se um campo “Atribuído a” for igual a um valor específico).
-
-- **Public Groups:**  
-  Em alguns cenários, você pode criar grupos públicos para compartilhar registros com um conjunto de usuários. **Atenção:** Se o objetivo é que cada usuário veja somente seus próprios registros designados, o ideal é usar regras baseadas em critérios direcionadas a cada usuário individualmente – especialmente se os registros não forem de propriedade do usuário.
-
----
-
-## 2. Cenário Específico
-
-### 2.1 Para o Objeto **Operações de Investimento**
-
-- **Head de Operações:**  
-  Já terá acesso completo por meio dos conjuntos de permissões e, se estiver acima na hierarquia, acessará todos os registros.
-- **Gestor de Operações:**  
-  Deve visualizar (e, se necessário, editar) somente os registros que foram **designados a ele** – mesmo que o registro não seja o seu (ou seja, não seja o owner).
-
-### 2.2 Para o Objeto **Operações Back Office**
-
-- **Head de Back Office:**  
-  Tem acesso total, normalmente via hierarquia e conjuntos de permissões.
-- **Assistente de Back Office:**  
-  Deve visualizar e editar somente os registros que foram **atribuídos a ele**.
-
-_Nota:_ Se o campo “Atribuído a” (por exemplo, `Atribuido_a__c`) for um lookup para o usuário, você poderá usar regras baseadas em critérios para compartilhar os registros.
-
----
-
-## 3. Passo a Passo: Criando Regras de Compartilhamento
-
-### 3.1 Configurar o OWD (Organizational-Wide Defaults)
-
-1. **Acesse o Setup:**
-
-   - Clique no ícone de **Setup** no canto superior direito.
-
-2. **Pesquise por “Sharing Settings”:**
-
-   - Na caixa de pesquisa rápida, digite `Sharing Settings` e selecione a opção.
-
-3. **Verifique os OWD:**
-   - Para cada objeto (Operações de Investimento, Contas, Contas Bancárias e Operações Back Office), certifique-se de que o **Default Internal Access** está definido como **Private**.
-
----
-
-### 3.2 Criando Regras para **Operações de Investimento**
-
-#### Cenário:
-
-- **Gestor de Operações** deve ter acesso aos registros **designados a ele**.
-
-#### Passos:
-
-1. **No Setup, acesse as Sharing Settings:**
-
-   - Dentro de **Sharing Settings**, role até a seção referente ao objeto **Operações de Investimento**.
-
-2. **Clique em “New” na seção de Regras de Compartilhamento para o objeto:**
-
-   - Será aberta a tela para criar uma nova regra.
-
-3. **Selecione o Tipo da Regra:**
-
-   - **Critérios-based Sharing Rule** (Regra baseada em critérios).
-
-4. **Defina os Detalhes da Regra:**
-
-   - **Nome da Regra:**  
-     Exemplo: `Compartilhar_Operacoes_Com_Gestor_[NomeDoGestor]`
-   - **Critério da Regra:**
-
-     - Selecione o campo que identifica a designação, por exemplo: `Atribuido_a__c` (ou o nome que você tenha definido para indicar a atribuição).
-     - Configure o critério para: **igual a** o ID do Gestor de Operações.
-
-     > **Dica:** Se houver apenas 1 Gestor para o grupo, você pode inserir o valor fixo. Caso haja mais de um, considere criar uma regra separada para cada usuário ou usar uma lógica de campo (por exemplo, um checkbox específico) que seja marcado quando o registro for atribuído a um Gestor.
-
-5. **Defina o Grupo de Usuários para Compartilhamento:**
-
-   - Escolha **Users** e, em seguida, selecione o usuário específico (ou um Public Group contendo somente aquele Gestor – se for possível manter o acesso individualizado).
-
-6. **Selecione o Nível de Acesso:**
-   - Marque **Read/Write** se o Gestor precisar editar os registros; caso contrário, **Read Only**.
-7. **Salvar a Regra.**
-
-> **Repita o mesmo processo para os objetos "Contas (Clientes)" e "Contas Bancárias"** se os mesmos critérios de designação (campo "Atribuido_a\_\_c") forem aplicáveis e se os Gestores precisarem ter acesso aos registros designados.
-
----
-
-### 3.3 Criando Regras para **Operações Back Office**
-
-#### Cenário:
-
-- **Assistente de Back Office** deve ter acesso somente aos registros **atribuídos a ele**.
-
-#### Passos:
-
-1. **No Setup, acesse as Sharing Settings:**
-
-   - Na seção referente ao objeto **Operações Back Office**.
-
-2. **Clique em “New” para criar uma nova regra de compartilhamento.**
-
-3. **Selecione o Tipo da Regra:**
-
-   - **Critérios-based Sharing Rule**.
-
-4. **Defina os Detalhes da Regra:**
-
-   - **Nome da Regra:**  
-     Exemplo: `Compartilhar_BackOffice_Com_Assistente_[NomeDoAssistente]`
-   - **Critério da Regra:**
-     - Utilize o campo de atribuição, por exemplo: `Atribuido_a__c`.
-     - Configure para **igual a** o ID do Assistente de Back Office.
-
-5. **Defina o Grupo de Usuários:**
-
-   - Selecione o usuário específico ou crie um grupo (caso haja somente este assistente no grupo) que contenha somente ele.
-
-6. **Selecione o Nível de Acesso:**
-
-   - Normalmente, **Read/Write** se ele deve editar os registros.
-
-7. **Salvar a Regra.**
-
----
-
-## 4. Considerações Adicionais e Melhores Práticas
-
-- **Utilize Public Groups com Cuidado:**  
-  Se o grupo de usuários contiver mais de um usuário e o objetivo é que cada um veja apenas os seus registros, a utilização de Public Groups pode não ser ideal. Nesse caso, a criação de regras individuais (mesmo que em menor escala) pode ser necessária.
-
-- **Atualização do Dono do Registro:**  
-  Uma alternativa ao uso de regras de compartilhamento é atualizar o campo **Owner** do registro para o usuário designado. O proprietário do registro sempre tem acesso total sem necessidade de regras adicionais.
-
-- **Testes em Sandbox:**  
-  Sempre teste as regras de compartilhamento em um ambiente sandbox antes de aplicá-las em produção. Crie registros de teste e simule a atribuição para confirmar que somente os usuários desejados têm acesso.
-
-- **Documentação:**  
-  Mantenha um registro detalhado de cada regra criada, com o nome da regra, critério utilizado, grupo ou usuário compartilhado e nível de acesso. Essa documentação é essencial para futuras auditorias e ajustes.
-
-- **Monitoramento:**  
-  Utilize os **Sharing Recalculation Logs** e os relatórios de auditoria do Salesforce para verificar se as regras estão sendo aplicadas corretamente.
-
----
-
-## 5. Exemplo Prático para o Objeto **Operações de Investimento**
-
-1. **Acesse Setup → Sharing Settings.**
-2. **Localize o objeto “Operações de Investimento”.**
-3. **Clique em “New” ao lado de “Operações de Investimento Sharing Rules”.**
-4. **Tipo de Regra:** Selecione “Based on Criteria”.
-5. **Nome da Regra:** `Compartilhar_Operacoes_Com_Gestor_Joao`  
-   _(Substitua “Joao” pelo nome do Gestor)_
-6. **Critério da Regra:**
-   - Campo: `Atribuido_a__c`
-   - Operador: `igual a`
-   - Valor: _[ID do usuário Gestor – copie do registro de usuário ou do lookup]_
-7. **Compartilhar Com:**
-   - Selecione “Users” e escolha o Gestor de Operações.
-8. **Nível de Acesso:** Selecione “Read/Write” (ou “Read Only” se a edição não for necessária).
-9. **Clique em Save.**
-
----
-
-## 6. Exemplo Prático para o Objeto **Operações Back Office**
-
-1. **Acesse Setup → Sharing Settings.**
-2. **Localize o objeto “Operações Back Office”.**
-3. **Clique em “New” na seção de regras para este objeto.**
-4. **Tipo de Regra:** Selecione “Based on Criteria”.
-5. **Nome da Regra:** `Compartilhar_BackOffice_Com_Assistente_Maria`  
-   _(Substitua “Maria” pelo nome do Assistente)_
-6. **Critério da Regra:**
-   - Campo: `Atribuido_a__c`
-   - Operador: `igual a`
-   - Valor: _[ID do usuário Assistente]_
-7. **Compartilhar Com:**
-   - Selecione “Users” e escolha o Assistente de Back Office.
-8. **Nível de Acesso:** Selecione “Read/Write”.
-9. **Clique em Save.**
-
----
-
-## Conclusão
-
-Seguindo estes passos detalhados, você será capaz de configurar regras de compartilhamento personalizadas para que os registros dos objetos **Operações de Investimento** e **Operações Back Office** fiquem acessíveis somente aos usuários designados (Gestor de Operações e Assistente de Back Office, respectivamente).
-
-Essas regras, combinadas com as configurações de OWD e os conjuntos de permissões, garantem que a segurança e a integridade dos dados sejam mantidas, permitindo que cada usuário tenha exatamente o acesso necessário para desempenhar suas funções.
-
-_Boa sorte na implementação – e lembre-se de sempre testar e documentar cada mudança!_
-
-================
-File: instructions-files/Resposta - Compartilhar vs alterar proprietario (copy).md
-================
-Para esse cenário, a recomendação é utilizar o **compartilhamento do registro** em vez de alterar o proprietário. Isso porque:
-
-- **Manutenção da propriedade original:** Ao manter o proprietário original (por exemplo, o Gestor de operações), você preserva o histórico e a responsabilidade inicial do registro.
-- **Flexibilidade de acesso:** Com o compartilhamento, é possível conceder acessos adicionais (como leitura ou edição) para o Head do Back Office ou até para outros usuários sem “mudar” a cadeia de custódia do registro.
-- **Relatórios e auditoria:** O registro mantém sua origem e, ao mesmo tempo, registra quem recebeu o acesso extra. Assim, os relatórios podem diferenciar entre o dono original e os usuários com acesso compartilhado, facilitando a análise e a auditoria das atividades.
-
-Campo: NomeClienteInfo\_\_c
-
-Valor: {!$Record.Contas_Bancarias**r.Carteira**r.Name}
-
-Campo: TipoAtivoBO\_\_c
-
-Valor: {!$Record.RecordType.Name}
-
-Campo: ContaBancariaBO\_\_c
-
-Valor: {!$Record.Contas_Bancarias__r.Banco__c} - {!$Record.Contas_Bancarias\_\_r.Name}
-
-Campo: TipoOperacaoBO\_\_c
-
-Valor: {!$Record.TipoOperacaoRelacionamento\_\_r.Name}
-
-A operação {!$Record.Name} – ({!$Record.TipoAtivoBO**c} • {!$Record.TipoOperacaoBO**c}) | na conta {!$Record.ContaBancariaBO__c} | do cliente {!$Record.NomeClienteInfo**c} foi atualizada para o status: {!$Record.Etapa**c}
-
-================
-File: instructions-files/Strings - Sales Force.md
-================
-A operação {!$Record.Name} ({!$Record.TipoAtivoBO**c} / {!$Record.TipoOperacaoBO**c}) do cliente {!$Record.NomeClienteInfo__c} foi atualizada para o status {!$Record.Etapa\_\_c}
-
-{!$Record.NomeClienteInfo\_\_c}
-
-{!$Record.} - Após o ponto colocamos o nome da API do campo que gostaríamos de colocar na nossa mensagem.
-
-{!$Record.Contas_Bancarias__r.Banco__c} - {!$Record.Contas_Bancarias\_\_r.Name}
-
-# Mensagem Back Office
-
-A operação {!$Record.Name} ({!$Record.TipoAtivoBO**c} / {!$Record.TipoOperacaoBO**c}) na Conta {!$Record.ContaBancariaBO__c} do cliente {!$Record.NomeClienteInfo**c} foi atualizada para o status {!$Record.Etapa**c}
-
-================
-File: instructions-files/Uma task por vez.md
-================
-# Uma task por vez
-
-No sales force tenho um kanban de um objeto que está sendo agrupado pelo campo lista de opções com o nome de API Etapa onde tenho um registro. Quero fazer uma opção (regra de validação ou Flow builder) para um usuario conseguir mover somente uma task (um registro) por vez.
-
-as opções são
-
-Recebidas (Todas chegam com essa por padrão)
-
-Em análise
-
-Pendências internas
-
-Pendências externas
-
-Em validação
-
-Finalizadas
-
-Canceladas
-
-O que eu pensei: usar o campo lista de opções, e quando um card estiver com uma opção selecionada bloquear outros cards. mas está muito vago na minha mente, me ajude a figurar como fazer da melhor forma.
-
-## Reposta
-
-### Abordagem com Flow Builder
-
-1. **Disparo do Fluxo:**
-   Crie um fluxo disparado por registro (Record-Triggered Flow) no objeto em questão. Configure-o para disparar tanto na criação quanto na atualização, se necessário.
-2. **Identificação do Usuário e Status:**
-   No fluxo, use um elemento “Get Records” para buscar outros registros da task que:
-   - Pertencem ao mesmo usuário (ou estejam associados à mesma “responsabilidade”);
-   - Já tenham sido movidos de “Recebidas” para algum dos outros status (por exemplo, “Em análise”, “Pendências internas”, etc.), dependendo da lógica de negócio.
-3. **Lógica de Decisão:**
-   Após a consulta, insira um elemento “Decision” para verificar se existe algum registro que atenda a esses critérios.
-   - **Se houver um registro ativo em um status diferente de “Recebidas”:**
-     O fluxo deve impedir que o usuário mova outro card.
-   - **Se não houver:**
-     Permita que a atualização prossiga.
-4. **Mensagem de Erro:**
-   Caso a condição de “uma task por vez” seja violada, o fluxo pode interromper a operação e retornar uma mensagem de erro personalizada, informando o usuário que ele já possui uma task ativa e que deverá finalizá-la ou cancelá-la antes de mover outra.
-
-### Pontos a Considerar
-
-- **Limitações da Regra de Validação:**
-  Como mencionado, a regra de validação não pode acessar outros registros, logo não é possível usá-la para essa verificação de “unicidade” no contexto do usuário.
-- **Cenários Específicos:**
-  Pense bem nos status que deverão ser considerados “ativos” (por exemplo, pode ser que apenas os status “Em análise”, “Pendências internas/externas” e “Em validação” sejam contados, deixando “Finalizadas” e “Canceladas” de fora).
-- **Testes:**
-  Após configurar o fluxo, faça testes com diferentes cenários para garantir que a lógica está bloqueando corretamente a movimentação de múltiplos cards pelo mesmo usuário.
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>KanbanDataController</members>
+        <members>KanbanDataControllerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>kanbanPerson</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>Kanban_Board_User</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>Kanban_Oportunidades</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members>Kanban_Oportunidades</members>
+        <name>CustomTab</name>
+    </types>
+    <version>63.0</version>
+</Package>
 
 ================
 File: mydomain.html
 ================
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reino Capital</title>
     <style>
-           body { 
-             background-color: white;
-             -webkit-background-size: cover;
-             -moz-background-size: cover;
-             -o-background-size: cover;
-             background-size: cover;
-           }
+      body {
+        background-color: white;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+      }
     </style>
-</head>
-<body>
-    <header class="content-top">
-    </header>
-    <main class="content">
-    </main>
-</body>
+  </head>
+  <body>
+    <header class="content-top"></header>
+    <main class="content"></main>
+  </body>
 </html>
 
 ================
@@ -1046,18 +694,297 @@ File: config/project-scratch-def.json
 }
 
 ================
+File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Visualisação de Registros - Oportunidade</masterLabel>
+    <description
+  >Componente para visualização e gerenciamento de oportunidades em formato Kanban</description>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig
+      targets="lightning__AppPage,lightning__HomePage,lightning__RecordPage"
+    >
+            <property
+        name="statusField"
+        type="String"
+        default="StageName"
+        label="Campo de Status"
+        description="Campo que será usado para as colunas do Kanban"
+        required="true"
+      />
+            <property
+        name="titleField"
+        type="String"
+        default="Name"
+        label="Campo de Título"
+        description="Campo que será exibido como título do card"
+        required="true"
+      />
+            <property
+        name="subtitleField"
+        type="String"
+        default="Account.Name"
+        label="Campo de Subtítulo"
+        description="Campo que será exibido como subtítulo do card"
+      />
+            <property
+        name="valueField"
+        type="String"
+        default="Amount"
+        label="Campo de Valor"
+        description="Campo numérico para exibir valor"
+      />
+            <property
+        name="dateField"
+        type="String"
+        default="CloseDate"
+        label="Campo de Data"
+        description="Campo de data para exibição"
+      />
+            <property
+        name="recordLimit"
+        type="Integer"
+        default="1000"
+        label="Limite de Registros"
+        description="Número máximo de registros a serem exibidos"
+      />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
+
+================
+File: force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
+================
+// Testes para o componente de Visualização de Registros - Oportunidade
+import { createElement } from "lwc";
+import { registerApexTestWireAdapter } from "@salesforce/sfdx-lwc-jest";
+import KanbanPerson from "c/kanbanPerson";
+import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
+import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
+import deleteRecord from "@salesforce/apex/KanbanDataController.deleteRecord";
+import { refreshApex } from "@salesforce/apex";
+
+jest.mock(
+  "@salesforce/apex",
+  () => {
+    return {
+      refreshApex: jest.fn()
+    };
+  },
+  { virtual: true }
+);
+
+// Register wire adapter
+const getRecordsAdapter = registerApexTestWireAdapter(getRecords);
+
+// Mock dos outros métodos Apex
+jest.mock(
+  "@salesforce/apex/KanbanDataController.updateRecordStatus",
+  () => ({ default: jest.fn() }),
+  { virtual: true }
+);
+
+jest.mock(
+  "@salesforce/apex/KanbanDataController.deleteRecord",
+  () => ({ default: jest.fn() }),
+  { virtual: true }
+);
+
+// Dados mockados para testes
+const mockOpportunities = [
+  {
+    Id: "0065g00000DvGj1AAF",
+    Name: "Oportunidade Teste 1",
+    StageName: "Sem contato",
+    Amount: 10000,
+    CloseDate: "2025-12-31",
+    Account: { Name: "Conta Teste 1" },
+    Probabilidade_da_Oportunidade__c: "89%"
+  },
+  {
+    Id: "0065g00000DvGj2AAF",
+    Name: "Oportunidade Teste 2",
+    StageName: "Em Negociação",
+    Amount: 20000,
+    CloseDate: "2025-12-31",
+    Account: { Name: "Conta Teste 2" },
+    Probabilidade_da_Oportunidade__c: "55%"
+  }
+];
+
+describe("Visualização de Registros - Oportunidade", () => {
+  let element;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Mock do dataTransfer para eventos de drag and drop
+    global.DataTransfer = function () {
+      return {
+        setData: jest.fn(),
+        getData: jest.fn(() => "0065g00000DvGj1AAF")
+      };
+    };
+
+    element = createElement("c-kanban-person", {
+      is: KanbanPerson
+    });
+    document.body.appendChild(element);
+  });
+
+  afterEach(() => {
+    while (document.body.firstChild) {
+      document.body.removeChild(document.body.firstChild);
+    }
+  });
+
+  // 1. Teste de carregamento inicial
+  it("deve carregar oportunidades na inicialização", () => {
+    // Emitir dados através do wire adapter
+    getRecordsAdapter.emit(mockOpportunities);
+
+    const cards = element.shadowRoot.querySelectorAll(".record-item");
+    expect(cards.length).toBe(2);
+  });
+
+  // 2. Teste da funcionalidade de pesquisa
+  it("deve filtrar oportunidades baseado no termo de pesquisa", () => {
+    // Emitir dados através do wire adapter
+    getRecordsAdapter.emit(mockOpportunities);
+
+    // Simular pesquisa
+    const searchInput = element.shadowRoot.querySelector("lightning-input");
+    searchInput.dispatchEvent(
+      new CustomEvent("change", {
+        detail: { value: "Teste 1" }
+      })
+    );
+
+    return Promise.resolve().then(() => {
+      const records = element.shadowRoot.querySelectorAll(".record-item");
+      let visibleCount = 0;
+      records.forEach((record) => {
+        if (
+          record.style.display !== "none" &&
+          record.textContent.includes("Teste 1")
+        ) {
+          visibleCount++;
+        }
+      });
+      expect(visibleCount).toBe(1);
+    });
+  });
+
+  // 3. Teste de drag and drop
+  it("deve atualizar o status da oportunidade após drag and drop", () => {
+    updateRecordStatus.mockResolvedValue();
+    getRecordsAdapter.emit(mockOpportunities);
+
+    const dataTransfer = new DataTransfer();
+    const card = element.shadowRoot.querySelector(".record-item");
+
+    card.dispatchEvent(
+      new CustomEvent("dragstart", {
+        detail: { dataTransfer }
+      })
+    );
+
+    const dropZone = element.shadowRoot.querySelector(
+      '[data-status="Em Negociação"]'
+    );
+    dropZone.dispatchEvent(
+      new CustomEvent("drop", {
+        detail: { dataTransfer }
+      })
+    );
+
+    return Promise.resolve().then(() => {
+      expect(updateRecordStatus).toHaveBeenCalledWith({
+        recordId: "0065g00000DvGj1AAF",
+        newStatus: "Em Negociação"
+      });
+    });
+  });
+
+  // 4. Teste de exclusão de registro
+  it("deve excluir uma oportunidade", () => {
+    deleteRecord.mockResolvedValue();
+    getRecordsAdapter.emit(mockOpportunities);
+
+    element.handleDelete({
+      preventDefault: jest.fn(),
+      stopPropagation: jest.fn(),
+      currentTarget: {
+        dataset: {
+          id: "0065g00000DvGj1AAF"
+        }
+      }
+    });
+
+    return Promise.resolve().then(() => {
+      expect(deleteRecord).toHaveBeenCalledWith({
+        recordId: "0065g00000DvGj1AAF"
+      });
+    });
+  });
+
+  // 5. Teste de ordenação
+  it("deve ordenar oportunidades", () => {
+    getRecordsAdapter.emit(mockOpportunities);
+
+    const sortHeader = element.shadowRoot.querySelector(
+      '[data-field="Amount"]'
+    );
+    sortHeader.dispatchEvent(
+      new CustomEvent("click", {
+        currentTarget: {
+          dataset: {
+            field: "Amount"
+          }
+        }
+      })
+    );
+
+    return Promise.resolve().then(() => {
+      const amounts = Array.from(
+        element.shadowRoot.querySelectorAll(".col-amount")
+      )
+        .map((col) => parseFloat(col.textContent.replace(/[^0-9.-]+/g, "")))
+        .filter((amount) => !isNaN(amount));
+
+      expect(amounts[0]).toBeLessThan(amounts[1]);
+    });
+  });
+});
+
+================
 File: jest.config.js
 ================
 // @ts-check
-const config = require("@salesforce/sfdx-lwc-jest/config");
+const { jestConfig } = require("@salesforce/sfdx-lwc-jest/config");
 
-/** @type {import('@jest/types').Config.InitialOptions} */
-const jestConfig = {
-  ...config,
-  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"]
+module.exports = {
+  ...jestConfig,
+  moduleNameMapper: {
+    "^lightning/platformShowToastEvent$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/platformShowToastEvent",
+    "^lightning/navigation$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/navigation",
+    "^lightning/platformViewManager$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/platformViewManager"
+  },
+  testEnvironment: "jsdom",
+  setupFiles: ["jest-canvas-mock"],
+  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"],
+  transformIgnorePatterns: ["/node_modules/(?!@salesforce)"]
 };
-
-module.exports = jestConfig;
 
 ================
 File: package.json
@@ -1086,13 +1013,16 @@ File: package.json
     "@salesforce/eslint-plugin-aura": "^2.0.0",
     "@salesforce/eslint-plugin-lightning": "^1.0.0",
     "@salesforce/sfdx-lwc-jest": "^7.0.1",
+    "@salesforce/wire-service-jest-util": "^4.1.5",
     "eslint": "^8.57.1",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-jest": "^28.8.1",
     "husky": "^9.1.5",
+    "jest-canvas-mock": "^2.5.2",
     "lint-staged": "^15.1.0",
     "prettier": "^3.1.0",
-    "prettier-plugin-apex": "^2.0.1"
+    "prettier-plugin-apex": "^2.0.1",
+    "sinon": "^20.0.0"
   },
   "lint-staged": {
     "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}": [
@@ -1107,47 +1037,192 @@ File: package.json
 ================
 File: README.md
 ================
-# Projeto Salesforce DX: Próximos Passos
+# Kanban Board - Salesforce LWC
 
-Agora que você criou um projeto Salesforce DX, o que vem a seguir? Aqui estão alguns recursos de documentação para ajudá-lo a começar.
+Este componente implementa uma visualização em Kanban para registros do Salesforce, atualmente configurado para Oportunidades.
 
-## Como você planeja implantar suas alterações?
+## 📁 Estrutura de Arquivos
 
-Você deseja implantar um conjunto de alterações ou criar um aplicativo independente? Escolha um [modelo de desenvolvimento](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
+```
+force-app/main/default/
+├── classes/
+│   ├── KanbanDataController.cls           # Controlador Apex
+│   └── KanbanDataControllerTest.cls       # Testes do controlador
+└── lwc/
+    └── kanbanPerson/
+        ├── kanbanPerson.html              # Template do componente
+        ├── kanbanPerson.js                # Lógica do componente
+        ├── kanbanPerson.css               # Estilos do componente
+        └── kanbanPerson.js-meta.xml       # Metadados do componente
+```
 
-## Configure seu Projeto Salesforce DX
+## 🔧 Como Adaptar para Outro Objeto
 
-O arquivo `sfdx-project.json` contém informações úteis de configuração para o seu projeto. Consulte a [Configuração do Projeto Salesforce DX](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) no _Guia do Desenvolvedor Salesforce DX_ para mais detalhes sobre este arquivo.
+### 1. Modificar o Controlador Apex (KanbanDataController.cls)
 
-## Leia tudo sobre isso
+```apex
+// Altere a query para o seu objeto
+public with sharing class KanbanDataController {
+    @AuraEnabled(cacheable=true)
+    public static List<SEU_OBJETO__c> getRecords() {
+        return [
+            SELECT Id, Name, SEU_CAMPO_STATUS__c, SEU_CAMPO_VALOR__c, ...
+            FROM SEU_OBJETO__c
+            WHERE ...
+            ORDER BY CreatedDate DESC
+        ];
+    }
+}
+```
 
-- [Documentação das Extensões do Salesforce](https://developer.salesforce.com/tools/vscode/)
-- [Guia de Configuração do Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Guia do Desenvolvedor Salesforce DX](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Referência de Comandos do Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+### 2. Modificar o Componente JavaScript (kanbanPerson.js)
+
+1. Altere o mapeamento de status:
+
+```javascript
+statusIconMap = {
+  "Status 1": "utility:icon1",
+  "Status 2": "utility:icon2"
+  // Adicione seus status
+};
+```
+
+2. Atualize os campos na função formatData:
+
+```javascript
+formatData(records) {
+    const statuses = [
+        "Status 1",
+        "Status 2",
+        // Seus status aqui
+    ];
+}
+```
+
+3. Modifique as colunas exibidas:
+
+```javascript
+// Altere os campos conforme sua necessidade
+{
+    label: "Nome",
+    field: "Name",
+    // Adicione seus campos
+}
+```
+
+### 3. Atualizar o Meta XML (kanbanPerson.js-meta.xml)
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>58.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+    <!-- Adicione os objetos que podem usar o componente -->
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage">
+            <objects>
+                <object>SEU_OBJETO__c</object>
+            </objects>
+        </targetConfig>
+    </targetConfig>
+</LightningComponentBundle>
+```
+
+## 🎨 Personalizando a Aparência
+
+1. Cores por Status (kanbanPerson.css):
+
+```css
+.stage-selector[data-stage="Seu Status"] .slds-combobox__input {
+  background-color: #sua-cor;
+  color: #cor-texto;
+}
+```
+
+2. Largura das Colunas:
+
+```css
+.col-sua-coluna {
+  width: 200px;
+  min-width: 100px;
+}
+```
+
+## 📦 Deploy para Produção
+
+1. **Via VSCode e SFDX:**
+
+```bash
+sfdx force:source:deploy -p force-app/main/default/lwc/kanbanPerson,force-app/main/default/classes/KanbanDataController.cls
+```
+
+2. **Via Pacote:**
+
+- Use o comando `sfdx force:package:create` para criar um pacote
+- Adicione os componentes ao pacote
+- Deploy o pacote para produção
+
+## ⚡ Permissões Necessárias
+
+1. Crie um conjunto de permissões:
+   - Acesso ao componente LWC
+   - Acesso à classe Apex
+   - Permissões de Objeto:
+     - Read no objeto principal
+     - Edit para alterações de status
+
+## 🔍 Campos Personalizáveis
+
+No arquivo kanbanPerson.js, localize e modifique:
+
+1. **Campos Exibidos:**
+
+```javascript
+const recordsWithIcons = statusRecords.map((record) => ({
+  Id: record.Id,
+  Name: record.Name,
+  // Adicione seus campos aqui
+  SeuCampo__c: record.SeuCampo__c
+}));
+```
+
+2. **Campos de Ordenação:**
+
+```javascript
+getFieldValue(record, field) {
+    switch(field) {
+        case "SeuCampo":
+            return record.SeuCampo__c;
+        // Adicione seus campos
+    }
+}
+```
+
+## 🚀 Performance
+
+- O componente usa @wire para cache automático
+- Implementa lazy loading para grandes conjuntos de dados
+- Otimizado para mobile
+
+## 📱 Responsividade
+
+O componente é totalmente responsivo e se adapta a diferentes tamanhos de tela. Você pode ajustar os breakpoints em kanbanPerson.css:
+
+```css
+@media screen and (max-width: seu-tamanho) {
+    // Seus ajustes aqui
+}
+```
 
 ================
 File: force-app/main/default/classes/KanbanDataController.cls
 ================
-/**
- * @description Controlador Apex para o componente Kanban LWC
- * Gerencia as operações de busca e atualização dos registros do BackOffice
- *
- * Boas Práticas implementadas:
- * - Usa "with sharing" para respeitar regras de compartilhamento
- * - Implementa WITH SECURITY_ENFORCED para segurança em nível de objeto/campo
- * - Utiliza controle de erros e validações de negócio
- */
 public with sharing class KanbanDataController {
-  /**
-   * @description Busca registros do objeto Opportunity para exibição no Kanban
-   * @return List<Opportunity> Lista de registros do BackOffice
-   *
-   * Anotações importantes:
-   * - @AuraEnabled(cacheable=true): Permite caching dos resultados para melhor performance
-   * - WITH SECURITY_ENFORCED: Garante verificação de permissões FLS/CRUD
-   * - LIMIT 1000: Boa prática para evitar problemas de performance e limites do Salesforce
-   */
   @AuraEnabled(cacheable=true)
   public static List<Opportunity> getRecords() {
     return [
@@ -1158,30 +1233,14 @@ public with sharing class KanbanDataController {
         Amount,
         CloseDate,
         Account.Name,
-        OwnerId,
-        CreatedDate,
-        LastModifiedDate
+        Probability,
+        Probabilidade_da_Oportunidade__c
       FROM Opportunity
-      WITH SECURITY_ENFORCED
       ORDER BY CreatedDate DESC
       LIMIT 1000
     ];
   }
 
-  /**
-   * @description Atualiza o status de um registro com validação de regra de negócio
-   * @param recordId ID do registro a ser atualizado
-   * @param newStatus Novo status para o registro
-   *
-   * Regra de Negócio:
-   * - Um usuário só pode ter uma tarefa em andamento por vez
-   * - Exceção: Registros podem ser movidos para 'Finalizadas' ou 'Canceladas'
-   *
-   * Dicas de implementação:
-   * 1. Usa SOQL parametrizado para evitar SOQL injection
-   * 2. Implementa tratamento de exceções
-   * 3. Valida regras de negócio antes da atualização
-   */
   @AuraEnabled
   public static void updateRecordStatus(Id recordId, String newStatus) {
     // Verificar permissões CRUD
@@ -1192,6 +1251,22 @@ public with sharing class KanbanDataController {
       throw new AuraHandledException(
         'Você não tem permissão para atualizar oportunidades.'
       );
+    }
+
+    // Lista de status válidos
+    Set<String> validStatuses = new Set<String>{
+      'Sem contato',
+      'Primeiro Contato',
+      'Primeira Reunião',
+      'Em Negociação',
+      'Análise Contratual',
+      'Convertido',
+      'Perdido'
+    };
+
+    // Verificar se o status é válido
+    if (!validStatuses.contains(newStatus)) {
+      throw new AuraHandledException('Status inválido: ' + newStatus);
     }
 
     // Verificação de registros ativos para o usuário atual
@@ -1225,7 +1300,6 @@ public with sharing class KanbanDataController {
 
   @AuraEnabled
   public static void deleteRecord(Id recordId) {
-    // Verificar permissões CRUD
     if (!Schema.sObjectType.Opportunity.isDeletable()) {
       throw new AuraHandledException(
         'Você não tem permissão para excluir oportunidades.'
@@ -1242,7 +1316,6 @@ public with sharing class KanbanDataController {
 
   @AuraEnabled
   public static Id cloneRecord(Id recordId) {
-    // Verificar permissões CRUD
     if (!Schema.sObjectType.Opportunity.isCreateable()) {
       throw new AuraHandledException(
         'Você não tem permissão para criar oportunidades.'
@@ -1250,7 +1323,6 @@ public with sharing class KanbanDataController {
     }
 
     try {
-      // Buscar a oportunidade original com todos os campos necessários
       Opportunity originalOpp = [
         SELECT Name, StageName, Amount, CloseDate, AccountId
         FROM Opportunity
@@ -1259,10 +1331,9 @@ public with sharing class KanbanDataController {
         LIMIT 1
       ];
 
-      // Criar nova oportunidade com os mesmos dados
       Opportunity clonedOpp = new Opportunity(
         Name = originalOpp.Name + ' - Cópia',
-        StageName = 'Sem contato', // Sempre começa como sem contato
+        StageName = 'Sem contato',
         Amount = originalOpp.Amount,
         CloseDate = originalOpp.CloseDate,
         AccountId = originalOpp.AccountId
@@ -1277,7 +1348,6 @@ public with sharing class KanbanDataController {
 
   @AuraEnabled
   public static void deleteRecordsInBulk(List<Id> recordIds) {
-    // Verificar permissões CRUD
     if (!Schema.sObjectType.Opportunity.isDeletable()) {
       throw new AuraHandledException(
         'Você não tem permissão para excluir oportunidades.'
@@ -1306,6 +1376,36 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
   transition: all 0.3s ease;
 }
 
+/* Estilos do cabeçalho */
+.slds-card__header {
+  padding: 0;
+  border-bottom: 1px solid var(--lwc-colorBorder, #dddbda);
+}
+
+.slds-media__body {
+  padding-right: 1rem;
+}
+
+/* Ajustes para o grid do cabeçalho */
+.header-search {
+  min-width: 240px;
+  margin-bottom: 0;
+}
+
+.slds-media__figure lightning-icon {
+  --sds-c-icon-color-background: #0176d3;
+}
+
+/* Alinhamento vertical dos elementos do cabeçalho */
+.slds-card__header .slds-grid {
+  min-height: 88px;
+}
+
+.slds-card__header .slds-col:last-child .slds-grid {
+  height: 100%;
+  align-items: center;
+}
+
 .kanban-column {
   min-height: 300px;
   height: calc(100vh - 200px);
@@ -1323,13 +1423,17 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 
 /* Sistema de abas do Kanban */
 .slds-tabs_default__nav {
-  border-bottom: 2px solid var(--lwc-colorBorder, #dddbda);
+  border-bottom: 0px solid var(--lwc-colorBorder, #dddbda);
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-gap: 1rem;
+
   align-items: center;
-  padding: 0.5rem 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin-bottom: 1rem;
   overflow-x: auto;
-  background: var(--lwc-colorBackground, white);
 }
 
 .slds-tabs_default__item {
@@ -1340,6 +1444,7 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
   margin-right: 0.5rem;
   color: var(--lwc-colorTextDefault, #16325c);
   font-weight: 500;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   cursor: pointer;
   flex-shrink: 0;
@@ -1352,7 +1457,7 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 .slds-tabs_default__item .slds-tabs_default__link {
   width: 100%;
   height: 100%;
-  padding: 0.75rem 1.5rem;
+  padding: 0.2rem 1.5rem;
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -1360,18 +1465,39 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 }
 
 .slds-tabs_default__item.slds-is-active {
-  background-color: var(--lwc-brandBackgroundPrimary, #eef4ff);
-  color: var(--lwc-brandAccessible, #0070d2);
-  border-bottom: 2px solid var(--lwc-brandAccessible, #0070d2);
+  background-color: rgba(146, 111, 27, 0.15);
+  color: var(--lwc-colorTextDefault, #16325c);
+  border: 1px solid #926f1b;
+  font-weight: 600;
+}
+
+.slds-tabs_default__item.slds-is-active .slds-badge.slds-badge_lightest {
+  background-color: #ffffff;
+  color: #926f1b;
+}
+
+.slds-tabs_default__item.slds-is-active lightning-icon {
+  --sds-c-icon-color-foreground-default: var(--lwc-colorTextDefault, #16325c);
 }
 
 .slds-tabs_default__item:hover {
   background-color: var(--lwc-colorBackgroundRowHover, #f3f7ff);
-  transform: translateY(-1px);
+  border-color: #926f1b;
 }
 
 .slds-tabs_default__item:active {
   transform: translateY(0);
+}
+
+.slds-tabs_default__item.slds-is-active:hover {
+  background-color: rgba(146, 111, 27, 0.15);
+  transform: none;
+}
+
+.slds-tabs_default__item.drag-over {
+  background-color: rgba(146, 111, 27, 0.1);
+  border: 2px dashed #926f1b;
+  box-shadow: var(--lwc-shadowDrag, 0 2px 4px 0 rgba(0, 0, 0, 0.1));
 }
 
 /* Remove todos os pseudo-elementos e setas */
@@ -1381,23 +1507,29 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 
 /* Badge de contagem */
 .slds-badge.slds-badge_lightest {
-  background-color: var(--lwc-brandBackgroundPrimaryTransparent, rgba(0, 112, 210, 0.05));
-  color: var(--lwc-brandAccessible, #0070d2);
-  font-weight: var(--lwc-fontWeightRegular, 400);
+  color: #926f1b;
+  font-weight: var(--lwc-fontWeightBold, 600);
   margin-left: 0.5rem;
   font-size: 0.75rem;
 }
 
+/* Para o badge na aba ativa, mantemos a mesma cor amarela */
+.slds-tabs_default__item.slds-is-active .slds-badge.slds-badge_lightest {
+  background-color: #926f1b;
+  color: #ffffff;
+  border-color: transparent;
+}
+
 /* Estilos para os cards e containers */
 .records-container.drag-over {
-  background-color: var(--lwc-brandBackgroundPrimaryTransparent, rgba(0, 112, 210, 0.1));
-  border: 2px dashed var(--lwc-brandAccessible, #0070d2);
+  background-color: rgba(146, 111, 27, 0.1);
+  border: 2px dashed #926f1b;
 }
 
 .kanban-card {
   background: var(--lwc-colorBackground, #ffffff);
   border: 1px solid var(--lwc-colorBorder, #d8dde6);
-  border-left: 4px solid var(--lwc-brandAccessible, #0070d2);
+  border-left: 4px solid #926f1b;
   box-shadow: var(--lwc-shadowDrag, 0 2px 3px 0 rgba(0, 0, 0, 0.05));
   cursor: move;
   position: relative;
@@ -1503,7 +1635,7 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
   opacity: 1;
 }
 
-sorta-header[data-sort="desc"]::after {
+.sortable-header[data-sort="desc"]::after {
   content: "↓";
   opacity: 1;
 }
@@ -1598,40 +1730,40 @@ sorta-header[data-sort="desc"]::after {
   box-shadow: 0 0 3px #0070d2;
 }
 
-/* Cores por estágio */
+/* Cores por estágio específicas da instituição */
 .stage-selector[data-stage="Sem contato"] .slds-combobox__input {
-  background-color: var(--lwc-colorBackgroundInput, #f3f3f3);
-  color: var(--lwc-colorTextLabel, #444444);
+  background-color: #f3f3f3;
+  color: #16325c;
 }
 
 .stage-selector[data-stage="Primeiro Contato"] .slds-combobox__input {
-  background-color: var(--lwc-colorBackgroundWarning, #faf3dd);
-  color: var(--lwc-colorTextDefault, #514f4d);
+  background-color: #fdf0d4;
+  color: #514f4d;
 }
 
 .stage-selector[data-stage="Primeira Reunião"] .slds-combobox__input {
-  background-color: var(--lwc-colorBackgroundInfo, #e1f3fc);
-  color: var(--lwc-brandAccessible, #0070d2);
+  background-color: #d8e6fe;
+  color: #1b5297;
 }
 
 .stage-selector[data-stage="Em Negociação"] .slds-combobox__input {
-  background-color: var(--lwc-brandBackgroundPrimary, #d8edff);
-  color: var(--lwc-brandAccessible, #0070d2);
+  background-color: #cce9ff;
+  color: #1b5297;
 }
 
 .stage-selector[data-stage="Análise Contratual"] .slds-combobox__input {
-  background-color: var(--lwc-colorBackgroundSuccess, #cdefc4);
-  color: var(--lwc-colorTextSuccess, #2e844a);
+  background-color: #45c65a;
+  color: #ffffff;
 }
 
 .stage-selector[data-stage="Convertido"] .slds-combobox__input {
-  background-color: var(--lwc-colorBackgroundToastSuccess, #45c65a);
-  color: var(--lwc-colorTextInverse, white);
+  background-color: #027e46;
+  color: #ffffff;
 }
 
 .stage-selector[data-stage="Perdido"] .slds-combobox__input {
-  background-color: var(--lwc-colorBackgroundDestructive, #ffeded);
-  color: var(--lwc-colorTextError, #ba0517);
+  background-color: #ffe3e3;
+  color: #ba0517;
 }
 
 /* Animação de loading durante atualização do estágio */
@@ -1719,60 +1851,60 @@ sorta-header[data-sort="desc"]::after {
   }
 }
 
+.probability-value {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #f3f3f3;
+  text-align: center;
+  font-weight: 500;
+  width: fit-content;
+  min-width: min-content;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.5rem;
+}
+
 ================
 File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 ================
 <!-- 
-    Componente Kanban LWC com layout de Pipeline
-    Este template implementa um sistema de abas similar ao Pipeline do Salesforce
-    
-    Estrutura do componente:
-    1. Container principal (slds-card)
-    2. Sistema de navegação por abas (slds-tabs_default)
-    3. Conteúdo de cada aba com os cards do Kanban
-    4. Cards arrastáveis dentro de cada aba
+    Componente de Visualização de Registros - Oportunidade
+    Este template implementa um sistema de visualização e gerenciamento de registros
 -->
 <template>
   <!-- Container principal com estilo de card do SLDS -->
   <div class="slds-card slds-card_boundary">
     <div class="slds-card__header">
-      <!-- Título, ícone e descrição -->
-      <div class="slds-grid slds-grid_vertical">
-        <div class="slds-col">
+      <!-- Título, ícone, descrição e ações na mesma linha -->
+      <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
+        <!-- Coluna do título -->
+        <div class="slds-col slds-size_1-of-2">
           <div class="slds-media slds-media_center slds-p-around_medium">
             <div class="slds-media__figure">
               <lightning-icon
                 icon-name="standard:opportunity"
                 size="medium"
-                alternative-text="Oportunidades"
-                title="Oportunidades"
+                alternative-text="Visualização de Registros"
+                title="Visualização de Registros"
               >
               </lightning-icon>
             </div>
             <div class="slds-media__body">
-              <h1 class="slds-text-heading_medium">Oportunidades - Kanban</h1>
+              <h1 class="slds-text-heading_medium">
+                Visualização de Registros - Oportunidadea
+              </h1>
               <p class="slds-text-body_small slds-line-height_reset">
-                Gerencie suas oportunidades de negócio de forma visual e
-                eficiente
+                Gerencie seus registros de forma visual e eficiente
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Barra de ações (Pesquisa, Botão Criar e Refresh) -->
-        <div
-          class="slds-col slds-grid slds-grid_align-end slds-p-horizontal_medium slds-p-bottom_medium"
-        >
-          <div class="slds-grid slds-grid_vertical-align-center">
-            <lightning-button
-              variant="brand"
-              label="Nova Oportunidade"
-              title="Criar nova oportunidade"
-              onclick={handleCreateNew}
-              class="slds-m-right_small"
-            >
-            </lightning-button>
-
+        <!-- Coluna das ações alinhada à direita -->
+        <div class="slds-col slds-size_1-of-2">
+          <div class="slds-grid slds-grid_align-end slds-p-horizontal_medium">
             <div class="slds-form-element header-search">
               <div class="slds-form-element__control">
                 <lightning-input
@@ -1786,6 +1918,15 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                 </lightning-input>
               </div>
             </div>
+
+            <lightning-button
+              variant="brand"
+              label="Nova Oportunidade"
+              title="Criar nova oportunidade"
+              onclick={handleCreateNew}
+              class="slds-m-right_small"
+            >
+            </lightning-button>
 
             <template if:true={showBulkActions}>
               <div class="slds-button-group slds-m-left_small">
@@ -1919,7 +2060,7 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                   <div
                     class="slds-text-title_caps slds-text-color_weak sortable-header"
                     onclick={handleSort}
-                    data-field="Probabilidade_da_Oportunidade__c"
+                    data-field="Probability"
                   >
                     Probabilidade
                   </div>
@@ -2015,17 +2156,8 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                       </div>
                       <!-- Probabilidade -->
                       <div class="slds-col col-probability">
-                        <div
-                          class="slds-truncate"
-                          title={record.Probabilidade_da_Oportunidade__c}
-                        >
-                          <lightning-formatted-number
-                            value={record.Probabilidade_da_Oportunidade__c}
-                            format-style="percent-fixed"
-                            minimum-fraction-digits="0"
-                            maximum-fraction-digits="0"
-                          >
-                          </lightning-formatted-number>
+                        <div class="slds-truncate probability-value">
+                          {record.Probabilidade_da_Oportunidade__c}
                         </div>
                       </div>
                       <!-- Data -->
@@ -2172,12 +2304,11 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
 ================
 /**
- * @description Componente Kanban para visualização e gerenciamento de registros do BackOffice
- * com navegação por abas no estilo Pipeline do Salesforce
+ * @description Componente de Visualização de Registros - Oportunidade para gerenciamento
+ * de registros com navegação por abas no estilo Pipeline do Salesforce
  */
-import { LightningElement, wire, track } from "lwc";
+import { LightningElement, wire, track, api } from "lwc";
 import { refreshApex } from "@salesforce/apex";
-import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { NavigationMixin } from "lightning/navigation";
 import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
 import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
@@ -2186,6 +2317,13 @@ import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
 import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
 
 export default class KanbanPerson extends NavigationMixin(LightningElement) {
+  @api statusField = "StageName";
+  @api titleField = "Name";
+  @api subtitleField = "Account.Name";
+  @api valueField = "Amount";
+  @api dateField = "CloseDate";
+  @api recordLimit = 1000;
+
   @track columns = [];
   @track error;
   @track searchTerm = "";
@@ -2193,7 +2331,9 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track sortDirection = "asc";
   @track selectedRecords = new Set();
   @track showBulkActions = false;
+  @track showDeleteModal = false;
 
+  recordIdToDelete;
   wiredRecordsResult;
   originalRecordsData;
   draggedRecordId;
@@ -2227,7 +2367,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       this.processData();
     } else if (result.error) {
       this.error = result.error;
-      this.showToast("Erro", "Erro ao carregar registros", "error");
     }
   }
 
@@ -2278,20 +2417,22 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     ];
 
     this.columns = statuses.map((status, index) => {
-      // Filtrar registros por status
       let statusRecords = records.filter(
-        (record) => record.StageName === status
+        (record) => record[this.statusField] === status
       );
 
-      // Adicionar ícone e tratar campos undefined
       const recordsWithIcons = statusRecords.map((record) => ({
         ...record,
-        iconName: this.statusIconMap[record.StageName] || "utility:record",
-        Name: record.Name || "N/A",
-        Amount: record.Amount || 0,
-        Probability: record.Probabilidade_da_Oportunidade__c || 0,
-        CloseDate: record.CloseDate || null,
-        AccountName: record.Account?.Name || "N/A"
+        iconName:
+          this.statusIconMap[record[this.statusField]] || "utility:record",
+        Name: this.getFieldValue(record, this.titleField) || "N/A",
+        Amount: this.getFieldValue(record, this.valueField) || 0,
+        Probabilidade_da_Oportunidade__c:
+          record.Probabilidade_da_Oportunidade__c
+            ? record.Probabilidade_da_Oportunidade__c
+            : "Não definido",
+        CloseDate: this.getFieldValue(record, this.dateField) || null,
+        AccountName: this.getFieldValue(record, this.subtitleField) || "N/A"
       }));
 
       // Propriedades para o sistema de abas
@@ -2306,7 +2447,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         recordCount: statusRecords.length,
         isEmpty: statusRecords.length === 0,
         iconName: this.statusIconMap[status],
-        // Propriedades para CSS dinâmico das abas
         tabClass: `slds-tabs_default__item ${isActive ? "slds-is-active" : ""}`,
         tabPanelClass: `slds-tabs_default__content ${isActive ? "slds-show" : "slds-hide"}`,
         tabIndex: isActive ? 0 : -1,
@@ -2401,21 +2541,31 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         return;
       }
 
+      // Encontrar o índice da nova aba e ativá-la
+      const newTabIndex = this.columns.findIndex(
+        (col) => col.value === newStatus
+      );
+      if (newTabIndex !== -1) {
+        this.activeTabIndex = newTabIndex;
+        // Atualizar classes das abas
+        this.columns = this.columns.map((column, index) => ({
+          ...column,
+          tabClass: `slds-tabs_default__item ${index === this.activeTabIndex ? "slds-is-active" : ""}`,
+          isActive: index === this.activeTabIndex,
+          tabIndex: index === this.activeTabIndex ? "0" : "-1"
+        }));
+      }
+
       // Se chegou aqui, o estágio é diferente, então atualiza
       updateRecordStatus({
         recordId: this.draggedRecordId,
         newStatus: newStatus
       })
         .then(() => {
-          this.showToast(
-            "Sucesso",
-            "Registro atualizado com sucesso",
-            "success"
-          );
           return refreshApex(this.wiredRecordsResult);
         })
         .catch((error) => {
-          this.showToast("Erro", error.body.message, "error");
+          console.error("Erro ao atualizar status:", error);
         });
     }
   }
@@ -2428,19 +2578,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       .forEach((el) => el.classList.remove("drag-over"));
 
     event.target.classList.remove("dragging");
-  }
-
-  /**
-   * @description Utility para mostrar mensagens toast ao usuário
-   */
-  showToast(title, message, variant) {
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: title,
-        message: message,
-        variant: variant
-      })
-    );
   }
 
   handleActionClick(event) {
@@ -2504,37 +2641,15 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   handleDelete(event) {
     event.preventDefault();
     event.stopPropagation();
-
     const recordId = event.currentTarget.dataset.id;
 
-    // Usando ShowToastEvent para confirmação
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Confirmar exclusão",
-        message: "Tem certeza que deseja excluir este registro?",
-        variant: "warning",
-        mode: "sticky",
-        actions: [
-          { label: "Sim", name: "confirm" },
-          { label: "Não", name: "cancel" }
-        ]
+    deleteRecord({ recordId })
+      .then(() => {
+        return refreshApex(this.wiredRecordsResult);
       })
-    ).then((response) => {
-      if (response === "confirm") {
-        deleteRecord({ recordId: recordId })
-          .then(() => {
-            this.showToast(
-              "Sucesso",
-              "Registro excluído com sucesso",
-              "success"
-            );
-            return refreshApex(this.wiredRecordsResult);
-          })
-          .catch((error) => {
-            this.showToast("Erro", error.body.message, "error");
-          });
-      }
-    });
+      .catch((error) => {
+        console.error("Erro ao excluir registro:", error);
+      });
   }
 
   handleClone(event) {
@@ -2544,16 +2659,11 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     const recordId = event.currentTarget.dataset.id;
 
     cloneRecord({ recordId })
-      .then((newRecordId) => {
-        this.showToast(
-          "Sucesso",
-          "Oportunidade duplicada com sucesso",
-          "success"
-        );
+      .then(() => {
         return refreshApex(this.wiredRecordsResult);
       })
       .catch((error) => {
-        this.showToast("Erro", error.body.message, "error");
+        console.error("Erro ao clonar registro:", error);
       });
   }
 
@@ -2586,39 +2696,17 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   }
 
   handleBulkDelete() {
-    // Usando ShowToastEvent para confirmação em massa
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Confirmar exclusão em massa",
-        message:
-          "Tem certeza que deseja excluir todos os registros selecionados?",
-        variant: "warning",
-        mode: "sticky",
-        actions: [
-          { label: "Sim", name: "confirm" },
-          { label: "Não", name: "cancel" }
-        ]
+    deleteRecordsInBulk({
+      recordIds: Array.from(this.selectedRecords)
+    })
+      .then(() => {
+        this.selectedRecords.clear();
+        this.showBulkActions = false;
+        return refreshApex(this.wiredRecordsResult);
       })
-    ).then((response) => {
-      if (response === "confirm") {
-        deleteRecordsInBulk({
-          recordIds: Array.from(this.selectedRecords)
-        })
-          .then(() => {
-            this.showToast(
-              "Sucesso",
-              "Registros excluídos com sucesso",
-              "success"
-            );
-            this.selectedRecords.clear();
-            this.showBulkActions = false;
-            refreshApex(this.wiredRecordsResult);
-          })
-          .catch((error) => {
-            this.showToast("Erro", error.body.message, "error");
-          });
-      }
-    });
+      .catch((error) => {
+        console.error("Erro ao excluir registros em massa:", error);
+      });
   }
 
   get stageOptions() {
@@ -2633,53 +2721,33 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     ];
   }
 
-  handleStageChange(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
+  async handleStageChange(event) {
     const recordId = event.target.dataset.id;
-    const newStatus = event.target.value;
-    const element = event.target.closest(".stage-selector");
+    const newStatus = event.detail.value;
 
-    // Encontrar o registro atual para comparar o estágio
-    const currentRecord = this.findRecordById(recordId);
-    if (currentRecord && currentRecord.StageName === newStatus) {
-      // Se o estágio é o mesmo, apenas atualiza a UI sem mostrar mensagem
-      return;
+    try {
+      await updateRecordStatus({ recordId, newStatus });
+
+      // Encontrar o índice da nova aba e atualizar
+      const newTabIndex = this.columns.findIndex(
+        (column) => column.value === newStatus
+      );
+      if (newTabIndex !== -1) {
+        this.activeTabIndex = newTabIndex;
+        // Atualizar classes das abas
+        this.columns = this.columns.map((column, index) => ({
+          ...column,
+          tabClass: `slds-tabs_default__item ${index === this.activeTabIndex ? "slds-is-active" : ""}`,
+          tabPanelClass: `slds-tabs_default__content ${index === this.activeTabIndex ? "slds-show" : "slds-hide"}`,
+          isActive: index === this.activeTabIndex,
+          tabIndex: index === this.activeTabIndex ? 0 : -1
+        }));
+      }
+
+      await refreshApex(this.wiredRecordsResult);
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
     }
-
-    // Atualizar atributo para mudança visual imediata
-    if (element) {
-      element.dataset.stage = newStatus;
-    }
-
-    // Adicionar classe de loading
-    if (element) {
-      element.classList.add("stage-updating");
-    }
-
-    updateRecordStatus({
-      recordId: recordId,
-      newStatus: newStatus
-    })
-      .then(() => {
-        this.showToast("Sucesso", "Estágio atualizado com sucesso", "success");
-        // Remover classe de loading
-        if (element) {
-          element.classList.remove("stage-updating");
-        }
-        return refreshApex(this.wiredRecordsResult);
-      })
-      .catch((error) => {
-        // Em caso de erro, reverter a mudança visual
-        if (element && currentRecord) {
-          element.dataset.stage = currentRecord.StageName;
-        }
-        if (element) {
-          element.classList.remove("stage-updating");
-        }
-        this.showToast("Erro", error.body.message, "error");
-      });
   }
 
   // Método auxiliar para encontrar um registro pelo Id
@@ -2721,16 +2789,31 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       let valueA = this.getFieldValue(a, field);
       let valueB = this.getFieldValue(b, field);
 
-      // Tratar valores nulos/undefined
+      // Tratamento especial para o campo de probabilidade
+      if (field === "Probabilidade_da_Oportunidade__c") {
+        const probabilityOrder = {
+          "100%": 6,
+          "89%": 5,
+          "55%": 4,
+          "34%": 3,
+          "13%": 2,
+          "0%": 1
+        };
+        valueA = probabilityOrder[valueA] || 0;
+        valueB = probabilityOrder[valueB] || 0;
+      }
+
+      // Tratamento para valores nulos/undefined
       if (valueA === null || valueA === undefined) return isReverse ? -1 : 1;
       if (valueB === null || valueB === undefined) return isReverse ? 1 : -1;
 
-      // Converter para string para comparação de texto
-      if (typeof valueA === "string") {
+      // Converter para string minúscula para comparação de texto
+      if (typeof valueA === "string" && typeof valueB === "string") {
         valueA = valueA.toLowerCase();
         valueB = valueB.toLowerCase();
       }
 
+      // Comparação final
       return isReverse ? (valueA < valueB ? 1 : -1) : valueA < valueB ? -1 : 1;
     });
   }
@@ -2739,6 +2822,10 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     // Tratar campos aninhados (ex: Account.Name)
     if (field === "AccountName") {
       return record.Account?.Name;
+    }
+    // Tratar o campo Name diretamente
+    if (field === "Name") {
+      return record.Name || "";
     }
     return record[field];
   }
@@ -2751,6 +2838,12 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         actionName: "new"
       }
     });
+  }
+
+  handleProbabilityChange(event) {
+    const recordId = event.target.dataset.recordId;
+    const probability = event.detail.value;
+    this.updateProbability(recordId, probability);
   }
 }
 

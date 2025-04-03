@@ -487,11 +487,12 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       // Tratamento especial para o campo de probabilidade
       if (field === "Probabilidade_da_Oportunidade__c") {
         const probabilityOrder = {
-          "Muito Alta": 5,
-          Alta: 4,
-          Média: 3,
-          Baixa: 2,
-          "Muito Baixa": 1
+          "100%": 6,
+          "89%": 5,
+          "55%": 4,
+          "34%": 3,
+          "13%": 2,
+          "0%": 1
         };
         valueA = probabilityOrder[valueA] || 0;
         valueB = probabilityOrder[valueB] || 0;
