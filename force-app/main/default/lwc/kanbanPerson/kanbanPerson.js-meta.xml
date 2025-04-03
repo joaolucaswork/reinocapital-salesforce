@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>63.0</apiVersion>
+    <apiVersion>58.0</apiVersion>
     <isExposed>true</isExposed>
-    <masterLabel>Visualisação de Registros - Oportunidade</masterLabel>
+    <masterLabel>Kanban Board Genérico</masterLabel>
     <description
-  >Componente para visualização e gerenciamento de oportunidades em formato Kanban</description>
+  >Visualização em Kanban configurável para qualquer objeto do Salesforce</description>
     <targets>
         <target>lightning__AppPage</target>
         <target>lightning__RecordPage</target>
@@ -12,8 +12,16 @@
     </targets>
     <targetConfigs>
         <targetConfig
-      targets="lightning__AppPage,lightning__HomePage,lightning__RecordPage"
+      targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage"
     >
+            <property
+        name="objectApiName"
+        type="String"
+        default="Opportunity"
+        label="Nome da API do Objeto"
+        description="Nome da API do objeto a ser exibido no Kanban (ex: Account, Contact, Custom_Object__c)"
+        required="true"
+      />
             <property
         name="statusField"
         type="String"
@@ -35,21 +43,35 @@
         type="String"
         default="Account.Name"
         label="Campo de Subtítulo"
-        description="Campo que será exibido como subtítulo do card"
+        description="Campo que será exibido como subtítulo do card (pode usar notação de ponto para campos relacionados)"
       />
             <property
         name="valueField"
         type="String"
         default="Amount"
         label="Campo de Valor"
-        description="Campo numérico para exibir valor"
+        description="Campo numérico para exibir valor no card"
       />
             <property
         name="dateField"
         type="String"
         default="CloseDate"
         label="Campo de Data"
-        description="Campo de data para exibição"
+        description="Campo de data para exibir no card"
+      />
+            <property
+        name="newButtonLabel"
+        type="String"
+        default="Novo Registro"
+        label="Texto do Botão Novo"
+        description="Texto a ser exibido no botão de novo registro"
+      />
+            <property
+        name="searchPlaceholder"
+        type="String"
+        default="Pesquisar..."
+        label="Texto do Campo de Pesquisa"
+        description="Texto placeholder do campo de pesquisa"
       />
             <property
         name="recordLimit"

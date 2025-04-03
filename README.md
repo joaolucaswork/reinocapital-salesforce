@@ -1,34 +1,32 @@
-# Kanban Board - Salesforce LWC
+# Kanban Board - Componente LWC Genérico
 
-Este componente implementa uma visualização em Kanban para registros do Salesforce, atualmente configurado para Oportunidades mas facilmente adaptável para outros objetos.
+Este componente implementa uma visualização em Kanban configurável para qualquer objeto do Salesforce.
 
-## 📁 Estrutura de Arquivos
+## 📖 Como Usar com Diferentes Objetos
 
-```
-force-app/main/default/
-├── classes/
-│   ├── KanbanDataController.cls           # Controlador Apex
-│   └── KanbanDataControllerTest.cls       # Testes do controlador
-└── lwc/
-    └── kanbanPerson/
-        ├── kanbanPerson.html              # Template do componente
-        ├── kanbanPerson.js                # Lógica do componente
-        ├── kanbanPerson.css               # Estilos do componente
-        └── kanbanPerson.js-meta.xml       # Metadados do componente
-```
+### 1. Configurar o Componente no Builder
 
-## 🔧 Como Adaptar para Outro Objeto
+1. Arraste o componente "Kanban Board Genérico" para sua página
+2. Configure as propriedades:
+   - Nome da API do Objeto (ex: "Account", "Contact", "Custom_Object\_\_c")
+   - Campo de Status (campo que define as colunas)
+   - Campo de Título (geralmente "Name")
+   - Campo de Subtítulo (opcional, pode usar campos relacionados como "Owner.Name")
+   - Campo de Valor (opcional, campo numérico)
+   - Campo de Data (opcional)
+   - Textos personalizados para botões e pesquisa
 
-### 1. Modificar o Controlador Apex (force-app/main/default/classes/KanbanDataController.cls)
+### 2. Adaptar o Controller Apex
 
-1. No método getRecords (linhas 1-14):
+1. Copie o `KanbanDataController.cls` e renomeie para seu objeto
+2. Modifique o método `getRecords()`:
 
 ```apex
 @AuraEnabled(cacheable=true)
 public static List<SeuObjeto__c> getRecords() {
     return [
-        SELECT Id, Name, Status__c, CampoValor__c, CampoData__c,
-               CampoRelacionamento__r.Name, CampoProbabilidade__c
+        SELECT Id, Name, Status__c, Campo1__c, Campo2__c,
+               CampoRelacionado__r.Name
         FROM SeuObjeto__c
         ORDER BY CreatedDate DESC
         LIMIT 1000
@@ -36,122 +34,44 @@ public static List<SeuObjeto__c> getRecords() {
 }
 ```
 
-2. No método updateRecordStatus (linhas 16-65):
+3. Atualize os outros métodos substituindo `Opportunity` por seu objeto:
 
 ```apex
-if (!Schema.sObjectType.SeuObjeto__c.isUpdateable() ||
-    !Schema.sObjectType.SeuObjeto__c.fields.Status__c.isUpdateable()) {
-    throw new AuraHandledException('Você não tem permissão para atualizar registros.');
-}
+SeuObjeto__c record = new SeuObjeto__c(
+    Id = recordId,
+    Status__c = newStatus
+);
+```
 
+### 3. Configurar Status Válidos
+
+1. No controller Apex, atualize a lista de status válidos:
+
+```apex
 Set<String> validStatuses = new Set<String>{
     'Status1',
     'Status2',
     'Status3'
-    // Seus status aqui
 };
 ```
 
-### 2. Adaptar o Componente JavaScript (force-app/main/default/lwc/kanbanPerson/kanbanPerson.js)
-
-1. Propriedades API (linhas 15-20):
-
-```javascript
-@api statusField = "Status__c";              // Campo de status do seu objeto
-@api titleField = "Name";                    // Campo para título do card
-@api subtitleField = "CampoRelacionado__r.Name"; // Campo para subtítulo
-@api valueField = "CampoValor__c";          // Campo para valor
-@api dateField = "CampoData__c";            // Campo para data
-```
-
-2. Mapeamento de status (linhas 43-51):
+2. No componente JavaScript, atualize o `statusIconMap` e `validStatuses`:
 
 ```javascript
 statusIconMap = {
-  Status1: "utility:icon1",
-  Status2: "utility:icon2",
-  Status3: "utility:icon3"
+    'Status1': 'utility:icon1',
+    'Status2': 'utility:icon2',
+    'Status3': 'utility:icon3'
 };
-```
 
-3. Status no método formatData (linhas 103-111):
-
-```javascript
-const statuses = ["Status1", "Status2", "Status3"];
-```
-
-4. Navegação (linhas 310-318, 515-523):
-
-```javascript
-this[NavigationMixin.Navigate]({
-  type: "standard__recordPage",
-  attributes: {
-    recordId: recordId,
-    objectApiName: "SeuObjeto__c",
-    actionName: "edit" // ou "view"
-  }
-});
-```
-
-### 3. Atualizar o Template HTML (force-app/main/default/lwc/kanbanPerson/kanbanPerson.html)
-
-1. Ícone e título (linhas 15-24):
-
-```html
-<lightning-icon
-    icon-name="standard:custom_object"  <!-- Altere para o ícone do seu objeto -->
-    size="medium"
-    alternative-text="Visualização de Registros"
-    title="Visualização de Registros"
->
-</lightning-icon>
-<h1 class="slds-text-heading_medium">
-    Visualização de Registros - [Nome do Seu Objeto]
-</h1>
-```
-
-2. Labels dos botões (linhas 52-54):
-
-```html
-<lightning-button
-  variant="brand"
-  label="Novo [Seu Objeto]"
-  title="Criar novo registro"
-></lightning-button>
-```
-
-### 4. Adaptar os Estilos CSS (force-app/main/default/lwc/kanbanPerson/kanbanPerson.css)
-
-1. Cores dos status (linhas 359-386):
-
-```css
-.stage-selector[data-stage="Status1"] .slds-combobox__input {
-  background-color: #sua-cor-1;
-  color: #sua-cor-texto-1;
-}
-
-.stage-selector[data-stage="Status2"] .slds-combobox__input {
-  background-color: #sua-cor-2;
-  color: #sua-cor-texto-2;
+get validStatuses() {
+    return ['Status1', 'Status2', 'Status3'];
 }
 ```
 
-### 5. Configurar Metadados (force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml)
+### 4. Adaptar as Permissões
 
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <targetConfigs>
-        <targetConfig targets="lightning__AppPage,lightning__RecordPage">
-            <objects>
-                <object>SeuObjeto__c</object>
-            </objects>
-        </targetConfig>
-    </targetConfig>
-</LightningComponentBundle>
-```
-
-### 6. Permissionset (force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml)
+1. Atualize o arquivo de permissões:
 
 ```xml
 <objectPermissions>
@@ -160,40 +80,81 @@ this[NavigationMixin.Navigate]({
     <allowDelete>true</allowDelete>
     <allowEdit>true</allowEdit>
     <allowRead>true</allowRead>
-    <modifyAllRecords>false</modifyAllRecords>
-    <viewAllRecords>false</viewAllRecords>
 </objectPermissions>
-<fieldPermissions>
-    <field>SeuObjeto__c.Status__c</field>
-    <editable>true</editable>
-    <readable>true</readable>
-</fieldPermissions>
 ```
 
-## 🔍 Campos Personalizados
+## 🎨 Personalizando a Aparência
 
-No arquivo kanbanPerson.js:
+### 1. Cores dos Status
 
-1. Na função filterRecords (linhas 67-78):
+No arquivo CSS (`kanbanPerson.css`), defina cores para seus status:
 
-```javascript
-return records.filter(
-  (record) =>
-    record.Name?.toLowerCase().includes(searchTermLower) ||
-    record.CampoRelacionado__r?.Name?.toLowerCase().includes(searchTermLower) ||
-    record.Status__c?.toLowerCase().includes(searchTermLower)
-);
-```
-
-2. No método getFieldValue (linhas 515-523):
-
-```javascript
-getFieldValue(record, field) {
-    if (field === "RelatedName") {
-        return record.CampoRelacionado__r?.Name;
-    }
-    return record[field];
+```css
+.stage-selector[data-stage="Status1"] .slds-combobox__input {
+  background-color: #sua-cor-1;
+  color: #sua-cor-texto-1;
 }
+```
+
+### 2. Ícones dos Status
+
+No JavaScript, defina ícones do Lightning Design System para cada status:
+
+```javascript
+statusIconMap = {
+  Status1: "utility:seu_icone_1",
+  Status2: "utility:seu_icone_2"
+};
+```
+
+## 📋 Exemplos de Uso
+
+### Cliente (Account)
+
+```html
+<c-kanban-person
+  object-api-name="Account"
+  status-field="Status__c"
+  title-field="Name"
+  subtitle-field="Type"
+  value-field="AnnualRevenue"
+  date-field="CreatedDate"
+  new-button-label="Novo Cliente"
+  search-placeholder="Pesquisar clientes..."
+>
+</c-kanban-person>
+```
+
+### Lead
+
+```html
+<c-kanban-person
+  object-api-name="Lead"
+  status-field="Status"
+  title-field="Name"
+  subtitle-field="Company"
+  value-field="AnnualRevenue"
+  date-field="CreatedDate"
+  new-button-label="Novo Lead"
+  search-placeholder="Pesquisar leads..."
+>
+</c-kanban-person>
+```
+
+### Caso (Case)
+
+```html
+<c-kanban-person
+  object-api-name="Case"
+  status-field="Status"
+  title-field="CaseNumber"
+  subtitle-field="Subject"
+  value-field="Priority"
+  date-field="CreatedDate"
+  new-button-label="Novo Caso"
+  search-placeholder="Pesquisar casos..."
+>
+</c-kanban-person>
 ```
 
 ## ⚡ Considerações Importantes
@@ -201,15 +162,21 @@ getFieldValue(record, field) {
 1. Campo de Status:
 
    - Deve ser um campo do tipo picklist
-   - Valores devem corresponder aos definidos no `statusIconMap`
+   - Os valores devem corresponder aos definidos no `statusIconMap`
    - Recomendado usar campos indexados para melhor performance
 
 2. Campos Relacionados:
 
-   - Use a notação com \_\_r para campos de lookup/master-detail
-   - Exemplo: `CampoRelacionado__r.Name`
+   - Use a notação com ponto para campos de lookup/master-detail
+   - Exemplo: `Account.Owner.Name`
 
 3. Performance:
-   - Limite de 1000 registros por padrão
-   - Ajuste conforme necessidade no método getRecords
+
+   - Limite padrão de 1000 registros
    - Use campos indexados sempre que possível
+   - Evite campos de fórmula complexos
+
+4. Personalização:
+   - Todos os textos são configuráveis
+   - Cores e ícones podem ser personalizados por CSS
+   - Layout responsivo para diferentes tamanhos de tela

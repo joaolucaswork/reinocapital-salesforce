@@ -1,24 +1,94 @@
 /**
- * @description Componente de Visualização de Registros - Oportunidade para gerenciamento
- * de registros com navegação por abas no estilo Pipeline do Salesforce
+ * @description Componente de Visualização de Registros em formato Kanban
+ * Este componente implementa uma visualização em estilo quadro Kanban para qualquer objeto do Salesforce
+ * que possua um campo de status/estágio.
+ *
+ * Para adaptar para outro objeto:
+ * 1. Modifique o objeto no Apex (KanbanDataController.cls)
+ * 2. Configure as propriedades abaixo conforme seu objeto
+ * 3. Atualize o statusIconMap com seus status e ícones
+ * 4. Atualize o array de status no método formatData
+ *
+ * @example
+ * // Para usar com Contas:
+ * <c-kanban-person
+ *   object-api-name="Account"
+ *   status-field="Status__c"
+ *   title-field="Name"
+ *   subtitle-field="Type"
+ *   value-field="AnnualRevenue"
+ *   date-field="CreatedDate">
+ * </c-kanban-person>
  */
 import { LightningElement, wire, track, api } from "lwc";
 import { refreshApex } from "@salesforce/apex";
 import { NavigationMixin } from "lightning/navigation";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
 import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
 import deleteRecord from "@salesforce/apex/KanbanDataController.deleteRecord";
 import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
 import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
+import getAvailableObjects from "@salesforce/apex/KanbanDataController.getAvailableObjects";
+import getAvailableFields from "@salesforce/apex/KanbanDataController.getAvailableFields";
+import getPicklistValues from "@salesforce/apex/KanbanDataController.getPicklistValues";
 
 export default class KanbanPerson extends NavigationMixin(LightningElement) {
+  /**
+   * Nome da API do objeto (ex: "Opportunity", "Account", "Custom_Object__c")
+   * @type {string}
+   */
+  @api objectApiName = "Opportunity";
+
+  /**
+   * Campo que contém o status/estágio para as colunas do Kanban
+   * @type {string}
+   */
   @api statusField = "StageName";
+
+  /**
+   * Campo para exibir como título do card
+   * @type {string}
+   */
   @api titleField = "Name";
+
+  /**
+   * Campo para exibir como subtítulo do card (pode ser um campo relacionado usando notação de ponto)
+   * @type {string}
+   */
   @api subtitleField = "Account.Name";
+
+  /**
+   * Campo numérico para exibir como valor no card
+   * @type {string}
+   */
   @api valueField = "Amount";
+
+  /**
+   * Campo de data para exibir no card
+   * @type {string}
+   */
   @api dateField = "CloseDate";
+
+  /**
+   * Texto a ser exibido no botão de novo registro
+   * @type {string}
+   */
+  @api newButtonLabel = "Nova Oportunidade";
+
+  /**
+   * Texto do campo de pesquisa
+   * @type {string}
+   */
+  @api searchPlaceholder = "Pesquisar oportunidades...";
+
+  /**
+   * Limite de registros a serem carregados
+   * @type {number}
+   */
   @api recordLimit = 1000;
 
+  // Propriedades internas do componente
   @track columns = [];
   @track error;
   @track searchTerm = "";
@@ -27,6 +97,12 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track selectedRecords = new Set();
   @track showBulkActions = false;
   @track showDeleteModal = false;
+  @track availableObjects = [];
+  @track availableFields = [];
+  @track picklistValues = [];
+  @track _validStatuses = [];
+  @track isConfiguring = false;
+  @track selectedObject;
 
   recordIdToDelete;
   wiredRecordsResult;
@@ -35,20 +111,37 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   activeTabIndex = 0;
   activeActionButton = null;
 
+  /**
+   * Indica se há registros selecionados
+   * @returns {boolean}
+   */
   get hasSelectedRecords() {
     return this.selectedRecords.size > 0;
   }
 
-  // Mapeamento de status para ícones com os estágios corretos de Oportunidade
+  /**
+   * Mapeamento de status para ícones
+   * Personalize este objeto para seus status específicos
+   * @type {Object.<string, string>}
+   */
   statusIconMap = {
-    "Sem contato": "utility:multi_picklist", // Prospecção inicial
-    "Primeiro Contato": "utility:filter", // Qualificação inicial
-    "Primeira Reunião": "utility:file", // Proposta/Apresentação
-    "Em Negociação": "utility:adjust_value", // Negociação/Revisão
-    "Análise Contratual": "utility:contract", // Contrato/Negociação final
-    Convertido: "utility:success", // Fechado/Ganho
-    Perdido: "utility:error" // Fechado/Perdido
+    "Sem contato": "utility:multi_picklist",
+    "Primeiro Contato": "utility:filter",
+    "Primeira Reunião": "utility:file",
+    "Em Negociação": "utility:adjust_value",
+    "Análise Contratual": "utility:contract",
+    Convertido: "utility:success",
+    Perdido: "utility:error"
   };
+
+  /**
+   * Lista de status válidos para o objeto
+   * Personalize esta lista com seus status específicos
+   * @type {Array.<string>}
+   */
+  get validStatuses() {
+    return this._validStatuses;
+  }
 
   /**
    * @description Wire adapter para buscar registros do Apex
@@ -62,6 +155,49 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       this.processData();
     } else if (result.error) {
       this.error = result.error;
+    }
+  }
+
+  @wire(getAvailableObjects)
+  wiredObjects({ error, data }) {
+    if (data) {
+      this.availableObjects = data;
+      this.error = undefined;
+    } else if (error) {
+      this.error = error;
+    }
+  }
+
+  @wire(getAvailableFields, { objectName: "$objectApiName" })
+  wiredFields({ error, data }) {
+    if (data) {
+      this.availableFields = data;
+      this.error = undefined;
+    } else if (error) {
+      this.error = error;
+    }
+  }
+
+  @wire(getPicklistValues, {
+    objectName: "$objectApiName",
+    fieldName: "$statusField"
+  })
+  wiredPicklistValues({ error, data }) {
+    if (data) {
+      this._validStatuses = data.map((item) => item.value);
+      this.error = undefined;
+      this.processData();
+    } else if (error) {
+      this.error = error;
+      this._validStatuses = [
+        "Sem contato",
+        "Primeiro Contato",
+        "Primeira Reunião",
+        "Em Negociação",
+        "Análise Contratual",
+        "Convertido",
+        "Perdido"
+      ];
     }
   }
 
@@ -101,17 +237,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
    * Adiciona propriedades para controle da UI de abas
    */
   formatData(records) {
-    const statuses = [
-      "Sem contato",
-      "Primeiro Contato",
-      "Primeira Reunião",
-      "Em Negociação",
-      "Análise Contratual",
-      "Convertido",
-      "Perdido"
-    ];
-
-    this.columns = statuses.map((status, index) => {
+    this.columns = this.validStatuses.map((status, index) => {
       let statusRecords = records.filter(
         (record) => record[this.statusField] === status
       );
@@ -127,7 +253,8 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
             ? record.Probabilidade_da_Oportunidade__c
             : "Não definido",
         CloseDate: this.getFieldValue(record, this.dateField) || null,
-        AccountName: this.getFieldValue(record, this.subtitleField) || "N/A"
+        AccountName: record.Nome_do_Lead__c || record.Account?.Name || "N/A",
+        hasLeadName: !!record.Nome_do_Lead__c
       }));
 
       // Propriedades para o sistema de abas
@@ -257,9 +384,21 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         newStatus: newStatus
       })
         .then(() => {
+          // Mostrar mensagem de sucesso
+          const record = this.findRecordById(this.draggedRecordId);
+          this.showToastMessage(
+            "Sucesso",
+            `${record.Name} foi movido para ${newStatus}`,
+            "success"
+          );
           return refreshApex(this.wiredRecordsResult);
         })
         .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao atualizar o status",
+            "error"
+          );
           console.error("Erro ao atualizar status:", error);
         });
     }
@@ -376,6 +515,9 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         recordId: event.currentTarget.dataset.id,
         objectApiName: "Opportunity",
         actionName: "view"
+      },
+      state: {
+        navigationLocation: "LOOKUP" // Isso faz abrir em popup
       }
     });
   }
@@ -405,15 +547,10 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   }
 
   get stageOptions() {
-    return [
-      { label: "Sem contato", value: "Sem contato" },
-      { label: "Primeiro Contato", value: "Primeiro Contato" },
-      { label: "Primeira Reunião", value: "Primeira Reunião" },
-      { label: "Em Negociação", value: "Em Negociação" },
-      { label: "Análise Contratual", value: "Análise Contratual" },
-      { label: "Convertido", value: "Convertido" },
-      { label: "Perdido", value: "Perdido" }
-    ];
+    return this.validStatuses.map((status) => ({
+      label: status,
+      value: status
+    }));
   }
 
   async handleStageChange(event) {
@@ -439,8 +576,21 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         }));
       }
 
+      // Mostrar mensagem de sucesso
+      const record = this.findRecordById(recordId);
+      this.showToastMessage(
+        "Sucesso",
+        `${record.Name} foi movido para ${newStatus}`,
+        "success"
+      );
+
       await refreshApex(this.wiredRecordsResult);
     } catch (error) {
+      this.showToastMessage(
+        "Erro",
+        error.body?.message || "Erro ao atualizar o status",
+        "error"
+      );
       console.error("Erro ao atualizar status:", error);
     }
   }
@@ -516,21 +666,40 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   getFieldValue(record, field) {
     // Tratar campos aninhados (ex: Account.Name)
     if (field === "AccountName") {
-      return record.Account?.Name;
+      // Primeiro verifica o campo personalizado Nome_do_Lead__c
+      if (record.Nome_do_Lead__c) {
+        return record.Nome_do_Lead__c;
+      }
+      // Se não encontrar, usa o campo padrão Account.Name, mas acessa corretamente o objeto Account
+      return record.Account?.Name || "N/A";
     }
-    // Tratar o campo Name diretamente
-    if (field === "Name") {
-      return record.Name || "";
+    // Tratar campos aninhados com notação de ponto (ex: Account.Name)
+    if (field.includes(".")) {
+      return field.split(".").reduce((obj, key) => obj?.[key], record) || "N/A";
     }
-    return record[field];
+    // Para outros campos, retorna o valor direto
+    return record[field] || "";
   }
 
+  /**
+   * Abre o formulário de novo registro em um popup
+   */
   handleCreateNew() {
+    const defaults = encodeURIComponent(
+      JSON.stringify({
+        [this.statusField]: this.validStatuses[0] // Usa o primeiro status como padrão
+      })
+    );
+
     this[NavigationMixin.Navigate]({
       type: "standard__objectPage",
       attributes: {
-        objectApiName: "Opportunity",
+        objectApiName: this.objectApiName,
         actionName: "new"
+      },
+      state: {
+        navigationLocation: "LOOKUP",
+        defaultFieldValues: defaults
       }
     });
   }
@@ -539,5 +708,89 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     const recordId = event.target.dataset.recordId;
     const probability = event.detail.value;
     this.updateProbability(recordId, probability);
+  }
+
+  // Método auxiliar para mostrar mensagens toast
+  showToastMessage(title, message, variant) {
+    const evt = new ShowToastEvent({
+      title: title,
+      message: message,
+      variant: variant
+    });
+    this.dispatchEvent(evt);
+  }
+
+  handleObjectChange(event) {
+    const selectedObject = event.detail.value;
+    this.objectApiName = selectedObject;
+    this.selectedObject = selectedObject;
+    return refreshApex(this.wiredRecordsResult);
+  }
+
+  handleFieldChange(event) {
+    const fieldName = event.target.dataset.fieldname;
+    const selectedValue = event.detail.value;
+    this[fieldName] = selectedValue;
+    return refreshApex(this.wiredRecordsResult);
+  }
+
+  toggleConfiguration() {
+    this.isConfiguring = !this.isConfiguring;
+    if (this.isConfiguring) {
+      // Prevent scrolling of the background when modal is open
+      document.body.style.overflow = "hidden";
+    } else {
+      // Restore scrolling when modal is closed
+      document.body.style.overflow = "auto";
+    }
+  }
+
+  handleSaveConfiguration() {
+    this.toggleConfiguration();
+    return refreshApex(this.wiredRecordsResult)
+      .then(() => {
+        this.showToastMessage(
+          "Sucesso",
+          "Configurações atualizadas com sucesso",
+          "success"
+        );
+      })
+      .catch((error) => {
+        this.showToastMessage(
+          "Erro",
+          "Erro ao atualizar as configurações",
+          "error"
+        );
+        console.error("Erro:", error);
+      });
+  }
+
+  // Filtros para campos específicos
+  get picklistFields() {
+    return this.availableFields.filter((field) => field.type === "PICKLIST");
+  }
+
+  get textFields() {
+    return this.availableFields.filter(
+      (field) =>
+        field.type === "STRING" ||
+        field.type === "TEXTAREA" ||
+        field.type === "REFERENCE"
+    );
+  }
+
+  get numberFields() {
+    return this.availableFields.filter(
+      (field) =>
+        field.type === "CURRENCY" ||
+        field.type === "DOUBLE" ||
+        field.type === "INTEGER"
+    );
+  }
+
+  get dateFields() {
+    return this.availableFields.filter(
+      (field) => field.type === "DATE" || field.type === "DATETIME"
+    );
   }
 }
