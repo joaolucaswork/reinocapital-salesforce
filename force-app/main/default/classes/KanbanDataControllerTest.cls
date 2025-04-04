@@ -57,7 +57,6 @@ private class KanbanDataControllerTest {
     ];
 
     Test.startTest();
-    // Usando um status diferente de "Em Negociação"
     KanbanDataController.updateRecordStatus(opp.Id, 'Primeiro Contato');
     Test.stopTest();
 
@@ -74,7 +73,7 @@ private class KanbanDataControllerTest {
   }
 
   @isTest
-  static void testUpdateRecordStatusWithExistingActiveOpp() {
+  static void testUpdateRecordStatusToValidStage() {
     Opportunity opp = [
       SELECT Id
       FROM Opportunity
@@ -83,13 +82,19 @@ private class KanbanDataControllerTest {
     ];
 
     Test.startTest();
-    try {
-      KanbanDataController.updateRecordStatus(opp.Id, 'Em Negociação');
-      System.assert(false, 'Deveria ter lançado uma exceção');
-    } catch (Exception e) {
-      System.assert(true, 'Exceção esperada foi lançada');
-    }
+    KanbanDataController.updateRecordStatus(opp.Id, 'Em Negociação');
     Test.stopTest();
+
+    Opportunity updatedOpp = [
+      SELECT StageName
+      FROM Opportunity
+      WHERE Id = :opp.Id
+    ];
+    System.assertEquals(
+      'Em Negociação',
+      updatedOpp.StageName,
+      'Status não foi atualizado corretamente para Em Negociação'
+    );
   }
 
   @isTest
@@ -204,5 +209,78 @@ private class KanbanDataControllerTest {
       );
     }
     Test.stopTest();
+  }
+
+  // Teste para getAvailableObjects
+  // Verifica se os objetos disponíveis estão sendo retornados corretamente
+  @isTest
+  static void testGetAvailableObjects() {
+    Test.startTest();
+    List<Map<String, String>> objects = KanbanDataController.getAvailableObjects();
+    Test.stopTest();
+
+    System.assert(
+      objects.size() > 0,
+      'Deveria retornar pelo menos um objeto acessível'
+    );
+    System.assert(
+      objects[0].containsKey('label'),
+      'Cada objeto deveria ter uma label'
+    );
+    System.assert(
+      objects[0].containsKey('value'),
+      'Cada objeto deveria ter um value'
+    );
+  }
+
+  // Teste para getAvailableFields
+  // Verifica se os campos disponíveis para o objeto Opportunity estão sendo retornados corretamente
+  @isTest
+  static void testGetAvailableFields() {
+    Test.startTest();
+    List<Map<String, String>> fields = KanbanDataController.getAvailableFields(
+      'Opportunity'
+    );
+    Test.stopTest();
+
+    System.assert(
+      fields.size() > 0,
+      'Deveria retornar pelo menos um campo da Opportunity'
+    );
+    System.assert(
+      fields[0].containsKey('label'),
+      'Cada campo deveria ter um label'
+    );
+    System.assert(
+      fields[0].containsKey('value'),
+      'Cada campo deveria ter um value'
+    );
+    System.assert(
+      fields[0].containsKey('type'),
+      'Cada campo deveria ter um tipo'
+    );
+  }
+
+  // Teste para getPicklistValues
+  // Verifica se os valores de picklist estão sendo retornados corretamente
+  @isTest
+  static void testGetPicklistValuesAndFallback() {
+    Test.startTest();
+    // Força erro passando um campo inexistente pra cair no bloco de fallback
+    List<Map<String, String>> values = KanbanDataController.getPicklistValues(
+      'Opportunity',
+      'CampoInvalido__c'
+    );
+    Test.stopTest();
+
+    System.assert(
+      values.size() > 0,
+      'Deveria retornar valores padrão mesmo com erro'
+    );
+    System.assertEquals(
+      'Sem contato',
+      values[0].get('value'),
+      'Primeiro valor do fallback deveria ser "Sem contato"'
+    );
   }
 }

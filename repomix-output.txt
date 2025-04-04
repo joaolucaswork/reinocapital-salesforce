@@ -57,7 +57,6 @@ force-app/main/default/classes/KanbanDataController.cls
 force-app/main/default/classes/KanbanDataController.cls-meta.xml
 force-app/main/default/classes/KanbanDataControllerTest.cls
 force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
-force-app/main/default/flexipages/Kanban_Oportunidades.flexipage-meta.xml
 force-app/main/default/lwc/.eslintrc.json
 force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
@@ -65,7 +64,6 @@ force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
 force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml
-force-app/main/default/tabs/Kanban_Oportunidades.tab-meta.xml
 force-app/test/jest-mocks/lightning/navigation.js
 force-app/test/jest-mocks/lightning/platformShowToastEvent.js
 jest.config.js
@@ -82,39 +80,6 @@ sfdx-project.json
 ================================================================
 Files
 ================================================================
-
-================
-File: force-app/main/default/flexipages/Kanban_Oportunidades.flexipage-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
-    <flexiPageRegions>
-        <itemInstances>
-            <componentInstance>
-                <componentName>kanbanPerson</componentName>
-                <identifier>c_kanbanPerson</identifier>
-            </componentInstance>
-        </itemInstances>
-        <name>main</name>
-        <type>Region</type>
-    </flexiPageRegions>
-    <masterLabel>Kanban Oportunidades</masterLabel>
-    <template>
-        <name>flexipage:defaultAppHomeTemplate</name>
-    </template>
-    <type>AppPage</type>
-</FlexiPage>
-
-================
-File: force-app/main/default/tabs/Kanban_Oportunidades.tab-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>Visualização em Kanban das Oportunidades</description>
-    <flexiPage>Kanban_Oportunidades</flexiPage>
-    <label>Kanban Oportunidades</label>
-    <motif>Custom57: Building Block</motif>
-</CustomTab>
 
 ================
 File: .forceignore
@@ -237,6 +202,180 @@ File: force-app/main/default/classes/KanbanDataController.cls-meta.xml
     <apiVersion>63.0</apiVersion>
     <status>Active</status>
 </ApexClass>
+
+================
+File: force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
+
+================
+File: force-app/main/default/lwc/.eslintrc.json
+================
+{
+  "extends": ["@salesforce/eslint-config-lwc/recommended"],
+  "overrides": [
+    {
+      "files": ["*.test.js"],
+      "rules": {
+        "@lwc/lwc/no-unexpected-wire-adapter-usages": "off"
+      },
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}
+
+================
+File: force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Kanban Board User</label>
+    <description>Permissões necessárias para usar o Kanban Board</description>
+    
+    <!-- Permissões da Classe Apex -->
+    <classAccesses>
+        <apexClass>KanbanDataController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+
+    <!-- Permissões do Objeto -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Opportunity</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- Permissões dos Campos Customizados -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Opportunity.Probabilidade_da_Oportunidade__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+</PermissionSet>
+
+================
+File: force-app/test/jest-mocks/lightning/navigation.js
+================
+export const NavigationMixin = (Base) => {
+  return class extends Base {
+    navigate(pageReference) {
+      return Promise.resolve(true);
+    }
+  };
+};
+
+NavigationMixin.Navigate = Symbol("Navigate");
+
+================
+File: force-app/test/jest-mocks/lightning/platformShowToastEvent.js
+================
+export class ShowToastEvent {
+  constructor(params) {
+    this.title = params.title;
+    this.message = params.message;
+    this.variant = params.variant;
+  }
+}
+
+================
+File: scripts/apex/hello.apex
+================
+// Use .apex files to store anonymous Apex.
+// You can execute anonymous Apex in VS Code by selecting the
+//     apex text and running the command:
+//     SFDX: Execute Anonymous Apex with Currently Selected Text
+// You can also execute the entire file by running the command:
+//     SFDX: Execute Anonymous Apex with Editor Contents
+
+string tempvar = 'Enter_your_name_here';
+System.debug('Hello World!');
+System.debug('My name is ' + tempvar);
+
+================
+File: scripts/soql/account.soql
+================
+// Use .soql files to store SOQL queries.
+// You can execute queries in VS Code by selecting the
+//     query text and running the command:
+//     SFDX: Execute SOQL Query with Currently Selected Text
+
+SELECT Id, Name FROM Account
+
+================
+File: scripts/soql/api-test.soql
+================
+SELECT Id, Profile.PermissionsApiOnlyUser FROM User
+
+================
+File: sfdx-project.json
+================
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "name": "dx-project",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "62.0"
+}
+
+================
+File: .github/workflows/validate-salesforce.yml
+================
+name: Salesforce Validation Check
+
+on:
+  pull_request:
+    branches:
+      - sandbox
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Salesforce CLI
+        run: npm install --global sfdx-cli
+
+      - name: Authenticate Salesforce (Sandbox)
+        run: echo "${{ secrets.SF_SANDBOX_AUTH_URL }}" | sf auth sfdx-url store --alias sandReino --set-default
+
+      - name: Validate Deployment
+        run: sf project deploy validate --target-org sandReino --wait 10
+
+================
+File: config/project-scratch-def.json
+================
+{
+  "orgName": "codebuilder company",
+  "edition": "Developer",
+  "features": ["EnableSetPasswordInApi"],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true,
+      "enableLightningPreviewPref": true
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    }
+  }
+}
 
 ================
 File: force-app/main/default/classes/KanbanDataControllerTest.cls
@@ -451,90 +590,6 @@ private class KanbanDataControllerTest {
 }
 
 ================
-File: force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>63.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
-
-================
-File: force-app/main/default/lwc/.eslintrc.json
-================
-{
-  "extends": ["@salesforce/eslint-config-lwc/recommended"],
-  "overrides": [
-    {
-      "files": ["*.test.js"],
-      "rules": {
-        "@lwc/lwc/no-unexpected-wire-adapter-usages": "off"
-      },
-      "env": {
-        "node": true
-      }
-    }
-  ]
-}
-
-================
-File: force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>Kanban Board User</label>
-    <description>Permissões necessárias para usar o Kanban Board</description>
-    
-    <!-- Permissões da Classe Apex -->
-    <classAccesses>
-        <apexClass>KanbanDataController</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-
-    <!-- Permissões do Objeto -->
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>false</modifyAllRecords>
-        <object>Opportunity</object>
-        <viewAllRecords>false</viewAllRecords>
-    </objectPermissions>
-
-    <!-- Permissões dos Campos Customizados -->
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Opportunity.Probabilidade_da_Oportunidade__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-</PermissionSet>
-
-================
-File: force-app/test/jest-mocks/lightning/navigation.js
-================
-export const NavigationMixin = (Base) => {
-  return class extends Base {
-    navigate(pageReference) {
-      return Promise.resolve(true);
-    }
-  };
-};
-
-NavigationMixin.Navigate = Symbol("Navigate");
-
-================
-File: force-app/test/jest-mocks/lightning/platformShowToastEvent.js
-================
-export class ShowToastEvent {
-  constructor(params) {
-    this.title = params.title;
-    this.message = params.message;
-    this.variant = params.variant;
-  }
-}
-
-================
 File: manifest/package.xml
 ================
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -547,18 +602,6 @@ File: manifest/package.xml
     <types>
         <members>kanbanPerson</members>
         <name>LightningComponentBundle</name>
-    </types>
-    <types>
-        <members>Kanban_Board_User</members>
-        <name>PermissionSet</name>
-    </types>
-    <types>
-        <members>Kanban_Oportunidades</members>
-        <name>FlexiPage</name>
-    </types>
-    <types>
-        <members>Kanban_Oportunidades</members>
-        <name>CustomTab</name>
     </types>
     <version>63.0</version>
 </Package>
@@ -594,6 +637,7 @@ File: reinocapital-salesforce.code-workspace
 {
 	"folders": [
 		{
+			"name": "reinocapital-salesforce",
 			"path": "."
 		}
 	],
@@ -604,161 +648,93 @@ File: reinocapital-salesforce.code-workspace
 }
 
 ================
-File: scripts/apex/hello.apex
-================
-// Use .apex files to store anonymous Apex.
-// You can execute anonymous Apex in VS Code by selecting the
-//     apex text and running the command:
-//     SFDX: Execute Anonymous Apex with Currently Selected Text
-// You can also execute the entire file by running the command:
-//     SFDX: Execute Anonymous Apex with Editor Contents
-
-string tempvar = 'Enter_your_name_here';
-System.debug('Hello World!');
-System.debug('My name is ' + tempvar);
-
-================
-File: scripts/soql/account.soql
-================
-// Use .soql files to store SOQL queries.
-// You can execute queries in VS Code by selecting the
-//     query text and running the command:
-//     SFDX: Execute SOQL Query with Currently Selected Text
-
-SELECT Id, Name FROM Account
-
-================
-File: scripts/soql/api-test.soql
-================
-SELECT Id, Profile.PermissionsApiOnlyUser FROM User
-
-================
-File: sfdx-project.json
-================
-{
-  "packageDirectories": [
-    {
-      "path": "force-app",
-      "default": true
-    }
-  ],
-  "name": "dx-project",
-  "namespace": "",
-  "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "62.0"
-}
-
-================
-File: .github/workflows/validate-salesforce.yml
-================
-name: Salesforce Validation Check
-
-on:
-  pull_request:
-    branches:
-      - sandbox
-      - main
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install Salesforce CLI
-        run: npm install --global sfdx-cli
-
-      - name: Authenticate Salesforce (Sandbox)
-        run: echo "${{ secrets.SF_SANDBOX_AUTH_URL }}" | sf auth sfdx-url store --alias sandReino --set-default
-
-      - name: Validate Deployment
-        run: sf project deploy validate --target-org sandReino --wait 10
-
-================
-File: config/project-scratch-def.json
-================
-{
-  "orgName": "codebuilder company",
-  "edition": "Developer",
-  "features": ["EnableSetPasswordInApi"],
-  "settings": {
-    "lightningExperienceSettings": {
-      "enableS1DesktopEnabled": true,
-      "enableLightningPreviewPref": true
-    },
-    "mobileSettings": {
-      "enableS1EncryptedStoragePref2": false
-    }
-  }
-}
-
-================
 File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
 ================
 <?xml version="1.0" encoding="UTF-8" ?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>63.0</apiVersion>
+    <apiVersion>58.0</apiVersion>
     <isExposed>true</isExposed>
-    <masterLabel>Visualisação de Registros - Oportunidade</masterLabel>
+    <masterLabel>Kanban Board Genérico</masterLabel>
     <description
-  >Componente para visualização e gerenciamento de oportunidades em formato Kanban</description>
+  >Visualização em Kanban configurável para qualquer objeto do Salesforce</description>
     <targets>
         <target>lightning__AppPage</target>
         <target>lightning__RecordPage</target>
         <target>lightning__HomePage</target>
     </targets>
-    <targetConfigs>
-        <targetConfig
-      targets="lightning__AppPage,lightning__HomePage,lightning__RecordPage"
-    >
-            <property
-        name="statusField"
-        type="String"
-        default="StageName"
-        label="Campo de Status"
-        description="Campo que será usado para as colunas do Kanban"
-        required="true"
-      />
-            <property
-        name="titleField"
-        type="String"
-        default="Name"
-        label="Campo de Título"
-        description="Campo que será exibido como título do card"
-        required="true"
-      />
-            <property
-        name="subtitleField"
-        type="String"
-        default="Account.Name"
-        label="Campo de Subtítulo"
-        description="Campo que será exibido como subtítulo do card"
-      />
-            <property
-        name="valueField"
-        type="String"
-        default="Amount"
-        label="Campo de Valor"
-        description="Campo numérico para exibir valor"
-      />
-            <property
-        name="dateField"
-        type="String"
-        default="CloseDate"
-        label="Campo de Data"
-        description="Campo de data para exibição"
-      />
-            <property
-        name="recordLimit"
-        type="Integer"
-        default="1000"
-        label="Limite de Registros"
-        description="Número máximo de registros a serem exibidos"
-      />
-        </targetConfig>
-    </targetConfigs>
+  
+       
 </LightningComponentBundle>
+
+================
+File: jest.config.js
+================
+// @ts-check
+const { jestConfig } = require("@salesforce/sfdx-lwc-jest/config");
+
+module.exports = {
+  ...jestConfig,
+  moduleNameMapper: {
+    "^lightning/platformShowToastEvent$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/platformShowToastEvent",
+    "^lightning/navigation$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/navigation",
+    "^lightning/platformViewManager$":
+      "<rootDir>/force-app/test/jest-mocks/lightning/platformViewManager"
+  },
+  testEnvironment: "jsdom",
+  setupFiles: ["jest-canvas-mock"],
+  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"],
+  transformIgnorePatterns: ["/node_modules/(?!@salesforce)"]
+};
+
+================
+File: package.json
+================
+{
+  "name": "salesforce-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Salesforce App",
+  "scripts": {
+    "lint": "eslint **/{aura,lwc}/**/*.js",
+    "test": "npm run test:unit",
+    "test:unit": "sfdx-lwc-jest",
+    "test:unit:watch": "sfdx-lwc-jest --watch",
+    "test:unit:debug": "sfdx-lwc-jest --debug",
+    "test:unit:coverage": "sfdx-lwc-jest --coverage",
+    "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
+    "prettier:verify": "prettier --check \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
+    "postinstall": "husky install",
+    "precommit": "lint-staged"
+  },
+  "devDependencies": {
+    "@lwc/eslint-plugin-lwc": "^2.0.0",
+    "@prettier/plugin-xml": "^3.2.2",
+    "@salesforce/eslint-config-lwc": "^3.7.1",
+    "@salesforce/eslint-plugin-aura": "^2.0.0",
+    "@salesforce/eslint-plugin-lightning": "^1.0.0",
+    "@salesforce/sfdx-lwc-jest": "^7.0.1",
+    "@salesforce/wire-service-jest-util": "^4.1.5",
+    "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jest": "^28.8.1",
+    "husky": "^9.1.5",
+    "jest-canvas-mock": "^2.5.2",
+    "lint-staged": "^15.1.0",
+    "prettier": "^3.1.0",
+    "prettier-plugin-apex": "^2.0.1",
+    "sinon": "^20.0.0"
+  },
+  "lint-staged": {
+    "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}": [
+      "prettier --write"
+    ],
+    "**/{aura,lwc}/**/*.js": [
+      "eslint"
+    ]
+  }
+}
 
 ================
 File: force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
@@ -965,264 +941,210 @@ describe("Visualização de Registros - Oportunidade", () => {
 });
 
 ================
-File: jest.config.js
-================
-// @ts-check
-const { jestConfig } = require("@salesforce/sfdx-lwc-jest/config");
-
-module.exports = {
-  ...jestConfig,
-  moduleNameMapper: {
-    "^lightning/platformShowToastEvent$":
-      "<rootDir>/force-app/test/jest-mocks/lightning/platformShowToastEvent",
-    "^lightning/navigation$":
-      "<rootDir>/force-app/test/jest-mocks/lightning/navigation",
-    "^lightning/platformViewManager$":
-      "<rootDir>/force-app/test/jest-mocks/lightning/platformViewManager"
-  },
-  testEnvironment: "jsdom",
-  setupFiles: ["jest-canvas-mock"],
-  modulePathIgnorePatterns: ["<rootDir>/.localdevserver"],
-  transformIgnorePatterns: ["/node_modules/(?!@salesforce)"]
-};
-
-================
-File: package.json
-================
-{
-  "name": "salesforce-app",
-  "private": true,
-  "version": "1.0.0",
-  "description": "Salesforce App",
-  "scripts": {
-    "lint": "eslint **/{aura,lwc}/**/*.js",
-    "test": "npm run test:unit",
-    "test:unit": "sfdx-lwc-jest",
-    "test:unit:watch": "sfdx-lwc-jest --watch",
-    "test:unit:debug": "sfdx-lwc-jest --debug",
-    "test:unit:coverage": "sfdx-lwc-jest --coverage",
-    "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
-    "prettier:verify": "prettier --check \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
-    "postinstall": "husky install",
-    "precommit": "lint-staged"
-  },
-  "devDependencies": {
-    "@lwc/eslint-plugin-lwc": "^2.0.0",
-    "@prettier/plugin-xml": "^3.2.2",
-    "@salesforce/eslint-config-lwc": "^3.7.1",
-    "@salesforce/eslint-plugin-aura": "^2.0.0",
-    "@salesforce/eslint-plugin-lightning": "^1.0.0",
-    "@salesforce/sfdx-lwc-jest": "^7.0.1",
-    "@salesforce/wire-service-jest-util": "^4.1.5",
-    "eslint": "^8.57.1",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-jest": "^28.8.1",
-    "husky": "^9.1.5",
-    "jest-canvas-mock": "^2.5.2",
-    "lint-staged": "^15.1.0",
-    "prettier": "^3.1.0",
-    "prettier-plugin-apex": "^2.0.1",
-    "sinon": "^20.0.0"
-  },
-  "lint-staged": {
-    "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}": [
-      "prettier --write"
-    ],
-    "**/{aura,lwc}/**/*.js": [
-      "eslint"
-    ]
-  }
-}
-
-================
 File: README.md
 ================
-# Kanban Board - Salesforce LWC
+# Kanban Board - Componente LWC Genérico
 
-Este componente implementa uma visualização em Kanban para registros do Salesforce, atualmente configurado para Oportunidades.
+Este componente implementa uma visualização em Kanban configurável para qualquer objeto do Salesforce.
 
-## 📁 Estrutura de Arquivos
+## 📖 Como Usar com Diferentes Objetos
 
-```
-force-app/main/default/
-├── classes/
-│   ├── KanbanDataController.cls           # Controlador Apex
-│   └── KanbanDataControllerTest.cls       # Testes do controlador
-└── lwc/
-    └── kanbanPerson/
-        ├── kanbanPerson.html              # Template do componente
-        ├── kanbanPerson.js                # Lógica do componente
-        ├── kanbanPerson.css               # Estilos do componente
-        └── kanbanPerson.js-meta.xml       # Metadados do componente
-```
+### 1. Configurar o Componente no Builder
 
-## 🔧 Como Adaptar para Outro Objeto
+1. Arraste o componente "Kanban Board Genérico" para sua página
+2. Configure as propriedades:
+   - Nome da API do Objeto (ex: "Account", "Contact", "Custom_Object\_\_c")
+   - Campo de Status (campo que define as colunas)
+   - Campo de Título (geralmente "Name")
+   - Campo de Subtítulo (opcional, pode usar campos relacionados como "Owner.Name")
+   - Campo de Valor (opcional, campo numérico)
+   - Campo de Data (opcional)
+   - Textos personalizados para botões e pesquisa
 
-### 1. Modificar o Controlador Apex (KanbanDataController.cls)
+### 2. Adaptar o Controller Apex
+
+1. Copie o `KanbanDataController.cls` e renomeie para seu objeto
+2. Modifique o método `getRecords()`:
 
 ```apex
-// Altere a query para o seu objeto
-public with sharing class KanbanDataController {
-    @AuraEnabled(cacheable=true)
-    public static List<SEU_OBJETO__c> getRecords() {
-        return [
-            SELECT Id, Name, SEU_CAMPO_STATUS__c, SEU_CAMPO_VALOR__c, ...
-            FROM SEU_OBJETO__c
-            WHERE ...
-            ORDER BY CreatedDate DESC
-        ];
-    }
-}
-```
-
-### 2. Modificar o Componente JavaScript (kanbanPerson.js)
-
-1. Altere o mapeamento de status:
-
-```javascript
-statusIconMap = {
-  "Status 1": "utility:icon1",
-  "Status 2": "utility:icon2"
-  // Adicione seus status
-};
-```
-
-2. Atualize os campos na função formatData:
-
-```javascript
-formatData(records) {
-    const statuses = [
-        "Status 1",
-        "Status 2",
-        // Seus status aqui
+@AuraEnabled(cacheable=true)
+public static List<SeuObjeto__c> getRecords() {
+    return [
+        SELECT Id, Name, Status__c, Campo1__c, Campo2__c,
+               CampoRelacionado__r.Name
+        FROM SeuObjeto__c
+        ORDER BY CreatedDate DESC
+        LIMIT 1000
     ];
 }
 ```
 
-3. Modifique as colunas exibidas:
+3. Atualize os outros métodos substituindo `Opportunity` por seu objeto:
+
+```apex
+SeuObjeto__c record = new SeuObjeto__c(
+    Id = recordId,
+    Status__c = newStatus
+);
+```
+
+### 3. Configurar Status Válidos
+
+1. No controller Apex, atualize a lista de status válidos:
+
+```apex
+Set<String> validStatuses = new Set<String>{
+    'Status1',
+    'Status2',
+    'Status3'
+};
+```
+
+2. No componente JavaScript, atualize o `statusIconMap` e `validStatuses`:
 
 ```javascript
-// Altere os campos conforme sua necessidade
-{
-    label: "Nome",
-    field: "Name",
-    // Adicione seus campos
+statusIconMap = {
+    'Status1': 'utility:icon1',
+    'Status2': 'utility:icon2',
+    'Status3': 'utility:icon3'
+};
+
+get validStatuses() {
+    return ['Status1', 'Status2', 'Status3'];
 }
 ```
 
-### 3. Atualizar o Meta XML (kanbanPerson.js-meta.xml)
+### 4. Adaptar as Permissões
+
+1. Atualize o arquivo de permissões:
 
 ```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>58.0</apiVersion>
-    <isExposed>true</isExposed>
-    <targets>
-        <target>lightning__AppPage</target>
-        <target>lightning__RecordPage</target>
-        <target>lightning__HomePage</target>
-    </targets>
-    <!-- Adicione os objetos que podem usar o componente -->
-    <targetConfigs>
-        <targetConfig targets="lightning__AppPage,lightning__RecordPage">
-            <objects>
-                <object>SEU_OBJETO__c</object>
-            </objects>
-        </targetConfig>
-    </targetConfig>
-</LightningComponentBundle>
+<objectPermissions>
+    <object>SeuObjeto__c</object>
+    <allowCreate>true</allowCreate>
+    <allowDelete>true</allowDelete>
+    <allowEdit>true</allowEdit>
+    <allowRead>true</allowRead>
+</objectPermissions>
 ```
 
 ## 🎨 Personalizando a Aparência
 
-1. Cores por Status (kanbanPerson.css):
+### 1. Cores dos Status
+
+No arquivo CSS (`kanbanPerson.css`), defina cores para seus status:
 
 ```css
-.stage-selector[data-stage="Seu Status"] .slds-combobox__input {
-  background-color: #sua-cor;
-  color: #cor-texto;
+.stage-selector[data-stage="Status1"] .slds-combobox__input {
+  background-color: #sua-cor-1;
+  color: #sua-cor-texto-1;
 }
 ```
 
-2. Largura das Colunas:
+### 2. Ícones dos Status
 
-```css
-.col-sua-coluna {
-  width: 200px;
-  min-width: 100px;
-}
-```
-
-## 📦 Deploy para Produção
-
-1. **Via VSCode e SFDX:**
-
-```bash
-sfdx force:source:deploy -p force-app/main/default/lwc/kanbanPerson,force-app/main/default/classes/KanbanDataController.cls
-```
-
-2. **Via Pacote:**
-
-- Use o comando `sfdx force:package:create` para criar um pacote
-- Adicione os componentes ao pacote
-- Deploy o pacote para produção
-
-## ⚡ Permissões Necessárias
-
-1. Crie um conjunto de permissões:
-   - Acesso ao componente LWC
-   - Acesso à classe Apex
-   - Permissões de Objeto:
-     - Read no objeto principal
-     - Edit para alterações de status
-
-## 🔍 Campos Personalizáveis
-
-No arquivo kanbanPerson.js, localize e modifique:
-
-1. **Campos Exibidos:**
+No JavaScript, defina ícones do Lightning Design System para cada status:
 
 ```javascript
-const recordsWithIcons = statusRecords.map((record) => ({
-  Id: record.Id,
-  Name: record.Name,
-  // Adicione seus campos aqui
-  SeuCampo__c: record.SeuCampo__c
-}));
+statusIconMap = {
+  Status1: "utility:seu_icone_1",
+  Status2: "utility:seu_icone_2"
+};
 ```
 
-2. **Campos de Ordenação:**
+## 📋 Exemplos de Uso
 
-```javascript
-getFieldValue(record, field) {
-    switch(field) {
-        case "SeuCampo":
-            return record.SeuCampo__c;
-        // Adicione seus campos
-    }
-}
+### Cliente (Account)
+
+```html
+<c-kanban-person
+  object-api-name="Account"
+  status-field="Status__c"
+  title-field="Name"
+  subtitle-field="Type"
+  value-field="AnnualRevenue"
+  date-field="CreatedDate"
+  new-button-label="Novo Cliente"
+  search-placeholder="Pesquisar clientes..."
+>
+</c-kanban-person>
 ```
 
-## 🚀 Performance
+### Lead
 
-- O componente usa @wire para cache automático
-- Implementa lazy loading para grandes conjuntos de dados
-- Otimizado para mobile
-
-## 📱 Responsividade
-
-O componente é totalmente responsivo e se adapta a diferentes tamanhos de tela. Você pode ajustar os breakpoints em kanbanPerson.css:
-
-```css
-@media screen and (max-width: seu-tamanho) {
-    // Seus ajustes aqui
-}
+```html
+<c-kanban-person
+  object-api-name="Lead"
+  status-field="Status"
+  title-field="Name"
+  subtitle-field="Company"
+  value-field="AnnualRevenue"
+  date-field="CreatedDate"
+  new-button-label="Novo Lead"
+  search-placeholder="Pesquisar leads..."
+>
+</c-kanban-person>
 ```
+
+### Caso (Case)
+
+```html
+<c-kanban-person
+  object-api-name="Case"
+  status-field="Status"
+  title-field="CaseNumber"
+  subtitle-field="Subject"
+  value-field="Priority"
+  date-field="CreatedDate"
+  new-button-label="Novo Caso"
+  search-placeholder="Pesquisar casos..."
+>
+</c-kanban-person>
+```
+
+## ⚡ Considerações Importantes
+
+1. Campo de Status:
+
+   - Deve ser um campo do tipo picklist
+   - Os valores devem corresponder aos definidos no `statusIconMap`
+   - Recomendado usar campos indexados para melhor performance
+
+2. Campos Relacionados:
+
+   - Use a notação com ponto para campos de lookup/master-detail
+   - Exemplo: `Account.Owner.Name`
+
+3. Performance:
+
+   - Limite padrão de 1000 registros
+   - Use campos indexados sempre que possível
+   - Evite campos de fórmula complexos
+
+4. Personalização:
+   - Todos os textos são configuráveis
+   - Cores e ícones podem ser personalizados por CSS
+   - Layout responsivo para diferentes tamanhos de tela
 
 ================
 File: force-app/main/default/classes/KanbanDataController.cls
 ================
+/**
+ * @description Controlador para o componente Kanban genérico
+ * Este controlador pode ser adaptado para qualquer objeto do Salesforce
+ *
+ * Para adaptar para outro objeto:
+ * 1. Altere o tipo de retorno do método getRecords para seu objeto
+ * 2. Modifique a query SOQL com os campos do seu objeto
+ * 3. Atualize os métodos de CRUD para usar seu objeto
+ * 4. Ajuste as verificações de permissão para seu objeto
+ */
 public with sharing class KanbanDataController {
+  /**
+   * @description Retorna a lista de registros para o Kanban
+   * Modifique esta query conforme necessário para seu objeto
+   * @return List<SObject> Lista de registros do objeto
+   */
   @AuraEnabled(cacheable=true)
   public static List<Opportunity> getRecords() {
     return [
@@ -1233,27 +1155,27 @@ public with sharing class KanbanDataController {
         Amount,
         CloseDate,
         Account.Name,
+        Nome_do_Lead__c,
         Probability,
         Probabilidade_da_Oportunidade__c
       FROM Opportunity
+      WHERE Nome_do_Lead__c != NULL OR Account.Name != NULL
       ORDER BY CreatedDate DESC
       LIMIT 1000
     ];
   }
 
+  /**
+   * @description Atualiza o status de um registro
+   * @param recordId Id do registro a ser atualizado
+   * @param newStatus Novo valor do status
+   */
   @AuraEnabled
   public static void updateRecordStatus(Id recordId, String newStatus) {
     // Verificar permissões CRUD
-    if (
-      !Schema.sObjectType.Opportunity.isUpdateable() ||
-      !Schema.sObjectType.Opportunity.fields.StageName.isUpdateable()
-    ) {
-      throw new AuraHandledException(
-        'Você não tem permissão para atualizar oportunidades.'
-      );
-    }
+    validateCRUDPermission('update');
 
-    // Lista de status válidos
+    // Lista de status válidos - Atualize conforme seu objeto
     Set<String> validStatuses = new Set<String>{
       'Sem contato',
       'Primeiro Contato',
@@ -1269,61 +1191,47 @@ public with sharing class KanbanDataController {
       throw new AuraHandledException('Status inválido: ' + newStatus);
     }
 
-    // Verificação de registros ativos para o usuário atual
-    List<Opportunity> activeOpps = [
-      SELECT Id
-      FROM Opportunity
-      WHERE
-        OwnerId = :UserInfo.getUserId()
-        AND StageName = 'Em Negociação'
-        AND Id != :recordId
-      WITH SECURITY_ENFORCED
-      LIMIT 1
-    ];
-
-    // Validação de regra de negócio: uma oportunidade em negociação por vez
-    if (!activeOpps.isEmpty() && newStatus == 'Em Negociação') {
-      throw new AuraHandledException(
-        'Você já possui uma oportunidade em negociação. Finalize-a antes de mover outra.'
-      );
-    }
-
-    // Atualização do registro após validação
-    Opportunity opp = new Opportunity(Id = recordId, StageName = newStatus);
-
     try {
-      update opp;
+      // Para outros objetos, modifique esta parte
+      Opportunity record = new Opportunity(
+        Id = recordId,
+        StageName = newStatus
+      );
+      update record;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
   }
 
+  /**
+   * @description Exclui um registro
+   * @param recordId Id do registro a ser excluído
+   */
   @AuraEnabled
   public static void deleteRecord(Id recordId) {
-    if (!Schema.sObjectType.Opportunity.isDeletable()) {
-      throw new AuraHandledException(
-        'Você não tem permissão para excluir oportunidades.'
-      );
-    }
+    validateCRUDPermission('delete');
 
     try {
-      Opportunity opp = new Opportunity(Id = recordId);
-      delete opp;
+      // Para outros objetos, modifique esta parte
+      Opportunity record = new Opportunity(Id = recordId);
+      delete record;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
   }
 
+  /**
+   * @description Clona um registro
+   * @param recordId Id do registro a ser clonado
+   * @return Id Id do novo registro clonado
+   */
   @AuraEnabled
   public static Id cloneRecord(Id recordId) {
-    if (!Schema.sObjectType.Opportunity.isCreateable()) {
-      throw new AuraHandledException(
-        'Você não tem permissão para criar oportunidades.'
-      );
-    }
+    validateCRUDPermission('create');
 
     try {
-      Opportunity originalOpp = [
+      // Para outros objetos, modifique esta parte
+      Opportunity originalRecord = [
         SELECT Name, StageName, Amount, CloseDate, AccountId
         FROM Opportunity
         WHERE Id = :recordId
@@ -1331,39 +1239,191 @@ public with sharing class KanbanDataController {
         LIMIT 1
       ];
 
-      Opportunity clonedOpp = new Opportunity(
-        Name = originalOpp.Name + ' - Cópia',
-        StageName = 'Sem contato',
-        Amount = originalOpp.Amount,
-        CloseDate = originalOpp.CloseDate,
-        AccountId = originalOpp.AccountId
+      Opportunity clonedRecord = new Opportunity(
+        Name = originalRecord.Name + ' - Cópia',
+        StageName = 'Sem contato', // Status inicial padrão
+        Amount = originalRecord.Amount,
+        CloseDate = originalRecord.CloseDate,
+        AccountId = originalRecord.AccountId
       );
 
-      insert clonedOpp;
-      return clonedOpp.Id;
+      insert clonedRecord;
+      return clonedRecord.Id;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
   }
 
+  /**
+   * @description Exclui múltiplos registros
+   * @param recordIds Lista de Ids dos registros a serem excluídos
+   */
   @AuraEnabled
   public static void deleteRecordsInBulk(List<Id> recordIds) {
-    if (!Schema.sObjectType.Opportunity.isDeletable()) {
-      throw new AuraHandledException(
-        'Você não tem permissão para excluir oportunidades.'
-      );
-    }
+    validateCRUDPermission('delete');
 
     try {
-      List<Opportunity> oppsToDelete = [
+      // Para outros objetos, modifique esta parte
+      List<Opportunity> recordsToDelete = [
         SELECT Id
         FROM Opportunity
         WHERE Id IN :recordIds
         WITH SECURITY_ENFORCED
       ];
-      delete oppsToDelete;
+      delete recordsToDelete;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  /**
+   * @description Valida permissões CRUD no objeto
+   * @param operation Operação a ser validada (create, update, delete)
+   */
+  private static void validateCRUDPermission(String operation) {
+    // Para outros objetos, modifique esta parte
+    Schema.DescribeSObjectResult describeResult = Opportunity.getSObjectType()
+      .getDescribe();
+
+    if (operation == 'create' && !describeResult.isCreateable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para criar registros.'
+      );
+    }
+    if (operation == 'update' && !describeResult.isUpdateable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para atualizar registros.'
+      );
+    }
+    if (operation == 'delete' && !describeResult.isDeletable()) {
+      throw new AuraHandledException(
+        'Você não tem permissão para excluir registros.'
+      );
+    }
+  }
+
+  /**
+   * @description Retorna uma lista de objetos disponíveis
+   * @return List<Map<String,String>> Lista de objetos com label e api name
+   */
+  @AuraEnabled(cacheable=true)
+  public static List<Map<String, String>> getAvailableObjects() {
+    List<Map<String, String>> objects = new List<Map<String, String>>();
+
+    for (Schema.SObjectType objType : Schema.getGlobalDescribe().values()) {
+      Schema.DescribeSObjectResult describeResult = objType.getDescribe();
+      if (describeResult.isAccessible() && describeResult.isQueryable()) {
+        objects.add(
+          new Map<String, String>{
+            'label' => describeResult.getLabel(),
+            'value' => describeResult.getName()
+          }
+        );
+      }
+    }
+
+    return objects;
+  }
+
+  /**
+   * @description Retorna campos disponíveis para um objeto específico
+   * @param objectName Nome da API do objeto
+   * @return List<Map<String,String>> Lista de campos com label e api name
+   */
+  @AuraEnabled(cacheable=true)
+  public static List<Map<String, String>> getAvailableFields(
+    String objectName
+  ) {
+    List<Map<String, String>> fields = new List<Map<String, String>>();
+
+    Schema.SObjectType objectType = Schema.getGlobalDescribe().get(objectName);
+    if (objectType != null) {
+      Map<String, Schema.SObjectField> fieldMap = objectType.getDescribe()
+        .fields.getMap();
+
+      for (String fieldName : fieldMap.keySet()) {
+        Schema.DescribeFieldResult field = fieldMap.get(fieldName)
+          .getDescribe();
+        if (field.isAccessible()) {
+          fields.add(
+            new Map<String, String>{
+              'label' => field.getLabel(),
+              'value' => field.getName(),
+              'type' => String.valueOf(field.getType())
+            }
+          );
+        }
+      }
+    }
+
+    return fields;
+  }
+
+  /**
+   * @description Retorna os valores válidos de uma picklist
+   * @param objectName Nome da API do objeto
+   * @param fieldName Nome da API do campo
+   * @return List<Map<String,String>> Lista de valores da picklist
+   */
+  @AuraEnabled(cacheable=true)
+  public static List<Map<String, String>> getPicklistValues(
+    String objectName,
+    String fieldName
+  ) {
+    List<Map<String, String>> picklistValues = new List<Map<String, String>>();
+
+    try {
+      Schema.SObjectType objectType = Schema.getGlobalDescribe()
+        .get(objectName);
+      if (objectType != null) {
+        Schema.DescribeFieldResult field = objectType.getDescribe()
+          .fields.getMap()
+          .get(fieldName)
+          .getDescribe();
+
+        if (field.getType() == Schema.DisplayType.PICKLIST) {
+          for (Schema.PicklistEntry entry : field.getPicklistValues()) {
+            if (entry.isActive()) {
+              picklistValues.add(
+                new Map<String, String>{
+                  'label' => entry.getLabel(),
+                  'value' => entry.getValue()
+                }
+              );
+            }
+          }
+        }
+      }
+      return picklistValues;
+    } catch (Exception e) {
+      // Return default values if there's an error
+      return new List<Map<String, String>>{
+        new Map<String, String>{
+          'label' => 'Sem contato',
+          'value' => 'Sem contato'
+        },
+        new Map<String, String>{
+          'label' => 'Primeiro Contato',
+          'value' => 'Primeiro Contato'
+        },
+        new Map<String, String>{
+          'label' => 'Primeira Reunião',
+          'value' => 'Primeira Reunião'
+        },
+        new Map<String, String>{
+          'label' => 'Em Negociação',
+          'value' => 'Em Negociação'
+        },
+        new Map<String, String>{
+          'label' => 'Análise Contratual',
+          'value' => 'Análise Contratual'
+        },
+        new Map<String, String>{
+          'label' => 'Convertido',
+          'value' => 'Convertido'
+        },
+        new Map<String, String>{ 'label' => 'Perdido', 'value' => 'Perdido' }
+      };
     }
   }
 }
@@ -1866,6 +1926,31 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
   padding: 0.5rem;
 }
 
+.slds-modal {
+  z-index: 9002;
+}
+
+.slds-backdrop {
+  z-index: 9001;
+}
+
+.configuration-modal {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+.configuration-modal .slds-modal__container {
+  z-index: 9002;
+}
+
+.configuration-modal .slds-backdrop {
+  z-index: 9001;
+}
+
 ================
 File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 ================
@@ -1893,7 +1978,7 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
             </div>
             <div class="slds-media__body">
               <h1 class="slds-text-heading_medium">
-                Visualização de Registros - Oportunidadea
+                Visualização de Registros - Oportunidade
               </h1>
               <p class="slds-text-body_small slds-line-height_reset">
                 Gerencie seus registros de forma visual e eficiente
@@ -1947,6 +2032,17 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
               title="Atualizar"
               class="slds-m-left_small"
               onclick={handleRefresh}
+            >
+            </lightning-button-icon>
+
+            <!-- Adicionar botão de configuração -->
+            <lightning-button-icon
+              icon-name="utility:settings"
+              variant="border-filled"
+              alternative-text="Configurar"
+              title="Configurar"
+              class="slds-m-left_small"
+              onclick={toggleConfiguration}
             >
             </lightning-button-icon>
           </div>
@@ -2141,6 +2237,15 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                       <div class="slds-col col-account">
                         <div class="slds-truncate" title={record.AccountName}>
                           {record.AccountName}
+                          <template if:true={record.hasLeadName}>
+                            <lightning-icon
+                              icon-name="utility:info"
+                              size="xx-small"
+                              class="slds-m-left_xx-small"
+                              alternative-text="Nome do Lead"
+                              title="Este é o nome do Lead"
+                            ></lightning-icon>
+                          </template>
                         </div>
                       </div>
                       <!-- Valor -->
@@ -2298,32 +2403,104 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
       </div>
     </div>
   </div>
+
+  <!-- Painel de Configuração movido para o final -->
+  <div
+    if:true={isConfiguring}
+    class="configuration-modal slds-modal slds-fade-in-open"
+  >
+    <div class="slds-modal__container">
+      <header class="slds-modal__header">
+        <h2 class="slds-text-heading_medium">Configurar Kanban</h2>
+        <button
+          class="slds-button slds-button_icon slds-modal__close"
+          onclick={toggleConfiguration}
+        >
+          <lightning-icon
+            icon-name="utility:close"
+            size="small"
+          ></lightning-icon>
+        </button>
+      </header>
+      <div class="slds-modal__content slds-p-around_medium">
+        <!-- Campo de Status -->
+        <lightning-combobox
+          label="Campo de Status"
+          value={statusField}
+          options={picklistFields}
+          onchange={handleFieldChange}
+          data-fieldname="statusField"
+          class="slds-m-bottom_small"
+        >
+        </lightning-combobox>
+      </div>
+      <footer class="slds-modal__footer">
+        <button
+          class="slds-button slds-button_neutral"
+          onclick={toggleConfiguration}
+        >
+          Cancelar
+        </button>
+        <button
+          class="slds-button slds-button_brand"
+          onclick={handleSaveConfiguration}
+        >
+          Salvar
+        </button>
+      </footer>
+    </div>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+  </div>
 </template>
 
 ================
 File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
 ================
 /**
- * @description Componente de Visualização de Registros - Oportunidade para gerenciamento
- * de registros com navegação por abas no estilo Pipeline do Salesforce
+ * @description Componente de Visualização de Registros em formato Kanban
+ * Este componente implementa uma visualização em estilo quadro Kanban para qualquer objeto do Salesforce
+ * que possua um campo de status/estágio.
+ *
+ * Para adaptar para outro objeto:
+ * 1. Modifique o objeto no Apex (KanbanDataController.cls)
+ * 2. Configure as propriedades abaixo conforme seu objeto
+ * 3. Atualize o statusIconMap com seus status e ícones
  */
 import { LightningElement, wire, track, api } from "lwc";
 import { refreshApex } from "@salesforce/apex";
 import { NavigationMixin } from "lightning/navigation";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getRecords from "@salesforce/apex/KanbanDataController.getRecords";
 import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateRecordStatus";
 import deleteRecord from "@salesforce/apex/KanbanDataController.deleteRecord";
 import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
 import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
+import getAvailableFields from "@salesforce/apex/KanbanDataController.getAvailableFields";
+import getPicklistValues from "@salesforce/apex/KanbanDataController.getPicklistValues";
 
 export default class KanbanPerson extends NavigationMixin(LightningElement) {
-  @api statusField = "StageName";
-  @api titleField = "Name";
-  @api subtitleField = "Account.Name";
-  @api valueField = "Amount";
-  @api dateField = "CloseDate";
-  @api recordLimit = 1000;
+  /**
+   * Nome da API do objeto (ex: "Opportunity", "Account", "Custom_Object__c")
+   * @type {string}
+   */
+  @api objectApiName = "Opportunity";
 
+  /**
+   * Campo que contém o status/estágio para as colunas do Kanban
+   * @type {string}
+   */
+  @api statusField = "StageName";
+
+  // Campos fixos para o Kanban de Oportunidades
+  titleField = "Name";
+  subtitleField = "Account.Name";
+  valueField = "Amount";
+  dateField = "CloseDate";
+  newButtonLabel = "Nova Oportunidade";
+  searchPlaceholder = "Pesquisar oportunidades...";
+  recordLimit = 1000;
+
+  // Propriedades internas do componente
   @track columns = [];
   @track error;
   @track searchTerm = "";
@@ -2332,6 +2509,10 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track selectedRecords = new Set();
   @track showBulkActions = false;
   @track showDeleteModal = false;
+  @track availableFields = [];
+  @track picklistValues = [];
+  @track _validStatuses = [];
+  @track isConfiguring = false;
 
   recordIdToDelete;
   wiredRecordsResult;
@@ -2340,20 +2521,43 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   activeTabIndex = 0;
   activeActionButton = null;
 
+  /**
+   * Indica se há registros selecionados
+   * @returns {boolean}
+   */
   get hasSelectedRecords() {
     return this.selectedRecords.size > 0;
   }
 
-  // Mapeamento de status para ícones com os estágios corretos de Oportunidade
+  /**
+   * Mapeamento de status para ícones
+   * Personalize este objeto para seus status específicos
+   * @type {Object.<string, string>}
+   */
   statusIconMap = {
-    "Sem contato": "utility:multi_picklist", // Prospecção inicial
-    "Primeiro Contato": "utility:filter", // Qualificação inicial
-    "Primeira Reunião": "utility:file", // Proposta/Apresentação
-    "Em Negociação": "utility:adjust_value", // Negociação/Revisão
-    "Análise Contratual": "utility:contract", // Contrato/Negociação final
-    Convertido: "utility:success", // Fechado/Ganho
-    Perdido: "utility:error" // Fechado/Perdido
+    "Sem contato": "utility:multi_picklist",
+    "Primeiro Contato": "utility:filter",
+    "Primeira Reunião": "utility:file",
+    "Em Negociação": "utility:adjust_value",
+    "Análise Contratual": "utility:contract",
+    Convertido: "utility:success",
+    Perdido: "utility:error"
   };
+
+  /**
+   * Lista de status válidos para o objeto
+   * Personalize esta lista com seus status específicos
+   * @type {Array.<string>}
+   */
+  get validStatuses() {
+    return this._validStatuses;
+  }
+
+  /**
+   * Map para armazenar os labels dos status
+   * @type {Map}
+   */
+  statusLabelMap = new Map();
 
   /**
    * @description Wire adapter para buscar registros do Apex
@@ -2367,6 +2571,46 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       this.processData();
     } else if (result.error) {
       this.error = result.error;
+    }
+  }
+
+  @wire(getAvailableFields, { objectName: "$objectApiName" })
+  wiredFields({ error, data }) {
+    if (data) {
+      this.availableFields = data;
+      this.error = undefined;
+    } else if (error) {
+      this.error = error;
+    }
+  }
+
+  @wire(getPicklistValues, {
+    objectName: "$objectApiName",
+    fieldName: "$statusField"
+  })
+  wiredPicklistValues({ error, data }) {
+    if (data) {
+      this._validStatuses = data.map((item) => item.value);
+
+      // Criar o mapa de value -> label para os status
+      this.statusLabelMap.clear();
+      data.forEach((item) => {
+        this.statusLabelMap.set(item.value, item.label);
+      });
+
+      this.error = undefined;
+      this.processData();
+    } else if (error) {
+      this.error = error;
+      this._validStatuses = [
+        "Sem contato",
+        "Primeiro Contato",
+        "Primeira Reunião",
+        "Em Negociação",
+        "Análise Contratual",
+        "Convertido",
+        "Perdido"
+      ];
     }
   }
 
@@ -2406,17 +2650,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
    * Adiciona propriedades para controle da UI de abas
    */
   formatData(records) {
-    const statuses = [
-      "Sem contato",
-      "Primeiro Contato",
-      "Primeira Reunião",
-      "Em Negociação",
-      "Análise Contratual",
-      "Convertido",
-      "Perdido"
-    ];
-
-    this.columns = statuses.map((status, index) => {
+    this.columns = this.validStatuses.map((status, index) => {
       let statusRecords = records.filter(
         (record) => record[this.statusField] === status
       );
@@ -2432,7 +2666,8 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
             ? record.Probabilidade_da_Oportunidade__c
             : "Não definido",
         CloseDate: this.getFieldValue(record, this.dateField) || null,
-        AccountName: this.getFieldValue(record, this.subtitleField) || "N/A"
+        AccountName: record.Nome_do_Lead__c || record.Account?.Name || "N/A",
+        hasLeadName: !!record.Nome_do_Lead__c
       }));
 
       // Propriedades para o sistema de abas
@@ -2562,9 +2797,22 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         newStatus: newStatus
       })
         .then(() => {
+          // Mostrar mensagem de sucesso com o label do status em vez do value
+          const record = this.findRecordById(this.draggedRecordId);
+          const statusLabel = this.statusLabelMap.get(newStatus) || newStatus;
+          this.showToastMessage(
+            "Sucesso",
+            `${record.Name} foi movido para ${statusLabel}`,
+            "success"
+          );
           return refreshApex(this.wiredRecordsResult);
         })
         .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao atualizar o status",
+            "error"
+          );
           console.error("Erro ao atualizar status:", error);
         });
     }
@@ -2681,6 +2929,9 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         recordId: event.currentTarget.dataset.id,
         objectApiName: "Opportunity",
         actionName: "view"
+      },
+      state: {
+        navigationLocation: "LOOKUP" // Isso faz abrir em popup
       }
     });
   }
@@ -2710,15 +2961,10 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   }
 
   get stageOptions() {
-    return [
-      { label: "Sem contato", value: "Sem contato" },
-      { label: "Primeiro Contato", value: "Primeiro Contato" },
-      { label: "Primeira Reunião", value: "Primeira Reunião" },
-      { label: "Em Negociação", value: "Em Negociação" },
-      { label: "Análise Contratual", value: "Análise Contratual" },
-      { label: "Convertido", value: "Convertido" },
-      { label: "Perdido", value: "Perdido" }
-    ];
+    return this.validStatuses.map((status) => ({
+      label: status,
+      value: status
+    }));
   }
 
   async handleStageChange(event) {
@@ -2744,8 +2990,22 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         }));
       }
 
+      // Mostrar mensagem de sucesso com o label do status em vez do value
+      const record = this.findRecordById(recordId);
+      const statusLabel = this.statusLabelMap.get(newStatus) || newStatus;
+      this.showToastMessage(
+        "Sucesso",
+        `${record.Name} foi movido para ${statusLabel}`,
+        "success"
+      );
+
       await refreshApex(this.wiredRecordsResult);
     } catch (error) {
+      this.showToastMessage(
+        "Erro",
+        error.body?.message || "Erro ao atualizar o status",
+        "error"
+      );
       console.error("Erro ao atualizar status:", error);
     }
   }
@@ -2821,21 +3081,40 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   getFieldValue(record, field) {
     // Tratar campos aninhados (ex: Account.Name)
     if (field === "AccountName") {
-      return record.Account?.Name;
+      // Primeiro verifica o campo personalizado Nome_do_Lead__c
+      if (record.Nome_do_Lead__c) {
+        return record.Nome_do_Lead__c;
+      }
+      // Se não encontrar, usa o campo padrão Account.Name, mas acessa corretamente o objeto Account
+      return record.Account?.Name || "N/A";
     }
-    // Tratar o campo Name diretamente
-    if (field === "Name") {
-      return record.Name || "";
+    // Tratar campos aninhados com notação de ponto (ex: Account.Name)
+    if (field.includes(".")) {
+      return field.split(".").reduce((obj, key) => obj?.[key], record) || "N/A";
     }
-    return record[field];
+    // Para outros campos, retorna o valor direto
+    return record[field] || "";
   }
 
+  /**
+   * Abre o formulário de novo registro em um popup
+   */
   handleCreateNew() {
+    const defaults = encodeURIComponent(
+      JSON.stringify({
+        [this.statusField]: this.validStatuses[0] // Usa o primeiro status como padrão
+      })
+    );
+
     this[NavigationMixin.Navigate]({
       type: "standard__objectPage",
       attributes: {
-        objectApiName: "Opportunity",
+        objectApiName: this.objectApiName,
         actionName: "new"
+      },
+      state: {
+        navigationLocation: "LOOKUP",
+        defaultFieldValues: defaults
       }
     });
   }
@@ -2844,6 +3123,83 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     const recordId = event.target.dataset.recordId;
     const probability = event.detail.value;
     this.updateProbability(recordId, probability);
+  }
+
+  // Método auxiliar para mostrar mensagens toast
+  showToastMessage(title, message, variant) {
+    const evt = new ShowToastEvent({
+      title: title,
+      message: message,
+      variant: variant
+    });
+    this.dispatchEvent(evt);
+  }
+
+  handleFieldChange(event) {
+    const fieldName = event.target.dataset.fieldname;
+    const selectedValue = event.detail.value;
+    this[fieldName] = selectedValue;
+    return refreshApex(this.wiredRecordsResult);
+  }
+
+  toggleConfiguration() {
+    this.isConfiguring = !this.isConfiguring;
+    if (this.isConfiguring) {
+      // Prevent scrolling of the background when modal is open
+      document.body.style.overflow = "hidden";
+    } else {
+      // Restore scrolling when modal is closed
+      document.body.style.overflow = "auto";
+    }
+  }
+
+  handleSaveConfiguration() {
+    this.toggleConfiguration();
+    return refreshApex(this.wiredRecordsResult)
+      .then(() => {
+        this.showToastMessage(
+          "Sucesso",
+          "Configurações atualizadas com sucesso",
+          "success"
+        );
+      })
+      .catch((error) => {
+        this.showToastMessage(
+          "Erro",
+          "Erro ao atualizar as configurações",
+          "error"
+        );
+        console.error("Erro:", error);
+      });
+  }
+
+  // Filtros para campos específicos
+  get picklistFields() {
+    return this.availableFields.filter((field) => field.type === "PICKLIST");
+  }
+
+  get textFields() {
+    return this.availableFields.filter(
+      (field) =>
+        field.type === "STRING" ||
+        field.type === "TEXTAREA" ||
+        field.type === "REFERENCE"
+    );
+  }
+
+  get numberFields() {
+    return this.availableFields.filter(
+      (field) =>
+        field.type === "CURRENCY" ||
+        field.type === "DOUBLE" ||
+        field.type === "INTEGER"
+    );
+  }
+
+  get dateFields() {
+    return this.availableFields.filter(
+      (field) => field.type === "DATE" || field.type === "DATETIME"
+    );
   }
 }
 

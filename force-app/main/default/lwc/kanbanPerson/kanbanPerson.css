@@ -492,3 +492,28 @@
   text-overflow: ellipsis;
   padding: 0.5rem;
 }
+
+.slds-modal {
+  z-index: 9002;
+}
+
+.slds-backdrop {
+  z-index: 9001;
+}
+
+.configuration-modal {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+.configuration-modal .slds-modal__container {
+  z-index: 9002;
+}
+
+.configuration-modal .slds-backdrop {
+  z-index: 9001;
+}

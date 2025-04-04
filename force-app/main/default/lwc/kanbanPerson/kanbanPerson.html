@@ -22,7 +22,7 @@
             </div>
             <div class="slds-media__body">
               <h1 class="slds-text-heading_medium">
-                Visualização de Registros - Oportunidadea
+                Visualização de Registros - Oportunidade
               </h1>
               <p class="slds-text-body_small slds-line-height_reset">
                 Gerencie seus registros de forma visual e eficiente
@@ -76,6 +76,17 @@
               title="Atualizar"
               class="slds-m-left_small"
               onclick={handleRefresh}
+            >
+            </lightning-button-icon>
+
+            <!-- Adicionar botão de configuração -->
+            <lightning-button-icon
+              icon-name="utility:settings"
+              variant="border-filled"
+              alternative-text="Configurar"
+              title="Configurar"
+              class="slds-m-left_small"
+              onclick={toggleConfiguration}
             >
             </lightning-button-icon>
           </div>
@@ -270,6 +281,15 @@
                       <div class="slds-col col-account">
                         <div class="slds-truncate" title={record.AccountName}>
                           {record.AccountName}
+                          <template if:true={record.hasLeadName}>
+                            <lightning-icon
+                              icon-name="utility:info"
+                              size="xx-small"
+                              class="slds-m-left_xx-small"
+                              alternative-text="Nome do Lead"
+                              title="Este é o nome do Lead"
+                            ></lightning-icon>
+                          </template>
                         </div>
                       </div>
                       <!-- Valor -->
@@ -426,5 +446,53 @@
         </template>
       </div>
     </div>
+  </div>
+
+  <!-- Painel de Configuração movido para o final -->
+  <div
+    if:true={isConfiguring}
+    class="configuration-modal slds-modal slds-fade-in-open"
+  >
+    <div class="slds-modal__container">
+      <header class="slds-modal__header">
+        <h2 class="slds-text-heading_medium">Configurar Kanban</h2>
+        <button
+          class="slds-button slds-button_icon slds-modal__close"
+          onclick={toggleConfiguration}
+        >
+          <lightning-icon
+            icon-name="utility:close"
+            size="small"
+          ></lightning-icon>
+        </button>
+      </header>
+      <div class="slds-modal__content slds-p-around_medium">
+        <!-- Campo de Status -->
+        <lightning-combobox
+          label="Campo de Status"
+          value={statusField}
+          options={picklistFields}
+          onchange={handleFieldChange}
+          data-fieldname="statusField"
+          class="slds-m-bottom_small"
+        >
+        </lightning-combobox>
+      </div>
+      <footer class="slds-modal__footer">
+        <button
+          class="slds-button slds-button_neutral"
+          onclick={toggleConfiguration}
+        >
+          Cancelar
+        </button>
+        <button
+          class="slds-button slds-button_brand"
+          onclick={handleSaveConfiguration}
+        >
+          Salvar
+        </button>
+      </footer>
+    </div>
+    <div class="slds-backdrop slds-backdrop_open"></div>
   </div>
 </template>
