@@ -467,16 +467,6 @@
         </button>
       </header>
       <div class="slds-modal__content slds-p-around_medium">
-        <!-- Seleção de Objeto -->
-        <lightning-combobox
-          label="Objeto"
-          value={objectApiName}
-          options={availableObjects}
-          onchange={handleObjectChange}
-          class="slds-m-bottom_small"
-        >
-        </lightning-combobox>
-
         <!-- Campo de Status -->
         <lightning-combobox
           label="Campo de Status"
@@ -484,50 +474,6 @@
           options={picklistFields}
           onchange={handleFieldChange}
           data-fieldname="statusField"
-          class="slds-m-bottom_small"
-        >
-        </lightning-combobox>
-
-        <!-- Campo de Título -->
-        <lightning-combobox
-          label="Campo de Título"
-          value={titleField}
-          options={textFields}
-          onchange={handleFieldChange}
-          data-fieldname="titleField"
-          class="slds-m-bottom_small"
-        >
-        </lightning-combobox>
-
-        <!-- Campo de Subtítulo -->
-        <lightning-combobox
-          label="Campo de Subtítulo"
-          value={subtitleField}
-          options={textFields}
-          onchange={handleFieldChange}
-          data-fieldname="subtitleField"
-          class="slds-m-bottom_small"
-        >
-        </lightning-combobox>
-
-        <!-- Campo de Valor -->
-        <lightning-combobox
-          label="Campo de Valor"
-          value={valueField}
-          options={numberFields}
-          onchange={handleFieldChange}
-          data-fieldname="valueField"
-          class="slds-m-bottom_small"
-        >
-        </lightning-combobox>
-
-        <!-- Campo de Data -->
-        <lightning-combobox
-          label="Campo de Data"
-          value={dateField}
-          options={dateFields}
-          onchange={handleFieldChange}
-          data-fieldname="dateField"
           class="slds-m-bottom_small"
         >
         </lightning-combobox>

@@ -7,18 +7,6 @@
  * 1. Modifique o objeto no Apex (KanbanDataController.cls)
  * 2. Configure as propriedades abaixo conforme seu objeto
  * 3. Atualize o statusIconMap com seus status e ícones
- * 4. Atualize o array de status no método formatData
- *
- * @example
- * // Para usar com Contas:
- * <c-kanban-person
- *   object-api-name="Account"
- *   status-field="Status__c"
- *   title-field="Name"
- *   subtitle-field="Type"
- *   value-field="AnnualRevenue"
- *   date-field="CreatedDate">
- * </c-kanban-person>
  */
 import { LightningElement, wire, track, api } from "lwc";
 import { refreshApex } from "@salesforce/apex";
@@ -29,7 +17,6 @@ import updateRecordStatus from "@salesforce/apex/KanbanDataController.updateReco
 import deleteRecord from "@salesforce/apex/KanbanDataController.deleteRecord";
 import cloneRecord from "@salesforce/apex/KanbanDataController.cloneRecord";
 import deleteRecordsInBulk from "@salesforce/apex/KanbanDataController.deleteRecordsInBulk";
-import getAvailableObjects from "@salesforce/apex/KanbanDataController.getAvailableObjects";
 import getAvailableFields from "@salesforce/apex/KanbanDataController.getAvailableFields";
 import getPicklistValues from "@salesforce/apex/KanbanDataController.getPicklistValues";
 
@@ -46,47 +33,14 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
    */
   @api statusField = "StageName";
 
-  /**
-   * Campo para exibir como título do card
-   * @type {string}
-   */
-  @api titleField = "Name";
-
-  /**
-   * Campo para exibir como subtítulo do card (pode ser um campo relacionado usando notação de ponto)
-   * @type {string}
-   */
-  @api subtitleField = "Account.Name";
-
-  /**
-   * Campo numérico para exibir como valor no card
-   * @type {string}
-   */
-  @api valueField = "Amount";
-
-  /**
-   * Campo de data para exibir no card
-   * @type {string}
-   */
-  @api dateField = "CloseDate";
-
-  /**
-   * Texto a ser exibido no botão de novo registro
-   * @type {string}
-   */
-  @api newButtonLabel = "Nova Oportunidade";
-
-  /**
-   * Texto do campo de pesquisa
-   * @type {string}
-   */
-  @api searchPlaceholder = "Pesquisar oportunidades...";
-
-  /**
-   * Limite de registros a serem carregados
-   * @type {number}
-   */
-  @api recordLimit = 1000;
+  // Campos fixos para o Kanban de Oportunidades
+  titleField = "Name";
+  subtitleField = "Account.Name";
+  valueField = "Amount";
+  dateField = "CloseDate";
+  newButtonLabel = "Nova Oportunidade";
+  searchPlaceholder = "Pesquisar oportunidades...";
+  recordLimit = 1000;
 
   // Propriedades internas do componente
   @track columns = [];
@@ -97,12 +51,10 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track selectedRecords = new Set();
   @track showBulkActions = false;
   @track showDeleteModal = false;
-  @track availableObjects = [];
   @track availableFields = [];
   @track picklistValues = [];
   @track _validStatuses = [];
   @track isConfiguring = false;
-  @track selectedObject;
 
   recordIdToDelete;
   wiredRecordsResult;
@@ -144,6 +96,12 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   }
 
   /**
+   * Map para armazenar os labels dos status
+   * @type {Map}
+   */
+  statusLabelMap = new Map();
+
+  /**
    * @description Wire adapter para buscar registros do Apex
    */
   @wire(getRecords)
@@ -155,16 +113,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       this.processData();
     } else if (result.error) {
       this.error = result.error;
-    }
-  }
-
-  @wire(getAvailableObjects)
-  wiredObjects({ error, data }) {
-    if (data) {
-      this.availableObjects = data;
-      this.error = undefined;
-    } else if (error) {
-      this.error = error;
     }
   }
 
@@ -185,6 +133,13 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   wiredPicklistValues({ error, data }) {
     if (data) {
       this._validStatuses = data.map((item) => item.value);
+
+      // Criar o mapa de value -> label para os status
+      this.statusLabelMap.clear();
+      data.forEach((item) => {
+        this.statusLabelMap.set(item.value, item.label);
+      });
+
       this.error = undefined;
       this.processData();
     } else if (error) {
@@ -384,11 +339,12 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         newStatus: newStatus
       })
         .then(() => {
-          // Mostrar mensagem de sucesso
+          // Mostrar mensagem de sucesso com o label do status em vez do value
           const record = this.findRecordById(this.draggedRecordId);
+          const statusLabel = this.statusLabelMap.get(newStatus) || newStatus;
           this.showToastMessage(
             "Sucesso",
-            `${record.Name} foi movido para ${newStatus}`,
+            `${record.Name} foi movido para ${statusLabel}`,
             "success"
           );
           return refreshApex(this.wiredRecordsResult);
@@ -576,11 +532,12 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         }));
       }
 
-      // Mostrar mensagem de sucesso
+      // Mostrar mensagem de sucesso com o label do status em vez do value
       const record = this.findRecordById(recordId);
+      const statusLabel = this.statusLabelMap.get(newStatus) || newStatus;
       this.showToastMessage(
         "Sucesso",
-        `${record.Name} foi movido para ${newStatus}`,
+        `${record.Name} foi movido para ${statusLabel}`,
         "success"
       );
 
@@ -718,13 +675,6 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
       variant: variant
     });
     this.dispatchEvent(evt);
-  }
-
-  handleObjectChange(event) {
-    const selectedObject = event.detail.value;
-    this.objectApiName = selectedObject;
-    this.selectedObject = selectedObject;
-    return refreshApex(this.wiredRecordsResult);
   }
 
   handleFieldChange(event) {
