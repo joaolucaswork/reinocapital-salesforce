@@ -550,11 +550,11 @@
 }
 
 .slds-modal {
-  z-index: 9002;
+  z-index: 9002 !important;
 }
 
 .slds-backdrop {
-  z-index: 9001;
+  z-index: 9000 !important;
 }
 
 .configuration-modal {
@@ -572,6 +572,58 @@
 
 .configuration-modal .slds-backdrop {
   z-index: 9001;
+}
+
+/* Estilos para o modal de pesquisa avançada */
+.advanced-search-modal .slds-modal__container {
+  width: 80%;
+  max-width: 800px;
+}
+
+.search-category {
+  background-color: #f8f9fd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  height: 100%;
+}
+
+.search-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-option {
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.search-option:hover {
+  background-color: rgba(146, 111, 27, 0.1);
+}
+
+.search-option lightning-icon {
+  margin-right: 8px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Estilos para a barra de seleção estilo Gmail */

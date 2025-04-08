@@ -3,6 +3,211 @@
     Este template implementa um sistema de visualização e gerenciamento de registros
 -->
 <template>
+  <!-- Modal de Pesquisa Avançada -->
+  <div if:true={isAdvancedSearchModalOpen}>
+    <!-- Backdrop -->
+    <div class="slds-backdrop slds-backdrop_open" style="z-index: 9000"></div>
+
+    <section
+      role="dialog"
+      tabindex="-1"
+      aria-modal="true"
+      class="slds-modal slds-fade-in-open"
+      style="z-index: 9002"
+    >
+      <div class="slds-modal__container">
+        <header class="slds-modal__header">
+          <h2 class="slds-modal__title slds-hyphenate">Pesquisa Avançada</h2>
+          <button
+            class="slds-button slds-button_icon slds-modal__close"
+            onclick={closeAdvancedSearchModal}
+          >
+            <lightning-icon
+              icon-name="utility:close"
+              size="small"
+              alternative-text="Fechar"
+            ></lightning-icon>
+          </button>
+        </header>
+
+        <div class="slds-modal__content slds-p-around_medium">
+          <div class="slds-grid slds-wrap slds-gutters">
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1"
+            >
+              <lightning-input
+                type="search"
+                label="Pesquisar"
+                placeholder="Digite sua pesquisa..."
+                value={searchTerm}
+                onchange={handleSearchTermChange}
+                class="slds-m-bottom_medium"
+              ></lightning-input>
+            </div>
+
+            <!-- Proprietários -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Proprietários
+                </div>
+                <ul class="search-options">
+                  <template for:each={ownerSuggestions} for:item="owner">
+                    <li
+                      key={owner.id}
+                      class="search-option"
+                      onclick={handleSuggestionClick}
+                      data-value={owner.name}
+                      data-type="owner"
+                    >
+                      <lightning-icon
+                        icon-name="standard:user"
+                        size="x-small"
+                        class="slds-m-right_x-small"
+                      ></lightning-icon>
+                      <span>{owner.name}</span>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Valores -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Valores
+                </div>
+                <ul class="search-options">
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="value:>10000"
+                    data-type="value"
+                  >
+                    <lightning-icon
+                      icon-name="utility:moneybag"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Valor > R$ 10.000</span>
+                  </li>
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="value:<5000"
+                    data-type="value"
+                  >
+                    <lightning-icon
+                      icon-name="utility:moneybag"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Valor &lt; R$ 5.000</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Datas -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Datas
+                </div>
+                <ul class="search-options">
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="date:thismonth"
+                    data-type="date"
+                  >
+                    <lightning-icon
+                      icon-name="utility:date_time"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Este mês</span>
+                  </li>
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="date:lastmonth"
+                    data-type="date"
+                  >
+                    <lightning-icon
+                      icon-name="utility:date_time"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Mês passado</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Estágios -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Estágios
+                </div>
+                <ul class="search-options">
+                  <template for:each={statusSuggestions} for:item="status">
+                    <li
+                      key={status.value}
+                      class="search-option"
+                      onclick={handleSuggestionClick}
+                      data-value={status.value}
+                      data-type="stage"
+                    >
+                      <lightning-icon
+                        icon-name={status.iconName}
+                        size="x-small"
+                        class="slds-m-right_x-small"
+                      ></lightning-icon>
+                      <span>{status.label}</span>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="slds-modal__footer">
+          <button
+            class="slds-button slds-button_neutral"
+            onclick={closeAdvancedSearchModal}
+          >
+            Cancelar
+          </button>
+          <button
+            class="slds-button slds-button_brand"
+            onclick={applyAdvancedSearch}
+          >
+            Aplicar Filtros
+          </button>
+        </footer>
+      </div>
+    </section>
+  </div>
+
+  <!-- Conteúdo original completo do componente Kanban Person abaixo -->
+  <!-- Começo do conteúdo original -->
+
+  <!-- 
+      Componente de Visualização de Registros - Oportunidade
+      Este template implementa um sistema de visualização e gerenciamento de registros
+    -->
   <!-- Container principal com estilo de card do SLDS -->
   <div class="slds-card slds-card_boundary">
     <div class="slds-card__header">
@@ -35,7 +240,7 @@
         <div class="slds-col slds-size_1-of-2">
           <div class="slds-grid slds-grid_align-end slds-p-horizontal_medium">
             <div class="slds-form-element header-search">
-              <div class="slds-form-element__control">
+              <div class="slds-form-element__control slds-grid">
                 <lightning-input
                   type="search"
                   label="Pesquisar oportunidades"
@@ -45,6 +250,15 @@
                   class="search-box"
                 >
                 </lightning-input>
+                <lightning-button-icon
+                  icon-name="utility:search"
+                  variant="border-filled"
+                  alternative-text="Pesquisa avançada"
+                  title="Pesquisa avançada"
+                  class="slds-m-left_x-small"
+                  onclick={handleAdvancedSearch}
+                >
+                </lightning-button-icon>
               </div>
             </div>
 
@@ -474,7 +688,10 @@
                                   <span class="slds-truncate">Editar</span>
                                 </a>
                               </li>
-                              <div class="dropdown-divider"></div>
+                              <li
+                                class="slds-has-divider_top-space"
+                                role="separator"
+                              ></li>
 
                               <li
                                 class="slds-dropdown__item"
@@ -500,7 +717,10 @@
                                   >
                                 </a>
                               </li>
-                              <div class="dropdown-divider"></div>
+                              <li
+                                class="slds-has-divider_top-space"
+                                role="separator"
+                              ></li>
                               <li
                                 class="slds-dropdown__item"
                                 role="presentation"

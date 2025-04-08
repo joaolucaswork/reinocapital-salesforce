@@ -65,13 +65,16 @@ force-app/main/default/classes/LeadTriggerHandlerTest.cls
 force-app/main/default/classes/LeadTriggerHandlerTest.cls-meta.xml
 force-app/main/default/lwc/.eslintrc.json
 force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
+force-app/main/default/lwc/kanbanPerson/handleCardClick.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
-force-app/main/default/permissionsetgroups/SDR_Group.permissionsetgroup-meta.xml
-force-app/main/default/permissionsets/SDR_Base_Permissions.permissionset-meta.xml
-force-app/main/default/permissionsets/SDR_Tab_Permissions.permissionset-meta.xml
+force-app/main/default/lwc/userDashboardList/__tests__/userDashboardList.test.js
+force-app/main/default/lwc/userDashboardList/userDashboardList.css
+force-app/main/default/lwc/userDashboardList/userDashboardList.html
+force-app/main/default/lwc/userDashboardList/userDashboardList.js
+force-app/main/default/lwc/userDashboardList/userDashboardList.js-meta.xml
 force-app/main/default/triggers/LeadTrigger.trigger
 force-app/main/default/triggers/LeadTrigger.trigger-meta.xml
 force-app/test/jest-mocks/lightning/navigation.js
@@ -94,6 +97,237 @@ sfdx-project.json
 ================================================================
 Files
 ================================================================
+
+================
+File: force-app/main/default/lwc/kanbanPerson/handleCardClick.js
+================
+/**
+ * Handles card click events in the Kanban component
+ * @param {Object} event - The click event object
+ * @return {void}
+ */
+export function handleCardClick(event) {
+  const recordId = event.currentTarget.dataset.id;
+
+  // If the click was on a control element (checkbox, button, link), don't select the card
+  if (
+    event.target.tagName === "BUTTON" ||
+    event.target.tagName === "INPUT" ||
+    event.target.tagName === "A" ||
+    event.target.closest("lightning-icon") ||
+    event.target.closest("lightning-input") ||
+    event.target.closest("lightning-combobox")
+  ) {
+    return;
+  }
+
+  // Toggle selection for this record
+  const selectedRecords = [...this.selectedRecords];
+  const index = selectedRecords.indexOf(recordId);
+
+  if (index === -1) {
+    // Add to selection
+    selectedRecords.push(recordId);
+  } else {
+    // Remove from selection
+    selectedRecords.splice(index, 1);
+  }
+
+  this.selectedRecords = selectedRecords;
+  this.updateRecordSelection();
+}
+
+================
+File: Permissões de acesso - SalesForce.md
+================
+# Permissões - SalesForce
+
+O objetivo desse arquivo é definir como quero que funcione os conjuntos de permissões e o grupo de permissão.
+Primeiro vamos criar os conjuntos de permissões para ser reutilizados em outro grupo, mas focaremos no grupo dos SDR's
+
+### Nome API das guias
+
+area_comercial
+area_gestor
+back_office
+
+### Nome API dos objetos
+
+Account
+Lead
+Opportunity
+Task
+
+### Nome API das Páginas Lightning
+
+PaginaGestor
+AreaComercial
+
+## Permissões SDR
+
+Primeiro vamos começar definimos quais permissão cada úsuario do time de SDR terá.
+
+O usuario que tem o grupo de SDR atribuido tem as seguintes permissões :
+
+**Permissão de guias**
+Permissão para acessar a guia com o nome de api **area_comercial**
+
+**Permissão de objetos**
+
+**Permissão para acessar objetos com esses nomes de API**
+
+- Account
+- Lead
+- Opportunity
+- Task
+
+**Objeto Account**
+
+- Visualizar somente cliente designados para o usuário dele
+- Somente tem a permissão de Leitura dos dados do cliente designado
+
+**Objeto Lead**
+
+- Só consegue visualizar os leads que ele criou ou os leads atribuido a ele.
+- CRUD para os Leads criados por ele
+- Se outro usuario criou o lead e atribuiu a ele, ele não tem permissão para excluir (Somente Ler e Atualizar)
+
+**Objeto Opportunity**
+
+- Só consegue visualizar as oportunidades que ele criou ou as oportunidades atribuidas a ele.
+- CRUD para as Oportunidades criadas por ele
+- Se outro usuario criou a Oportunidade e atribuiu a ele, ele não tem permissão para excluir (Somente Ler e Atualizar)
+
+================
+File: .forceignore
+================
+# List files or directories below to ignore them when running force:source:push, force:source:pull, and force:source:status
+# More information: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_exclude_source.htm
+#
+
+package.xml
+
+# LWC configuration files
+**/jsconfig.json
+**/.eslintrc.json
+
+# LWC Jest
+**/__tests__/**
+
+================
+File: .gitignore
+================
+# This file is used for Git repositories to specify intentionally untracked files that Git should ignore. 
+# If you are not using git, you can delete this file. For more information see: https://git-scm.com/docs/gitignore
+# For useful gitignore templates see: https://github.com/github/gitignore
+
+# Salesforce cache
+.sf/
+.sfdx/
+.localdevserver/
+deploy-options.json
+
+# LWC VSCode autocomplete
+**/lwc/jsconfig.json
+
+# LWC Jest coverage reports
+coverage/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+
+# Eslint cache
+.eslintcache
+
+# MacOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Local environment variables
+.env
+
+# Python Salesforce Functions
+**/__pycache__/
+**/.venv/
+**/venv/
+
+================
+File: .prettierignore
+================
+# List files or directories below to ignore them when running prettier
+# More information: https://prettier.io/docs/en/ignore.html
+#
+
+**/staticresources/**
+.localdevserver
+.sfdx
+.sf
+.vscode
+
+coverage/
+
+================
+File: .prettierrc
+================
+{
+  "trailingComma": "none",
+  "plugins": [
+    "prettier-plugin-apex",
+    "@prettier/plugin-xml"
+  ],
+  "overrides": [
+    {
+      "files": "**/lwc/**/*.html",
+      "options": { "parser": "lwc" }
+    },
+    {
+      "files": "*.{cmp,page,component}",
+      "options": { "parser": "html" }
+    }
+  ]
+}
+
+================
+File: force-app/main/default/aura/.eslintrc.json
+================
+{
+  "plugins": ["@salesforce/eslint-plugin-aura"],
+  "extends": ["plugin:@salesforce/eslint-plugin-aura/recommended"],
+  "rules": {
+    "vars-on-top": "off",
+    "no-unused-expressions": "off"
+  }
+}
+
+================
+File: force-app/main/default/classes/KanbanDataController.cls-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
+
+================
+File: force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
 
 ================
 File: force-app/main/default/classes/LeadTriggerHandler.cls
@@ -433,98 +667,916 @@ File: force-app/main/default/classes/LeadTriggerHandlerTest.cls-meta.xml
 </ApexClass>
 
 ================
-File: force-app/main/default/permissionsetgroups/SDR_Group.permissionsetgroup-meta.xml
+File: force-app/main/default/lwc/.eslintrc.json
 ================
-<?xml version="1.0" encoding="UTF-8" ?>
-<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>Grupo de permissões para SDRs</description>
-    <hasActivationRequired>false</hasActivationRequired>
-    <label>SDR Group</label>
-    <permissionSets>SDR_Base_Permissions</permissionSets>
-    <permissionSets>SDR_Tab_Permissions</permissionSets>
-    <status>Updated</status>
-</PermissionSetGroup>
+{
+  "extends": ["@salesforce/eslint-config-lwc/recommended"],
+  "overrides": [
+    {
+      "files": ["*.test.js"],
+      "rules": {
+        "@lwc/lwc/no-unexpected-wire-adapter-usages": "off"
+      },
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}
 
 ================
-File: force-app/main/default/permissionsets/SDR_Base_Permissions.permissionset-meta.xml
+File: force-app/main/default/lwc/userDashboardList/__tests__/userDashboardList.test.js
 ================
-<?xml version="1.0" encoding="UTF-8" ?>
-<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>Permissões base para usuários SDR</description>
-    <hasActivationRequired>false</hasActivationRequired>
-    <label>SDR Base Permissions</label>
-    
-    <!-- Account Permissions -->
-    <objectPermissions>
-        <allowCreate>false</allowCreate>
-        <allowDelete>false</allowDelete>
-        <allowEdit>false</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>false</modifyAllRecords>
-        <object>Account</object>
-        <viewAllRecords>false</viewAllRecords>
-    </objectPermissions>
-    
-    <!-- Contact Permissions -->
-    <objectPermissions>
-        <allowCreate>false</allowCreate>
-        <allowDelete>false</allowDelete>
-        <allowEdit>false</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>false</modifyAllRecords>
-        <object>Contact</object>
-        <viewAllRecords>false</viewAllRecords>
-    </objectPermissions>
-    
-    <!-- Lead Permissions -->
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>false</modifyAllRecords>
-        <object>Lead</object>
-        <viewAllRecords>false</viewAllRecords>
-    </objectPermissions>
-    
-    <!-- Opportunity Permissions -->
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>false</modifyAllRecords>
-        <object>Opportunity</object>
-        <viewAllRecords>false</viewAllRecords>
-    </objectPermissions>
-    
-    <!-- Task Permissions -->
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>false</modifyAllRecords>
-        <object>Task</object>
-        <viewAllRecords>false</viewAllRecords>
-    </objectPermissions>
-</PermissionSet>
+import { createElement } from "lwc";
+import UserDashboardList from "c/userDashboardList";
+
+describe("c-user-dashboard-list", () => {
+  let element;
+
+  beforeEach(() => {
+    element = createElement("c-user-dashboard-list", {
+      is: UserDashboardList
+    });
+    document.body.appendChild(element);
+  });
+
+  afterEach(() => {
+    document.body.removeChild(element);
+  });
+
+  it("should initialize with isExpanded as false", () => {
+    expect(element.isExpanded).toBeFalsy();
+  });
+
+  it("should toggle expandable content when button is clicked", () => {
+    // Get initial state
+    const expandableContent =
+      element.shadowRoot.querySelector(".slds-is-relative");
+    expect(expandableContent.classList.contains("slds-hide")).toBeTruthy();
+    expect(expandableContent.classList.contains("slds-show")).toBeFalsy();
+
+    // Find and click the expand button
+    const expandButton = element.shadowRoot.querySelector("button");
+    expandButton.click();
+
+    // Return a promise to wait for any asynchronous DOM updates
+    return Promise.resolve().then(() => {
+      // Check if content is now expanded
+      const updatedContent =
+        element.shadowRoot.querySelector(".slds-is-relative");
+      expect(updatedContent.classList.contains("slds-show")).toBeTruthy();
+      expect(updatedContent.classList.contains("slds-hide")).toBeFalsy();
+
+      // Check if icon rotation class is applied
+      const icon = element.shadowRoot.querySelector("lightning-icon");
+      expect(icon.classList.contains("rotate-icon")).toBeTruthy();
+    });
+  });
+
+  it("should render all static elements correctly", () => {
+    // Verify main card elements
+    const cardHeader = element.shadowRoot.querySelector(".slds-card__header");
+    expect(cardHeader).not.toBeNull();
+    expect(cardHeader.textContent).toContain("Team Dashboard");
+
+    // Verify stats boxes
+    const statBoxes = element.shadowRoot.querySelectorAll(".stat-box");
+    expect(statBoxes.length).toBe(2);
+
+    // Verify secondary stats
+    const secondaryStats =
+      element.shadowRoot.querySelectorAll(".secondary-stat");
+    expect(secondaryStats.length).toBeGreaterThan(0);
+
+    // Verify expand button exists
+    const expandButton = element.shadowRoot.querySelector("button");
+    expect(expandButton).not.toBeNull();
+    expect(expandButton.textContent).toContain("Ver todas oportunidades");
+  });
+
+  it("should toggle icon rotation class when expanded", () => {
+    // Get the icon element
+    const icon = element.shadowRoot.querySelector(
+      'lightning-icon[icon-name="utility:chevrondown"]'
+    );
+    expect(icon.classList.contains("rotate-icon")).toBeFalsy();
+
+    // Click the expand button
+    const expandButton = element.shadowRoot.querySelector("button");
+    expandButton.click();
+
+    return Promise.resolve()
+      .then(() => {
+        expect(icon.classList.contains("rotate-icon")).toBeTruthy();
+
+        // Click again to collapse
+        expandButton.click();
+        return Promise.resolve();
+      })
+      .then(() => {
+        expect(icon.classList.contains("rotate-icon")).toBeFalsy();
+      });
+  });
+});
 
 ================
-File: force-app/main/default/permissionsets/SDR_Tab_Permissions.permissionset-meta.xml
+File: force-app/main/default/lwc/userDashboardList/userDashboardList.css
+================
+.user-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.user-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.user-avatar {
+  overflow: hidden;
+  border: 2px solid #f3f3f3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-box {
+  background-color: #f7f9fb;
+  border-radius: 6px;
+  padding: 8px;
+  transition: background-color 0.2s;
+}
+
+.stat-box:hover {
+  background-color: #eef1f6;
+}
+
+.secondary-stat {
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.secondary-stat:hover {
+  background-color: #f7f9fb;
+}
+
+.badge-highlight {
+  background-color: #0176d3;
+  color: white;
+}
+
+.badge-neutral {
+  background-color: #747474;
+  color: white;
+}
+
+.badge-success {
+  background-color: #2e844a;
+  color: white;
+}
+
+.expand-button {
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.rotate-icon {
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
+
+.card-title {
+  font-weight: 600;
+  color: #032d60;
+}
+
+.card-role {
+  color: #5a5a5a;
+}
+
+.animate-expand {
+  transition: max-height 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+================
+File: force-app/main/default/lwc/userDashboardList/userDashboardList.html
+================
+<!-- User Dashboard List Component -->
+<template>
+  <div class="slds-card">
+    <!-- Top Section -->
+    <div class="slds-card__body">
+      <div class="slds-grid slds-wrap slds-gutters">
+        <!-- User Card Template -->
+        <div
+          class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
+        >
+          <article class="slds-card user-card">
+            <div class="slds-card__header">
+              <div class="slds-media slds-media_center">
+                <div class="slds-media__figure">
+                  <span class="slds-avatar slds-avatar_large user-avatar">
+                    <img
+                      src="/images/Portrait_Placeholder.png"
+                      alt="User Photo"
+                    />
+                  </span>
+                </div>
+                <div class="slds-media__body">
+                  <h2 class="slds-text-heading_small card-title">
+                    Carlus Tintori
+                  </h2>
+                  <p class="slds-text-body_small card-role">
+                    Head de Operações
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="slds-card__body">
+              <!-- Opportunity Stats Section -->
+              <div class="slds-p-around_medium">
+                <h3 class="slds-text-title slds-m-bottom_medium">
+                  Operações abertas
+                </h3>
+
+                <!-- Main Stats -->
+                <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:opportunity"
+                          size="small"
+                          variant="warning"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Em Negociação</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">4</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:success"
+                          size="small"
+                          variant="success"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Convertido</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">2</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <!-- Secondary Stats -->
+                <div class="slds-grid slds-gutters slds-grid_vertical">
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:multi_picklist"
+                          size="x-small"
+                          variant="warning"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Sem contato</h3>
+                          <div>
+                            <span class="slds-badge badge-neutral">8</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:filter"
+                          size="x-small"
+                          variant="info"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Primeiro Contato</h3>
+                          <div>
+                            <span class="slds-badge badge-highlight">3</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <!-- Expandable Section -->
+                <div class="slds-m-top_medium">
+                  <button
+                    class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                    onclick={toggleExpand}
+                    data-index="0"
+                    aria-expanded={isCard0Expanded}
+                  >
+                    <span class="slds-truncate">Ver todas oportunidades</span>
+                    <lightning-icon
+                      icon-name="utility:chevrondown"
+                      size="xx-small"
+                      class={dropdownIconClass0}
+                    >
+                    </lightning-icon>
+                  </button>
+
+                  <div class={expandableContentClass0}>
+                    <div class="slds-grid slds-grid_vertical slds-p-top_medium">
+                      <!-- Additional Stats -->
+                      <div class="slds-col slds-size_1-of-1">
+                        <article class="slds-tile slds-media secondary-stat">
+                          <div class="slds-media__figure">
+                            <lightning-icon
+                              icon-name="utility:file"
+                              size="x-small"
+                            ></lightning-icon>
+                          </div>
+                          <div class="slds-media__body">
+                            <div class="slds-grid slds-grid_align-spread">
+                              <h3 class="slds-truncate">Primeira Reunião</h3>
+                              <div>
+                                <span class="slds-badge">100</span>
+                              </div>
+                            </div>
+                          </div>
+                        </article>
+                      </div>
+                      <!-- Add more stats here... -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+        <!-- End User Card Template -->
+
+        <!-- Repeat of User Card Template with different data -->
+        <div
+          class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
+        >
+          <article class="slds-card">
+            <div class="slds-card__header">
+              <div class="slds-media slds-media_center">
+                <div class="slds-media__figure">
+                  <span class="slds-avatar slds-avatar_large">
+                    <img
+                      src="/images/Portrait_Placeholder.png"
+                      alt="User Photo"
+                    />
+                  </span>
+                </div>
+                <div class="slds-media__body">
+                  <h2 class="slds-text-heading_small">Maria Silva</h2>
+                  <p class="slds-text-body_small">Gerente Comercial</p>
+                </div>
+              </div>
+            </div>
+            <div class="slds-card__body">
+              <div class="slds-p-around_medium">
+                <h3 class="slds-text-title slds-m-bottom_medium">
+                  Operações abertas
+                </h3>
+                <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Em Negociação</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">6</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Convertido</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">3</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <!-- Secondary Stats -->
+                <div class="slds-grid slds-gutters slds-grid_vertical">
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:multi_picklist"
+                          size="x-small"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Sem contato</h3>
+                          <div><span class="slds-badge">5</span></div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="1"
+                      aria-expanded={isCard1Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass1}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass1}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">2</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- User Card 3 -->
+        <div
+          class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
+        >
+          <article class="slds-card">
+            <div class="slds-card__header">
+              <div class="slds-media slds-media_center">
+                <div class="slds-media__figure">
+                  <span class="slds-avatar slds-avatar_large">
+                    <img
+                      src="/images/Portrait_Placeholder.png"
+                      alt="User Photo"
+                    />
+                  </span>
+                </div>
+                <div class="slds-media__body">
+                  <h2 class="slds-text-heading_small">João Santos</h2>
+                  <p class="slds-text-body_small">Analista de Vendas</p>
+                </div>
+              </div>
+            </div>
+            <div class="slds-card__body">
+              <div class="slds-p-around_medium">
+                <h3 class="slds-text-title slds-m-bottom_medium">
+                  Operações abertas
+                </h3>
+                <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Em Negociação</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">8</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Convertido</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">4</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <!-- Secondary Stats -->
+                <div class="slds-grid slds-gutters slds-grid_vertical">
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:multi_picklist"
+                          size="x-small"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Sem contato</h3>
+                          <div><span class="slds-badge">7</span></div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="2"
+                      aria-expanded={isCard2Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass2}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass2}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">3</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- User Card 4 -->
+        <div
+          class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
+        >
+          <article class="slds-card">
+            <div class="slds-card__header">
+              <div class="slds-media slds-media_center">
+                <div class="slds-media__figure">
+                  <span class="slds-avatar slds-avatar_large">
+                    <img
+                      src="/images/Portrait_Placeholder.png"
+                      alt="User Photo"
+                    />
+                  </span>
+                </div>
+                <div class="slds-media__body">
+                  <h2 class="slds-text-heading_small">Ana Oliveira</h2>
+                  <p class="slds-text-body_small">Consultora Senior</p>
+                </div>
+              </div>
+            </div>
+            <div class="slds-card__body">
+              <div class="slds-p-around_medium">
+                <h3 class="slds-text-title slds-m-bottom_medium">
+                  Operações abertas
+                </h3>
+                <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Em Negociação</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">5</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Convertido</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">6</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <!-- Secondary Stats -->
+                <div class="slds-grid slds-gutters slds-grid_vertical">
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:multi_picklist"
+                          size="x-small"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Sem contato</h3>
+                          <div><span class="slds-badge">4</span></div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="3"
+                      aria-expanded={isCard3Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass3}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass3}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">5</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- User Card 5 -->
+        <div
+          class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
+        >
+          <article class="slds-card">
+            <div class="slds-card__header">
+              <div class="slds-media slds-media_center">
+                <div class="slds-media__figure">
+                  <span class="slds-avatar slds-avatar_large">
+                    <img
+                      src="/images/Portrait_Placeholder.png"
+                      alt="User Photo"
+                    />
+                  </span>
+                </div>
+                <div class="slds-media__body">
+                  <h2 class="slds-text-heading_small">Pedro Costa</h2>
+                  <p class="slds-text-body_small">Especialista de Vendas</p>
+                </div>
+              </div>
+            </div>
+            <div class="slds-card__body">
+              <div class="slds-p-around_medium">
+                <h3 class="slds-text-title slds-m-bottom_medium">
+                  Operações abertas
+                </h3>
+                <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Em Negociação</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">7</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="slds-col">
+                    <article class="slds-tile slds-media stat-box">
+                      <div class="slds-media__body">
+                        <h3 class="slds-tile__title">Convertido</h3>
+                        <div class="slds-tile__detail">
+                          <span class="slds-text-heading_medium">5</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <!-- Secondary Stats -->
+                <div class="slds-grid slds-gutters slds-grid_vertical">
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:multi_picklist"
+                          size="x-small"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Sem contato</h3>
+                          <div><span class="slds-badge">6</span></div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="4"
+                      aria-expanded={isCard4Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass4}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass4}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">4</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+================
+File: force-app/main/default/lwc/userDashboardList/userDashboardList.js
+================
+import { LightningElement, track } from "lwc";
+
+export default class UserDashboardList extends LightningElement {
+  @track expandedStates = [false, false, false, false, false];
+
+  // Getters para o estado de cada card
+  get isCard0Expanded() {
+    return this.expandedStates[0];
+  }
+  get isCard1Expanded() {
+    return this.expandedStates[1];
+  }
+  get isCard2Expanded() {
+    return this.expandedStates[2];
+  }
+  get isCard3Expanded() {
+    return this.expandedStates[3];
+  }
+  get isCard4Expanded() {
+    return this.expandedStates[4];
+  }
+
+  // Getters para classes CSS do conteúdo expansível de cada card
+  get expandableContentClass0() {
+    return `slds-is-relative ${this.expandedStates[0] ? "slds-show" : "slds-hide"}`;
+  }
+  get expandableContentClass1() {
+    return `slds-is-relative ${this.expandedStates[1] ? "slds-show" : "slds-hide"}`;
+  }
+  get expandableContentClass2() {
+    return `slds-is-relative ${this.expandedStates[2] ? "slds-show" : "slds-hide"}`;
+  }
+  get expandableContentClass3() {
+    return `slds-is-relative ${this.expandedStates[3] ? "slds-show" : "slds-hide"}`;
+  }
+  get expandableContentClass4() {
+    return `slds-is-relative ${this.expandedStates[4] ? "slds-show" : "slds-hide"}`;
+  }
+
+  // Getters para classes CSS do ícone de dropdown de cada card
+  get dropdownIconClass0() {
+    return `slds-button__icon slds-button__icon_right ${this.expandedStates[0] ? "rotate-icon" : ""}`;
+  }
+  get dropdownIconClass1() {
+    return `slds-button__icon slds-button__icon_right ${this.expandedStates[1] ? "rotate-icon" : ""}`;
+  }
+  get dropdownIconClass2() {
+    return `slds-button__icon slds-button__icon_right ${this.expandedStates[2] ? "rotate-icon" : ""}`;
+  }
+  get dropdownIconClass3() {
+    return `slds-button__icon slds-button__icon_right ${this.expandedStates[3] ? "rotate-icon" : ""}`;
+  }
+  get dropdownIconClass4() {
+    return `slds-button__icon slds-button__icon_right ${this.expandedStates[4] ? "rotate-icon" : ""}`;
+  }
+
+  // Toggle expand/collapse
+  toggleExpand(event) {
+    const cardIndex = parseInt(event.currentTarget.dataset.index, 10);
+    this.expandedStates = [...this.expandedStates];
+    this.expandedStates[cardIndex] = !this.expandedStates[cardIndex];
+  }
+}
+
+================
+File: force-app/main/default/lwc/userDashboardList/userDashboardList.js-meta.xml
 ================
 <?xml version="1.0" encoding="UTF-8" ?>
-<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>Permissões de acesso às guias para SDRs</description>
-    <hasActivationRequired>false</hasActivationRequired>
-    <label>SDR Tab Permissions</label>
-    
-    <!-- Tab Permissions -->
-    <tabSettings>
-        <tab>area_comercial</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-</PermissionSet>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>User Dashboard List</masterLabel>
+    <description
+  >Component to display user dashboard with opportunity statistics</description>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__HomePage</target>
+        <target>lightning__RecordPage</target>
+    </targets>
+</LightningComponentBundle>
 
 ================
 File: force-app/main/default/triggers/LeadTrigger.trigger
@@ -549,6 +1601,30 @@ File: force-app/main/default/triggers/LeadTrigger.trigger-meta.xml
     <apiVersion>63.0</apiVersion>
     <status>Active</status>
 </ApexClass>
+
+================
+File: force-app/test/jest-mocks/lightning/navigation.js
+================
+export const NavigationMixin = (Base) => {
+  return class extends Base {
+    navigate(pageReference) {
+      return Promise.resolve(true);
+    }
+  };
+};
+
+NavigationMixin.Navigate = Symbol("Navigate");
+
+================
+File: force-app/test/jest-mocks/lightning/platformShowToastEvent.js
+================
+export class ShowToastEvent {
+  constructor(params) {
+    this.title = params.title;
+    this.message = params.message;
+    this.variant = params.variant;
+  }
+}
 
 ================
 File: manifest-temp/package.xml
@@ -595,67 +1671,6 @@ File: manifest/package-permissions.xml
 </Package>
 
 ================
-File: Permissões de acesso - SalesForce.md
-================
-# Permissões - SalesForce
-
-O objetivo desse arquivo é definir como quero que funcione os conjuntos de permissões e o grupo de permissão.
-Primeiro vamos criar os conjuntos de permissões para ser reutilizados em outro grupo, mas focaremos no grupo dos SDR's
-
-### Nome API das guias
-
-area_comercial
-area_gestor
-back_office
-
-### Nome API dos objetos
-
-Account
-Lead
-Opportunity
-Task
-
-### Nome API das Páginas Lightning
-
-PaginaGestor
-AreaComercial
-
-## Permissões SDR
-
-Primeiro vamos começar definimos quais permissão cada úsuario do time de SDR terá.
-
-O usuario que tem o grupo de SDR atribuido tem as seguintes permissões :
-
-**Permissão de guias**
-Permissão para acessar a guia com o nome de api **area_comercial**
-
-**Permissão de objetos**
-
-**Permissão para acessar objetos com esses nomes de API**
-
-- Account
-- Lead
-- Opportunity
-- Task
-
-**Objeto Account**
-
-- Visualizar somente cliente designados para o usuário dele
-- Somente tem a permissão de Leitura dos dados do cliente designado
-
-**Objeto Lead**
-
-- Só consegue visualizar os leads que ele criou ou os leads atribuido a ele.
-- CRUD para os Leads criados por ele
-- Se outro usuario criou o lead e atribuiu a ele, ele não tem permissão para excluir (Somente Ler e Atualizar)
-
-**Objeto Opportunity**
-
-- Só consegue visualizar as oportunidades que ele criou ou as oportunidades atribuidas a ele.
-- CRUD para as Oportunidades criadas por ele
-- Se outro usuario criou a Oportunidade e atribuiu a ele, ele não tem permissão para excluir (Somente Ler e Atualizar)
-
-================
 File: repomix-instruction.md
 ================
 # Coding Guidelines
@@ -676,179 +1691,6 @@ File: repomix.config.json
 {
   "output": {
     "instructionFilePath": "repomix-instruction.md"
-  }
-}
-
-================
-File: .forceignore
-================
-# List files or directories below to ignore them when running force:source:push, force:source:pull, and force:source:status
-# More information: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_exclude_source.htm
-#
-
-package.xml
-
-# LWC configuration files
-**/jsconfig.json
-**/.eslintrc.json
-
-# LWC Jest
-**/__tests__/**
-
-================
-File: .gitignore
-================
-# This file is used for Git repositories to specify intentionally untracked files that Git should ignore. 
-# If you are not using git, you can delete this file. For more information see: https://git-scm.com/docs/gitignore
-# For useful gitignore templates see: https://github.com/github/gitignore
-
-# Salesforce cache
-.sf/
-.sfdx/
-.localdevserver/
-deploy-options.json
-
-# LWC VSCode autocomplete
-**/lwc/jsconfig.json
-
-# LWC Jest coverage reports
-coverage/
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Dependency directories
-node_modules/
-
-# Eslint cache
-.eslintcache
-
-# MacOS system files
-.DS_Store
-
-# Windows system files
-Thumbs.db
-ehthumbs.db
-[Dd]esktop.ini
-$RECYCLE.BIN/
-
-# Local environment variables
-.env
-
-# Python Salesforce Functions
-**/__pycache__/
-**/.venv/
-**/venv/
-
-================
-File: .prettierignore
-================
-# List files or directories below to ignore them when running prettier
-# More information: https://prettier.io/docs/en/ignore.html
-#
-
-**/staticresources/**
-.localdevserver
-.sfdx
-.sf
-.vscode
-
-coverage/
-
-================
-File: .prettierrc
-================
-{
-  "trailingComma": "none",
-  "plugins": [
-    "prettier-plugin-apex",
-    "@prettier/plugin-xml"
-  ],
-  "overrides": [
-    {
-      "files": "**/lwc/**/*.html",
-      "options": { "parser": "lwc" }
-    },
-    {
-      "files": "*.{cmp,page,component}",
-      "options": { "parser": "html" }
-    }
-  ]
-}
-
-================
-File: force-app/main/default/aura/.eslintrc.json
-================
-{
-  "plugins": ["@salesforce/eslint-plugin-aura"],
-  "extends": ["plugin:@salesforce/eslint-plugin-aura/recommended"],
-  "rules": {
-    "vars-on-top": "off",
-    "no-unused-expressions": "off"
-  }
-}
-
-================
-File: force-app/main/default/classes/KanbanDataController.cls-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>63.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
-
-================
-File: force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>63.0</apiVersion>
-    <status>Active</status>
-</ApexClass>
-
-================
-File: force-app/main/default/lwc/.eslintrc.json
-================
-{
-  "extends": ["@salesforce/eslint-config-lwc/recommended"],
-  "overrides": [
-    {
-      "files": ["*.test.js"],
-      "rules": {
-        "@lwc/lwc/no-unexpected-wire-adapter-usages": "off"
-      },
-      "env": {
-        "node": true
-      }
-    }
-  ]
-}
-
-================
-File: force-app/test/jest-mocks/lightning/navigation.js
-================
-export const NavigationMixin = (Base) => {
-  return class extends Base {
-    navigate(pageReference) {
-      return Promise.resolve(true);
-    }
-  };
-};
-
-NavigationMixin.Navigate = Symbol("Navigate");
-
-================
-File: force-app/test/jest-mocks/lightning/platformShowToastEvent.js
-================
-export class ShowToastEvent {
-  constructor(params) {
-    this.title = params.title;
-    this.message = params.message;
-    this.variant = params.variant;
   }
 }
 
@@ -1280,23 +2122,6 @@ module.exports = {
 };
 
 ================
-File: manifest/package.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <types>
-        <members>LeadTriggerHandler</members>
-        <members>LeadTriggerHandlerTest</members>
-        <name>ApexClass</name>
-    </types>
-    <types>
-        <members>LeadTrigger</members>
-        <name>ApexTrigger</name>
-    </types>
-    <version>58.0</version>
-</Package>
-
-================
 File: package.json
 ================
 {
@@ -1568,6 +2393,23 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
 </LightningComponentBundle>
 
 ================
+File: manifest/package.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>LeadTriggerHandler</members>
+        <members>LeadTriggerHandlerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>LeadTrigger</members>
+        <name>ApexTrigger</name>
+    </types>
+    <version>58.0</version>
+</Package>
+
+================
 File: README.md
 ================
 # Kanban Board - Componente LWC Genérico
@@ -1783,6 +2625,7 @@ public with sharing class KanbanDataController {
         CloseDate,
         Account.Name,
         Nome_do_Lead__c,
+        Owner.Name,
         Probability,
         Probabilidade_da_Oportunidade__c
       FROM Opportunity
@@ -2293,9 +3136,17 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
   min-width: 120px;
 }
 
+.col-owner {
+  width: 150px;
+  min-width: 120px;
+}
+
 .col-actions {
-  width: 60px;
+  width: 50px;
   min-width: 50px;
+  max-width: 50px;
+  padding-right: 8px;
+  flex: 0 0 50px;
 }
 
 /* Cabeçalhos ordenáveis */
@@ -2350,31 +3201,52 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 .slds-dropdown-trigger {
   position: relative;
   margin-left: auto;
+  z-index: 9999;
 }
 
 .slds-dropdown-trigger .slds-dropdown {
   display: none;
-  position: absolute;
-  right: 0;
-  top: 100%;
-  width: 200px;
+  position: fixed; /* Alterado para fixed para evitar problemas com elementos sobrepostos */
+  right: auto; /* Removido o right anterior */
+  top: auto; /* Removido o top anterior */
+  transform: translateY(-50%); /* Melhor posicionamento vertical */
+  width: 240px; /* Aumentado o tamanho para acomodar os ícones */
   background: var(--lwc-colorBackground, white);
-  box-shadow: var(--lwc-shadowDropDown, 0 2px 3px 0 rgba(0, 0, 0, 0.16));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra melhorada */
+  z-index: 99999;
   border: 1px solid var(--lwc-colorBorder, #dddbda);
   border-radius: var(--lwc-borderRadiusMedium, 0.25rem);
-  z-index: 9000;
+  padding: 0.5rem 0; /* Espaçamento interno */
 }
 
+/* Posicionamento do dropdown quando aberto */
 .slds-dropdown-trigger.slds-is-open .slds-dropdown {
   display: block !important;
 }
 
+/* Estilo dos itens do dropdown */
+.slds-dropdown__item {
+  position: relative;
+}
+
 .slds-dropdown__item > a {
-  display: block;
-  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem;
   color: var(--lwc-colorTextDefault, #000000);
   white-space: nowrap;
   cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.1s ease;
+}
+
+/* Ícone dentro dos itens do dropdown */
+.slds-dropdown__item > a lightning-icon {
+  margin-right: 0.5rem;
+}
+
+.dropdown-item {
+  transition: all 0.15s ease-in-out;
 }
 
 .slds-dropdown__item > a:hover,
@@ -2382,6 +3254,33 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
   background-color: var(--lwc-colorBackgroundRowHover, #f3f2f2);
   text-decoration: none;
   outline: 0;
+  transform: translateX(2px);
+  color: #0070d2;
+}
+
+.slds-dropdown__item > a:hover lightning-icon,
+.slds-dropdown__item > a:focus lightning-icon {
+  --sds-c-icon-color-foreground-default: #0070d2;
+}
+
+/* Divisores entre itens */
+.dropdown-divider {
+  height: 1px;
+  margin: 0.25rem 0;
+  background-color: var(--lwc-colorBorder, #dddbda);
+}
+
+/* Botão da seta aprimorado */
+.slds-dropdown-trigger button.slds-button_icon {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  transition: all 0.2s ease;
+}
+
+.slds-dropdown-trigger button.slds-button_icon:hover {
+  background-color: #f3f3f3;
+  border-color: #dddbda;
 }
 
 /* Combobox de estágio */
@@ -2554,11 +3453,11 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 }
 
 .slds-modal {
-  z-index: 9002;
+  z-index: 9002 !important;
 }
 
 .slds-backdrop {
-  z-index: 9001;
+  z-index: 9000 !important;
 }
 
 .configuration-modal {
@@ -2578,6 +3477,147 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
   z-index: 9001;
 }
 
+/* Estilos para o modal de pesquisa avançada */
+.advanced-search-modal .slds-modal__container {
+  width: 80%;
+  max-width: 800px;
+}
+
+.search-category {
+  background-color: #f8f9fd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  height: 100%;
+}
+
+.search-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-option {
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.search-option:hover {
+  background-color: rgba(146, 111, 27, 0.1);
+}
+
+.search-option lightning-icon {
+  margin-right: 8px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para a barra de seleção estilo Gmail */
+.selection-bar-container {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: white;
+  color: #444444;
+  padding: 0 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  transition: all 0.3s ease;
+}
+
+.selection-count {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.selection-text {
+  margin-left: 8px;
+  font-size: 15px;
+}
+
+.selection-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.selection-action {
+  color: #444444 !important;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.selection-action:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.selection-clear {
+  color: #444444 !important;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+}
+
+/* Estilo para cards selecionáveis */
+.record-item {
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.record-item.selected {
+  background-color: rgba(11, 87, 208, 0.08);
+  border: 1px solid #0b57d0;
+}
+
+/* Area clicável para selecionar o card (limitada ao conteúdo do card) */
+.selectable-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Certificando que elementos interativos estejam acima da área clicável */
+.record-item a,
+.record-item button,
+.record-item lightning-input,
+.record-item lightning-combobox,
+.slds-dropdown-trigger {
+  position: relative;
+  z-index: 2;
+}
+
 ================
 File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 ================
@@ -2586,6 +3626,211 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
     Este template implementa um sistema de visualização e gerenciamento de registros
 -->
 <template>
+  <!-- Modal de Pesquisa Avançada -->
+  <div if:true={isAdvancedSearchModalOpen}>
+    <!-- Backdrop -->
+    <div class="slds-backdrop slds-backdrop_open" style="z-index: 9000"></div>
+
+    <section
+      role="dialog"
+      tabindex="-1"
+      aria-modal="true"
+      class="slds-modal slds-fade-in-open"
+      style="z-index: 9002"
+    >
+      <div class="slds-modal__container">
+        <header class="slds-modal__header">
+          <h2 class="slds-modal__title slds-hyphenate">Pesquisa Avançada</h2>
+          <button
+            class="slds-button slds-button_icon slds-modal__close"
+            onclick={closeAdvancedSearchModal}
+          >
+            <lightning-icon
+              icon-name="utility:close"
+              size="small"
+              alternative-text="Fechar"
+            ></lightning-icon>
+          </button>
+        </header>
+
+        <div class="slds-modal__content slds-p-around_medium">
+          <div class="slds-grid slds-wrap slds-gutters">
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1"
+            >
+              <lightning-input
+                type="search"
+                label="Pesquisar"
+                placeholder="Digite sua pesquisa..."
+                value={searchTerm}
+                onchange={handleSearchTermChange}
+                class="slds-m-bottom_medium"
+              ></lightning-input>
+            </div>
+
+            <!-- Proprietários -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Proprietários
+                </div>
+                <ul class="search-options">
+                  <template for:each={ownerSuggestions} for:item="owner">
+                    <li
+                      key={owner.id}
+                      class="search-option"
+                      onclick={handleSuggestionClick}
+                      data-value={owner.name}
+                      data-type="owner"
+                    >
+                      <lightning-icon
+                        icon-name="standard:user"
+                        size="x-small"
+                        class="slds-m-right_x-small"
+                      ></lightning-icon>
+                      <span>{owner.name}</span>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Valores -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Valores
+                </div>
+                <ul class="search-options">
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="value:>10000"
+                    data-type="value"
+                  >
+                    <lightning-icon
+                      icon-name="utility:moneybag"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Valor > R$ 10.000</span>
+                  </li>
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="value:<5000"
+                    data-type="value"
+                  >
+                    <lightning-icon
+                      icon-name="utility:moneybag"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Valor &lt; R$ 5.000</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Datas -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Datas
+                </div>
+                <ul class="search-options">
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="date:thismonth"
+                    data-type="date"
+                  >
+                    <lightning-icon
+                      icon-name="utility:date_time"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Este mês</span>
+                  </li>
+                  <li
+                    class="search-option"
+                    onclick={handleSuggestionClick}
+                    data-value="date:lastmonth"
+                    data-type="date"
+                  >
+                    <lightning-icon
+                      icon-name="utility:date_time"
+                      size="x-small"
+                      class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    <span>Mês passado</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Estágios -->
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3"
+            >
+              <div class="search-category">
+                <div class="slds-text-title_caps slds-m-bottom_x-small">
+                  Estágios
+                </div>
+                <ul class="search-options">
+                  <template for:each={statusSuggestions} for:item="status">
+                    <li
+                      key={status.value}
+                      class="search-option"
+                      onclick={handleSuggestionClick}
+                      data-value={status.value}
+                      data-type="stage"
+                    >
+                      <lightning-icon
+                        icon-name={status.iconName}
+                        size="x-small"
+                        class="slds-m-right_x-small"
+                      ></lightning-icon>
+                      <span>{status.label}</span>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="slds-modal__footer">
+          <button
+            class="slds-button slds-button_neutral"
+            onclick={closeAdvancedSearchModal}
+          >
+            Cancelar
+          </button>
+          <button
+            class="slds-button slds-button_brand"
+            onclick={applyAdvancedSearch}
+          >
+            Aplicar Filtros
+          </button>
+        </footer>
+      </div>
+    </section>
+  </div>
+
+  <!-- Conteúdo original completo do componente Kanban Person abaixo -->
+  <!-- Começo do conteúdo original -->
+
+  <!-- 
+      Componente de Visualização de Registros - Oportunidade
+      Este template implementa um sistema de visualização e gerenciamento de registros
+    -->
   <!-- Container principal com estilo de card do SLDS -->
   <div class="slds-card slds-card_boundary">
     <div class="slds-card__header">
@@ -2618,7 +3863,7 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
         <div class="slds-col slds-size_1-of-2">
           <div class="slds-grid slds-grid_align-end slds-p-horizontal_medium">
             <div class="slds-form-element header-search">
-              <div class="slds-form-element__control">
+              <div class="slds-form-element__control slds-grid">
                 <lightning-input
                   type="search"
                   label="Pesquisar oportunidades"
@@ -2628,6 +3873,15 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                   class="search-box"
                 >
                 </lightning-input>
+                <lightning-button-icon
+                  icon-name="utility:search"
+                  variant="border-filled"
+                  alternative-text="Pesquisa avançada"
+                  title="Pesquisa avançada"
+                  class="slds-m-left_x-small"
+                  onclick={handleAdvancedSearch}
+                >
+                </lightning-button-icon>
               </div>
             </div>
 
@@ -2673,6 +3927,57 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
             >
             </lightning-button-icon>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de ações para itens selecionados (estilo Gmail) -->
+    <div if:true={hasSelectedRecords} class="selection-bar-container">
+      <div class="selection-bar">
+        <div class="selection-count">
+          <button
+            class="slds-button slds-button_icon selection-clear"
+            title="Limpar seleção"
+            onclick={handleClearSelection}
+          >
+            <lightning-icon
+              icon-name="utility:close"
+              size="small"
+            ></lightning-icon>
+          </button>
+          <span class="selection-text">{selectedCount} selecionados</span>
+        </div>
+        <div class="selection-actions">
+          <button
+            class="slds-button slds-button_icon selection-action"
+            title="Excluir selecionados"
+            onclick={handleBulkDelete}
+          >
+            <lightning-icon
+              icon-name="utility:delete"
+              size="small"
+            ></lightning-icon>
+          </button>
+          <button
+            class="slds-button slds-button_icon selection-action"
+            title="Exportar selecionados"
+            onclick={handleBulkExport}
+          >
+            <lightning-icon
+              icon-name="utility:download"
+              size="small"
+            ></lightning-icon>
+          </button>
+          <button
+            class="slds-button slds-button_icon selection-action"
+            title="Mover selecionados"
+            onclick={handleBulkMove}
+          >
+            <lightning-icon
+              icon-name="utility:move"
+              size="small"
+            ></lightning-icon>
+          </button>
         </div>
       </div>
     </div>
@@ -2798,16 +4103,20 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                     Data de Fechamento
                   </div>
                 </div>
+                <!-- Proprietário -->
+                <div class="slds-col col-owner">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Owner.Name"
+                  >
+                    Proprietário
+                  </div>
+                </div>
                 <!-- Estágio -->
                 <div class="slds-col col-stage">
                   <div class="slds-text-title_caps slds-text-color_weak">
                     Estágio
-                  </div>
-                </div>
-                <!-- Ações -->
-                <div class="slds-col col-actions">
-                  <div class="slds-text-title_caps slds-text-color_weak">
-                    Ações
                   </div>
                 </div>
               </div>
@@ -2819,12 +4128,18 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                 <template for:each={column.records} for:item="record">
                   <li
                     key={record.Id}
-                    class="slds-item record-item"
+                    class={record.cardClass}
                     draggable="true"
                     ondragstart={handleDrag}
                     ondragend={handleDragEnd}
                     data-id={record.Id}
                   >
+                    <!-- Área clicável para selecionar o card sobreposta ao conteúdo do card -->
+                    <div
+                      class="selectable-area"
+                      data-id={record.Id}
+                      onclick={handleCardClick}
+                    ></div>
                     <div class="slds-grid slds-grid_vertical-align-center">
                       <!-- Checkbox -->
                       <div class="slds-col col-checkbox">
@@ -2906,6 +4221,12 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                           </template>
                         </div>
                       </div>
+                      <!-- Proprietário -->
+                      <div class="slds-col col-owner">
+                        <div class="slds-truncate" title={record.OwnerName}>
+                          {record.OwnerName}
+                        </div>
+                      </div>
                       <!-- Estágio -->
                       <div class="slds-col col-stage">
                         <div
@@ -2924,7 +4245,6 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                           </lightning-combobox>
                         </div>
                       </div>
-                      <!-- Ações -->
                       <div class="slds-col col-actions slds-text-align_right">
                         <div
                           class="slds-dropdown-trigger slds-dropdown-trigger_click"
@@ -2955,10 +4275,20 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                                   href="javascript:void(0);"
                                   role="menuitem"
                                   tabindex="-1"
-                                  onclick={handleEdit}
+                                  onclick={handleViewDetails}
                                   data-id={record.Id}
+                                  class="dropdown-item"
                                 >
-                                  <span class="slds-truncate">Editar</span>
+                                  <lightning-icon
+                                    icon-name="utility:preview"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
+                                  <span
+                                    class="slds-truncate"
+                                    title="Ver Detalhes"
+                                    >Ver Detalhes</span
+                                  >
                                 </a>
                               </li>
                               <li
@@ -2969,9 +4299,68 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                                   href="javascript:void(0);"
                                   role="menuitem"
                                   tabindex="-1"
+                                  onclick={handleEdit}
+                                  data-id={record.Id}
+                                  class="dropdown-item"
+                                >
+                                  <lightning-icon
+                                    icon-name="utility:edit"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
+                                  <span class="slds-truncate">Editar</span>
+                                </a>
+                              </li>
+                              <li
+                                class="slds-has-divider_top-space"
+                                role="separator"
+                              ></li>
+
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleAddTask}
+                                  data-id={record.Id}
+                                  class="dropdown-item"
+                                >
+                                  <lightning-icon
+                                    icon-name="utility:task"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
+                                  <span
+                                    class="slds-truncate"
+                                    title="Adicionar Tarefa"
+                                    >Adicionar Tarefa</span
+                                  >
+                                </a>
+                              </li>
+                              <li
+                                class="slds-has-divider_top-space"
+                                role="separator"
+                              ></li>
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
                                   onclick={handleClone}
                                   data-id={record.Id}
+                                  class="dropdown-item"
                                 >
+                                  <lightning-icon
+                                    icon-name="utility:copy"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
                                   <span class="slds-truncate">Duplicar</span>
                                 </a>
                               </li>
@@ -2985,7 +4374,13 @@ File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
                                   tabindex="-1"
                                   onclick={handleDelete}
                                   data-id={record.Id}
+                                  class="dropdown-item"
                                 >
+                                  <lightning-icon
+                                    icon-name="utility:delete"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
                                   <span class="slds-truncate" title="Excluir"
                                     >Excluir</span
                                   >
@@ -3121,6 +4516,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   // Campos fixos para o Kanban de Oportunidades
   titleField = "Name";
   subtitleField = "Account.Name";
+  ownerField = "Owner.Name"; // Add owner field
   valueField = "Amount";
   dateField = "CloseDate";
   newButtonLabel = "Nova Oportunidade";
@@ -3141,6 +4537,15 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track _validStatuses = [];
   @track isConfiguring = false;
 
+  // Propriedades para o modal de pesquisa avançada
+  @track isAdvancedSearchModalOpen = false;
+  @track ownerSuggestions = [];
+  @track statusSuggestions = [];
+
+  // Variáveis para gerenciar a seleção múltipla
+  lastSelectedId = null;
+  isShiftKeyPressed = false;
+
   recordIdToDelete;
   wiredRecordsResult;
   originalRecordsData;
@@ -3154,6 +4559,14 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
    */
   get hasSelectedRecords() {
     return this.selectedRecords.size > 0;
+  }
+
+  /**
+   * Retorna a contagem de registros selecionados
+   * @returns {number}
+   */
+  get selectedCount() {
+    return this.selectedRecords.size;
   }
 
   /**
@@ -3267,9 +4680,116 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     );
   }
 
+  /**
+   * Manipula o evento de pesquisa quando o usuário digita
+   */
   handleSearch(event) {
     this.searchTerm = event.target.value;
     this.processData();
+  } /**
+   * Abre o modal de pesquisa avançada ao clicar no botão
+   */
+  handleAdvancedSearch() {
+    // Preenche as sugestões dinamicamente antes de abrir o modal
+    this.generateSuggestions();
+    this.isAdvancedSearchModalOpen = true;
+  }
+
+  /**
+   * Fecha o modal de pesquisa avançada
+   */
+  closeAdvancedSearchModal() {
+    this.isAdvancedSearchModalOpen = false;
+  }
+
+  /**
+   * Atualiza o termo de pesquisa quando o usuário digita no campo do modal
+   */
+  handleSearchTermChange(event) {
+    this.searchTerm = event.target.value;
+  }
+
+  /**
+   * Aplica os filtros de pesquisa avançada e fecha o modal
+   */
+  applyAdvancedSearch() {
+    // Já temos o termo de pesquisa atualizado, só precisamos processar os dados
+    this.processData();
+    this.closeAdvancedSearchModal();
+  }
+
+  /**
+   * Gera sugestões dinâmicas com base nos dados disponíveis
+   */
+  generateSuggestions() {
+    // Gera sugestões de proprietários (únicos)
+    if (this.originalRecordsData) {
+      const uniqueOwners = new Map();
+      this.originalRecordsData.forEach((record) => {
+        if (record.Owner && record.Owner.Name) {
+          uniqueOwners.set(record.Owner.Id, {
+            id: record.Owner.Id,
+            name: record.Owner.Name
+          });
+        }
+      });
+      this.ownerSuggestions = Array.from(uniqueOwners.values())
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .slice(0, 5); // Mostrar apenas os 5 primeiros para não sobrecarregar o popup
+    }
+
+    // Gera sugestões de status com base no statusIconMap
+    this.statusSuggestions = this.validStatuses.map((status) => ({
+      value: status,
+      label: status,
+      iconName: this.statusIconMap[status] || "utility:record"
+    }));
+  }
+
+  /**
+   * Manipula o clique em uma sugestão de pesquisa
+   */
+  handleSuggestionClick(event) {
+    // Evita que o popup feche imediatamente
+    this._preventPopupClose = true;
+
+    const value = event.currentTarget.dataset.value;
+    const type = event.currentTarget.dataset.type;
+
+    let searchQuery = "";
+
+    // Formata a pesquisa com base no tipo de sugestão
+    switch (type) {
+      case "owner":
+        searchQuery = `proprietário:${value}`;
+        break;
+      case "value":
+        searchQuery = value; // value:>10000 ou value:<5000
+        break;
+      case "date":
+        searchQuery = value; // date:thismonth ou date:lastmonth
+        break;
+      case "stage":
+        searchQuery = `estágio:${value}`;
+        break;
+      default:
+        searchQuery = value;
+    }
+
+    // Preenche o campo de pesquisa com o valor formatado
+    const searchInput = this.template.querySelector(".search-box");
+    if (searchInput) {
+      searchInput.value = searchQuery;
+      // Dispara o evento de mudança para atualizar a pesquisa
+      searchInput.dispatchEvent(
+        new CustomEvent("change", {
+          detail: { value: searchQuery }
+        })
+      );
+    }
+
+    // Fecha o popup após selecionar
+    this.closeSearchPopup();
   }
 
   /**
@@ -3282,20 +4802,26 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         (record) => record[this.statusField] === status
       );
 
-      const recordsWithIcons = statusRecords.map((record) => ({
-        ...record,
-        iconName:
-          this.statusIconMap[record[this.statusField]] || "utility:record",
-        Name: this.getFieldValue(record, this.titleField) || "N/A",
-        Amount: this.getFieldValue(record, this.valueField) || 0,
-        Probabilidade_da_Oportunidade__c:
-          record.Probabilidade_da_Oportunidade__c
-            ? record.Probabilidade_da_Oportunidade__c
-            : "Não definido",
-        CloseDate: this.getFieldValue(record, this.dateField) || null,
-        AccountName: record.Nome_do_Lead__c || record.Account?.Name || "N/A",
-        hasLeadName: !!record.Nome_do_Lead__c
-      }));
+      const recordsWithIcons = statusRecords.map((record) => {
+        const isSelected = this.selectedRecords.has(record.Id);
+        return {
+          ...record,
+          iconName:
+            this.statusIconMap[record[this.statusField]] || "utility:record",
+          Name: this.getFieldValue(record, this.titleField) || "N/A",
+          Amount: this.getFieldValue(record, this.valueField) || 0,
+          Probabilidade_da_Oportunidade__c:
+            record.Probabilidade_da_Oportunidade__c
+              ? record.Probabilidade_da_Oportunidade__c
+              : "Não definido",
+          CloseDate: this.getFieldValue(record, this.dateField) || null,
+          AccountName: record.Nome_do_Lead__c || record.Account?.Name || "N/A",
+          hasLeadName: !!record.Nome_do_Lead__c,
+          OwnerName: record.Owner?.Name || "N/A",
+          selected: isSelected,
+          cardClass: `slds-item record-item ${isSelected ? "selected" : ""}`
+        };
+      });
 
       // Propriedades para o sistema de abas
       const isActive = index === this.activeTabIndex;
@@ -3459,41 +4985,93 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     event.preventDefault();
     event.stopPropagation();
 
-    // Fecha o menu anterior se existir
-    if (
-      this.activeActionButton &&
-      this.activeActionButton !== event.currentTarget
-    ) {
-      this.activeActionButton.parentElement.classList.remove("slds-is-open");
-    }
+    // Fechar todos os outros dropdowns antes de abrir o atual
+    const currentTrigger = event.currentTarget.parentElement;
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        if (dropdown !== currentTrigger) {
+          dropdown.classList.remove("slds-is-open");
+        }
+      });
 
     // Toggle do menu atual
     const dropdownTrigger = event.currentTarget.parentElement;
     dropdownTrigger.classList.toggle("slds-is-open");
 
-    // Atualiza o botão ativo
-    this.activeActionButton = event.currentTarget;
+    // Se o dropdown está sendo aberto, posicione-o corretamente
+    if (dropdownTrigger.classList.contains("slds-is-open")) {
+      // Obter a posição do botão
+      const button = event.currentTarget;
+      const buttonRect = button.getBoundingClientRect();
+
+      // Obter o dropdown
+      const dropdown = dropdownTrigger.querySelector(".slds-dropdown");
+
+      // Definir a posição do dropdown em relação à viewport, não ao documento
+      dropdown.style.left = buttonRect.right - 300 + "px";
+      dropdown.style.top = buttonRect.bottom + "px";
+    }
   }
 
-  // Fecha o dropdown quando clicar fora
+  // Fecha os dropdowns quando clicar fora
   handleClickOutside = (event) => {
-    if (
-      this.activeActionButton &&
-      !this.activeActionButton.contains(event.target)
-    ) {
-      this.activeActionButton.parentElement.classList.remove("slds-is-open");
-      this.activeActionButton = null;
+    const clickedOnDropdown = event.target.closest(".slds-dropdown-trigger");
+
+    // Se não clicou em um dropdown, fecha todos
+    if (!clickedOnDropdown) {
+      this.template
+        .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+        .forEach((dropdown) => {
+          dropdown.classList.remove("slds-is-open");
+        });
+    }
+  };
+
+  // Fecha todos os dropdowns
+  closeAllDropdowns() {
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        dropdown.classList.remove("slds-is-open");
+      });
+  }
+
+  // Handler para fechar dropdowns ao rolar a página
+  handleScroll = () => {
+    this.closeAllDropdowns();
+  };
+
+  // Monitora as teclas para a seleção múltipla
+  handleKeyDown = (event) => {
+    if (event.key === "Shift") {
+      this.isShiftKeyPressed = true;
+    }
+  };
+
+  handleKeyUp = (event) => {
+    if (event.key === "Shift") {
+      this.isShiftKeyPressed = false;
     }
   };
 
   connectedCallback() {
     // Adiciona listener para fechar o dropdown quando clicar fora
     document.addEventListener("click", this.handleClickOutside);
+    // Adiciona listener para fechar o dropdown quando rolar a página
+    document.addEventListener("scroll", this.handleScroll, true);
+
+    // Adiciona listeners para as teclas (para seleção múltipla)
+    document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keyup", this.handleKeyUp);
   }
 
   disconnectedCallback() {
-    // Remove o listener quando o componente for destruído
+    // Remove os listeners quando o componente for destruído
     document.removeEventListener("click", this.handleClickOutside);
+    document.removeEventListener("scroll", this.handleScroll, true);
+    document.removeEventListener("keydown", this.handleKeyDown);
+    document.removeEventListener("keyup", this.handleKeyUp);
   }
 
   handleEdit(event) {
@@ -3517,14 +5095,36 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     event.preventDefault();
     event.stopPropagation();
     const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+    const recordName = record ? record.Name : "Registro";
 
-    deleteRecord({ recordId })
-      .then(() => {
-        return refreshApex(this.wiredRecordsResult);
-      })
-      .catch((error) => {
-        console.error("Erro ao excluir registro:", error);
+    // Primeiro fechamos qualquer dropdown que esteja aberto
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        dropdown.classList.remove("slds-is-open");
       });
+
+    // Confirmar exclusão
+    if (confirm(`Tem certeza que deseja excluir "${recordName}"?`)) {
+      deleteRecord({ recordId })
+        .then(() => {
+          this.showToastMessage(
+            "Sucesso",
+            `${recordName} foi excluído com sucesso.`,
+            "success"
+          );
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao excluir registro",
+            "error"
+          );
+          console.error("Erro ao excluir registro:", error);
+        });
+    }
   }
 
   handleClone(event) {
@@ -3532,12 +5132,42 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     event.stopPropagation();
 
     const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+    const recordName = record ? record.Name : "Registro";
+
+    // Primeiro fechamos qualquer dropdown que esteja aberto
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        dropdown.classList.remove("slds-is-open");
+      });
 
     cloneRecord({ recordId })
-      .then(() => {
+      .then((result) => {
+        this.showToastMessage(
+          "Sucesso",
+          `${recordName} foi duplicado com sucesso e está na aba "Sem contato".`,
+          "success"
+        );
+
+        // Ativar aba "Sem contato" para mostrar o registro duplicado
+        const semContatoIndex = this.columns.findIndex(
+          (column) => column.value === "Sem contato"
+        );
+
+        if (semContatoIndex !== -1) {
+          this.activeTabIndex = semContatoIndex;
+          this.formatData(this.wiredRecordsResult.data);
+        }
+
         return refreshApex(this.wiredRecordsResult);
       })
       .catch((error) => {
+        this.showToastMessage(
+          "Erro",
+          error.body?.message || "Erro ao duplicar registro",
+          "error"
+        );
         console.error("Erro ao clonar registro:", error);
       });
   }
@@ -3563,28 +5193,337 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     });
   }
 
+  /**
+   * Manipula a seleção de registros através do checkbox
+   */
   handleRecordSelection(event) {
     const recordId = event.target.dataset.id;
-    if (event.target.checked) {
-      this.selectedRecords.add(recordId);
+    const isSelected = event.target.checked;
+
+    // Verifica se a tecla shift está pressionada para seleção múltipla
+    if (
+      this.isShiftKeyPressed &&
+      this.lastSelectedId &&
+      recordId !== this.lastSelectedId
+    ) {
+      this.selectRecordsBetween(this.lastSelectedId, recordId, isSelected);
     } else {
-      this.selectedRecords.delete(recordId);
+      // Seleção normal de um único registro
+      if (isSelected) {
+        this.selectedRecords.add(recordId);
+      } else {
+        this.selectedRecords.delete(recordId);
+      }
+
+      // Atualiza o último registro selecionado
+      this.lastSelectedId = isSelected ? recordId : null;
     }
-    this.showBulkActions = this.selectedRecords.size > 0;
+
+    // Atualiza a interface
+    this.updateRecordsSelection();
   }
 
-  handleBulkDelete() {
-    deleteRecordsInBulk({
-      recordIds: Array.from(this.selectedRecords)
-    })
-      .then(() => {
-        this.selectedRecords.clear();
-        this.showBulkActions = false;
-        return refreshApex(this.wiredRecordsResult);
-      })
-      .catch((error) => {
-        console.error("Erro ao excluir registros em massa:", error);
+  /**
+   * Manipula clique em qualquer parte do card para seleção
+   */
+  handleCardClick(event) {
+    // Ignora se o clique foi em um botão, link ou no checkbox
+    if (
+      event.target.tagName === "BUTTON" ||
+      event.target.tagName === "A" ||
+      event.target.tagName === "INPUT" ||
+      event.target.closest(".slds-dropdown-trigger") ||
+      event.target.closest("lightning-icon")
+    ) {
+      return;
+    }
+
+    // Obtém o ID do registro
+    const recordId = event.currentTarget.dataset.id;
+    const isSelected = this.selectedRecords.has(recordId);
+
+    // Inverte a seleção
+    if (isSelected) {
+      this.selectedRecords.delete(recordId);
+      this.lastSelectedId = null;
+    } else {
+      // Verifica se a tecla shift está pressionada para seleção múltipla
+      if (
+        this.isShiftKeyPressed &&
+        this.lastSelectedId &&
+        recordId !== this.lastSelectedId
+      ) {
+        this.selectRecordsBetween(this.lastSelectedId, recordId, true);
+      } else {
+        this.selectedRecords.add(recordId);
+        this.lastSelectedId = recordId;
+      }
+    }
+
+    // Atualiza a interface
+    this.updateRecordsSelection();
+  }
+
+  /**
+   * Seleciona todos os registros entre dois IDs
+   */
+  selectRecordsBetween(startId, endId, isSelected) {
+    // Encontrar os índices dos registros
+    let startIndex = -1;
+    let endIndex = -1;
+    let allRecords = [];
+
+    // Coletar todos os registros de todas as colunas
+    this.columns.forEach((column) => {
+      column.records.forEach((record) => {
+        allRecords.push(record);
+        if (record.Id === startId) startIndex = allRecords.length - 1;
+        if (record.Id === endId) endIndex = allRecords.length - 1;
       });
+    });
+
+    // Garantir que startIndex seja menor que endIndex
+    if (startIndex > endIndex) {
+      [startIndex, endIndex] = [endIndex, startIndex];
+    }
+
+    // Selecionar ou desselecionar todos os registros entre os índices
+    for (let i = startIndex; i <= endIndex; i++) {
+      const recordId = allRecords[i].Id;
+      if (isSelected) {
+        this.selectedRecords.add(recordId);
+      } else {
+        this.selectedRecords.delete(recordId);
+      }
+    }
+
+    this.lastSelectedId = endId;
+  }
+
+  /**
+   * Atualiza a interface para refletir os registros selecionados
+   */
+  updateRecordsSelection() {
+    // Atualiza as classes CSS e estados dos registros
+    this.formatData(this.wiredRecordsResult.data);
+  }
+
+  /**
+   * Limpa a seleção de todos os registros
+   */
+  handleClearSelection() {
+    this.selectedRecords.clear();
+    this.lastSelectedId = null;
+    this.updateRecordsSelection();
+  }
+
+  /**
+   * Excluir registros selecionados em massa
+   */
+  handleBulkDelete() {
+    if (this.selectedRecords.size === 0) return;
+
+    // Confirmar exclusão
+    if (
+      confirm(
+        `Tem certeza que deseja excluir ${this.selectedRecords.size} registro(s) selecionado(s)?`
+      )
+    ) {
+      deleteRecordsInBulk({
+        recordIds: Array.from(this.selectedRecords)
+      })
+        .then(() => {
+          this.showToastMessage(
+            "Sucesso",
+            `${this.selectedRecords.size} registro(s) excluído(s) com sucesso.`,
+            "success"
+          );
+          this.selectedRecords.clear();
+          this.lastSelectedId = null;
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao excluir registros em massa",
+            "error"
+          );
+          console.error("Erro ao excluir registros em massa:", error);
+        });
+    }
+  }
+
+  /**
+   * Exportar registros selecionados
+   */
+  handleBulkExport() {
+    if (this.selectedRecords.size === 0) return;
+
+    // Coletar dados dos registros selecionados
+    const selectedIds = Array.from(this.selectedRecords);
+    const selectedRecordsData = [];
+
+    this.columns.forEach((column) => {
+      column.records.forEach((record) => {
+        if (this.selectedRecords.has(record.Id)) {
+          selectedRecordsData.push({
+            Id: record.Id,
+            Nome: record.Name,
+            Conta: record.AccountName,
+            Valor: record.Amount,
+            Probabilidade: record.Probabilidade_da_Oportunidade__c,
+            DataFechamento: record.CloseDate,
+            Proprietario: record.OwnerName,
+            Estagio: record.StageName
+          });
+        }
+      });
+    });
+
+    // Converter para CSV
+    let csvContent = "data:text/csv;charset=utf-8,";
+
+    // Cabeçalhos
+    const headers = [
+      "Id",
+      "Nome",
+      "Conta",
+      "Valor",
+      "Probabilidade",
+      "Data de Fechamento",
+      "Proprietário",
+      "Estágio"
+    ];
+    csvContent += headers.join(",") + "\\n";
+
+    // Dados
+    selectedRecordsData.forEach((record) => {
+      const row = [
+        record.Id,
+        `"${record.Nome}"`,
+        `"${record.Conta}"`,
+        record.Valor,
+        record.Probabilidade,
+        record.DataFechamento,
+        `"${record.Proprietario}"`,
+        `"${record.Estagio}"`
+      ];
+      csvContent += row.join(",") + "\\n";
+    });
+
+    // Download do arquivo
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "oportunidades_exportadas.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    this.showToastMessage(
+      "Sucesso",
+      `${selectedRecordsData.length} registro(s) exportado(s) com sucesso.`,
+      "success"
+    );
+  }
+
+  /**
+   * Mover registros selecionados para um novo estágio
+   */
+  handleBulkMove() {
+    if (this.selectedRecords.size === 0) return;
+
+    // Criar um modal personalizado para selecionar o novo estágio
+    const modal = document.createElement("div");
+    modal.className = "slds-modal slds-fade-in-open";
+    modal.innerHTML = `
+      <div class="slds-modal__container">
+        <div class="slds-modal__header">
+          <h2 class="slds-text-heading_medium">Mover ${this.selectedRecords.size} registro(s)</h2>
+          <button class="slds-button slds-button_icon slds-modal__close">
+            <svg class="slds-button__icon" aria-hidden="true">
+              <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+            </svg>
+            <span class="slds-assistive-text">Fechar</span>
+          </button>
+        </div>
+        <div class="slds-modal__content slds-p-around_medium">
+          <div class="slds-form-element">
+            <label class="slds-form-element__label">Novo estágio:</label>
+            <div class="slds-form-element__control">
+              <div class="slds-select_container">
+                <select class="slds-select" id="bulk-move-stage-select">
+                  ${this.validStatuses.map((status) => `<option value="${status}">${status}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slds-modal__footer">
+          <button class="slds-button slds-button_neutral cancel-button">Cancelar</button>
+          <button class="slds-button slds-button_brand confirm-button">Mover</button>
+        </div>
+      </div>
+    `;
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "slds-backdrop slds-backdrop_open";
+
+    // Adicionar ao DOM
+    document.body.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    // Configurar listeners
+    const closeModal = () => {
+      document.body.removeChild(modal);
+      document.body.removeChild(backdrop);
+    };
+
+    modal
+      .querySelector(".slds-modal__close")
+      .addEventListener("click", closeModal);
+    modal.querySelector(".cancel-button").addEventListener("click", closeModal);
+
+    modal.querySelector(".confirm-button").addEventListener("click", () => {
+      const newStage = modal.querySelector("#bulk-move-stage-select").value;
+
+      // Fechar modal primeiro
+      closeModal();
+
+      // Array para armazenar as promessas de atualização
+      const updatePromises = [];
+
+      // Atualizar cada registro
+      this.selectedRecords.forEach((recordId) => {
+        updatePromises.push(
+          updateRecordStatus({
+            recordId: recordId,
+            newStatus: newStage
+          })
+        );
+      });
+
+      // Aguardar todas as atualizações
+      Promise.all(updatePromises)
+        .then(() => {
+          this.showToastMessage(
+            "Sucesso",
+            `${this.selectedRecords.size} registro(s) movido(s) para "${newStage}" com sucesso.`,
+            "success"
+          );
+          this.selectedRecords.clear();
+          this.lastSelectedId = null;
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao mover registros em massa",
+            "error"
+          );
+          console.error("Erro ao mover registros em massa:", error);
+        });
+    });
   }
 
   get stageOptions() {
@@ -3754,12 +5693,17 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
 
   // Método auxiliar para mostrar mensagens toast
   showToastMessage(title, message, variant) {
-    const evt = new ShowToastEvent({
-      title: title,
-      message: message,
-      variant: variant
-    });
-    this.dispatchEvent(evt);
+    // Adicionando um atraso pequeno para garantir que o toast seja exibido após o refresh
+    setTimeout(() => {
+      const evt = new ShowToastEvent({
+        title: title,
+        message: message,
+        variant: variant,
+        mode: "dismissable" // Garantindo que o toast seja dismissível
+      });
+      this.dispatchEvent(evt);
+      console.log("Toast disparado:", title, message, variant);
+    }, 100);
   }
 
   handleFieldChange(event) {
@@ -3827,6 +5771,66 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     return this.availableFields.filter(
       (field) => field.type === "DATE" || field.type === "DATETIME"
     );
+  }
+
+  handleViewDetails(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    // Navega para a página de detalhes da oportunidade
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: recordId,
+        objectApiName: this.objectApiName,
+        actionName: "view"
+      }
+    });
+  }
+
+  handleAssignOwner(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: recordId,
+        objectApiName: this.objectApiName,
+        actionName: "edit"
+      },
+      state: {
+        defaultFieldValues: "OwnerId=",
+        navigationLocation: "LOOKUP",
+        focusedFieldName: "OwnerId"
+      }
+    });
+  }
+
+  handleAddTask(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+
+    // Cria uma nova tarefa relacionada ao registro
+    this[NavigationMixin.Navigate]({
+      type: "standard__objectPage",
+      attributes: {
+        objectApiName: "Task",
+        actionName: "new"
+      },
+      state: {
+        defaultFieldValues: `WhatId=${recordId}`,
+        navigationLocation: "LOOKUP"
+      }
+    });
   }
 }
 

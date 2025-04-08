@@ -8,11 +8,11 @@
         <div
           class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
         >
-          <article class="slds-card">
+          <article class="slds-card user-card">
             <div class="slds-card__header">
               <div class="slds-media slds-media_center">
                 <div class="slds-media__figure">
-                  <span class="slds-avatar slds-avatar_large">
+                  <span class="slds-avatar slds-avatar_large user-avatar">
                     <img
                       src="/images/Portrait_Placeholder.png"
                       alt="User Photo"
@@ -20,8 +20,12 @@
                   </span>
                 </div>
                 <div class="slds-media__body">
-                  <h2 class="slds-text-heading_small">Carlus Tintori</h2>
-                  <p class="slds-text-body_small">Head de Operações</p>
+                  <h2 class="slds-text-heading_small card-title">
+                    Carlus Tintori
+                  </h2>
+                  <p class="slds-text-body_small card-role">
+                    Head de Operações
+                  </p>
                 </div>
               </div>
             </div>
@@ -46,7 +50,7 @@
                     </article>
                   </div>
                   <div class="slds-col">
-                    <article class="slds-tile slds-media stat-box">
+                    <article class="slds-tile slds-media stat-box-converted">
                       <div class="slds-media__body">
                         <h3 class="slds-tile__title">Convertido</h3>
                         <div class="slds-tile__detail">
@@ -65,13 +69,14 @@
                         <lightning-icon
                           icon-name="utility:multi_picklist"
                           size="x-small"
+                          variant="warning"
                         ></lightning-icon>
                       </div>
                       <div class="slds-media__body">
                         <div class="slds-grid slds-grid_align-spread">
                           <h3 class="slds-truncate">Sem contato</h3>
                           <div>
-                            <span class="slds-badge">8</span>
+                            <span class="slds-badge badge-neutral">8</span>
                           </div>
                         </div>
                       </div>
@@ -83,37 +88,38 @@
                         <lightning-icon
                           icon-name="utility:filter"
                           size="x-small"
+                          variant="info"
                         ></lightning-icon>
                       </div>
                       <div class="slds-media__body">
                         <div class="slds-grid slds-grid_align-spread">
                           <h3 class="slds-truncate">Primeiro Contato</h3>
                           <div>
-                            <span class="slds-badge">3</span>
+                            <span class="slds-badge badge-highlight">3</span>
                           </div>
                         </div>
                       </div>
                     </article>
                   </div>
                 </div>
-
                 <!-- Expandable Section -->
                 <div class="slds-m-top_medium">
                   <button
-                    class="slds-button slds-button_neutral slds-button_stretch"
+                    class="slds-button slds-button_neutral slds-button_stretch expand-button"
                     onclick={toggleExpand}
-                    aria-expanded={isExpanded}
+                    data-index="0"
+                    aria-expanded={isCard0Expanded}
                   >
                     <span class="slds-truncate">Ver todas oportunidades</span>
                     <lightning-icon
                       icon-name="utility:chevrondown"
                       size="xx-small"
-                      class={dropdownIconClass}
+                      class={dropdownIconClass0}
                     >
                     </lightning-icon>
                   </button>
 
-                  <div class={expandableContentClass}>
+                  <div class={expandableContentClass0}>
                     <div class="slds-grid slds-grid_vertical slds-p-top_medium">
                       <!-- Additional Stats -->
                       <div class="slds-col slds-size_1-of-1">
@@ -148,11 +154,11 @@
         <div
           class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
         >
-          <article class="slds-card">
+          <article class="slds-card user-card">
             <div class="slds-card__header">
               <div class="slds-media slds-media_center">
                 <div class="slds-media__figure">
-                  <span class="slds-avatar slds-avatar_large">
+                  <span class="slds-avatar slds-avatar_large user-avatar">
                     <img
                       src="/images/Portrait_Placeholder.png"
                       alt="User Photo"
@@ -160,8 +166,12 @@
                   </span>
                 </div>
                 <div class="slds-media__body">
-                  <h2 class="slds-text-heading_small">Maria Silva</h2>
-                  <p class="slds-text-body_small">Gerente Comercial</p>
+                  <h2 class="slds-text-heading_small card-title">
+                    Maria Silva
+                  </h2>
+                  <p class="slds-text-body_small card-role">
+                    Gerente Comercial
+                  </p>
                 </div>
               </div>
             </div>
@@ -182,7 +192,7 @@
                     </article>
                   </div>
                   <div class="slds-col">
-                    <article class="slds-tile slds-media stat-box">
+                    <article class="slds-tile slds-media stat-box-converted">
                       <div class="slds-media__body">
                         <h3 class="slds-tile__title">Convertido</h3>
                         <div class="slds-tile__detail">
@@ -200,6 +210,7 @@
                         <lightning-icon
                           icon-name="utility:multi_picklist"
                           size="x-small"
+                          variant="warning"
                         ></lightning-icon>
                       </div>
                       <div class="slds-media__body">
@@ -209,6 +220,68 @@
                         </div>
                       </div>
                     </article>
+                  </div>
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:filter"
+                          size="x-small"
+                          variant="info"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Primeiro Contato</h3>
+                          <div>
+                            <span class="slds-badge badge-highlight">2</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="1"
+                      aria-expanded={isCard1Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass1}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass1}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">2</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -220,11 +293,11 @@
         <div
           class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
         >
-          <article class="slds-card">
+          <article class="slds-card user-card">
             <div class="slds-card__header">
               <div class="slds-media slds-media_center">
                 <div class="slds-media__figure">
-                  <span class="slds-avatar slds-avatar_large">
+                  <span class="slds-avatar slds-avatar_large user-avatar">
                     <img
                       src="/images/Portrait_Placeholder.png"
                       alt="User Photo"
@@ -232,8 +305,12 @@
                   </span>
                 </div>
                 <div class="slds-media__body">
-                  <h2 class="slds-text-heading_small">João Santos</h2>
-                  <p class="slds-text-body_small">Analista de Vendas</p>
+                  <h2 class="slds-text-heading_small card-title">
+                    João Santos
+                  </h2>
+                  <p class="slds-text-body_small card-role">
+                    Analista de Vendas
+                  </p>
                 </div>
               </div>
             </div>
@@ -254,7 +331,7 @@
                     </article>
                   </div>
                   <div class="slds-col">
-                    <article class="slds-tile slds-media stat-box">
+                    <article class="slds-tile slds-media stat-box-converted">
                       <div class="slds-media__body">
                         <h3 class="slds-tile__title">Convertido</h3>
                         <div class="slds-tile__detail">
@@ -272,6 +349,7 @@
                         <lightning-icon
                           icon-name="utility:multi_picklist"
                           size="x-small"
+                          variant="warning"
                         ></lightning-icon>
                       </div>
                       <div class="slds-media__body">
@@ -281,6 +359,68 @@
                         </div>
                       </div>
                     </article>
+                  </div>
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:filter"
+                          size="x-small"
+                          variant="info"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Primeiro Contato</h3>
+                          <div>
+                            <span class="slds-badge badge-highlight">4</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="2"
+                      aria-expanded={isCard2Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass2}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass2}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">3</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -292,11 +432,11 @@
         <div
           class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
         >
-          <article class="slds-card">
+          <article class="slds-card user-card">
             <div class="slds-card__header">
               <div class="slds-media slds-media_center">
                 <div class="slds-media__figure">
-                  <span class="slds-avatar slds-avatar_large">
+                  <span class="slds-avatar slds-avatar_large user-avatar">
                     <img
                       src="/images/Portrait_Placeholder.png"
                       alt="User Photo"
@@ -304,8 +444,12 @@
                   </span>
                 </div>
                 <div class="slds-media__body">
-                  <h2 class="slds-text-heading_small">Ana Oliveira</h2>
-                  <p class="slds-text-body_small">Consultora Senior</p>
+                  <h2 class="slds-text-heading_small card-title">
+                    Ana Oliveira
+                  </h2>
+                  <p class="slds-text-body_small card-role">
+                    Consultora Senior
+                  </p>
                 </div>
               </div>
             </div>
@@ -326,7 +470,7 @@
                     </article>
                   </div>
                   <div class="slds-col">
-                    <article class="slds-tile slds-media stat-box">
+                    <article class="slds-tile slds-media stat-box-converted">
                       <div class="slds-media__body">
                         <h3 class="slds-tile__title">Convertido</h3>
                         <div class="slds-tile__detail">
@@ -344,6 +488,7 @@
                         <lightning-icon
                           icon-name="utility:multi_picklist"
                           size="x-small"
+                          variant="warning"
                         ></lightning-icon>
                       </div>
                       <div class="slds-media__body">
@@ -353,6 +498,68 @@
                         </div>
                       </div>
                     </article>
+                  </div>
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:filter"
+                          size="x-small"
+                          variant="info"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Primeiro Contato</h3>
+                          <div>
+                            <span class="slds-badge badge-highlight">3</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="3"
+                      aria-expanded={isCard3Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass3}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass3}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">5</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -364,11 +571,11 @@
         <div
           class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-around_x-small"
         >
-          <article class="slds-card">
+          <article class="slds-card user-card">
             <div class="slds-card__header">
               <div class="slds-media slds-media_center">
                 <div class="slds-media__figure">
-                  <span class="slds-avatar slds-avatar_large">
+                  <span class="slds-avatar slds-avatar_large user-avatar">
                     <img
                       src="/images/Portrait_Placeholder.png"
                       alt="User Photo"
@@ -376,8 +583,12 @@
                   </span>
                 </div>
                 <div class="slds-media__body">
-                  <h2 class="slds-text-heading_small">Pedro Costa</h2>
-                  <p class="slds-text-body_small">Especialista de Vendas</p>
+                  <h2 class="slds-text-heading_small card-title">
+                    Pedro Costa
+                  </h2>
+                  <p class="slds-text-body_small card-role">
+                    Especialista de Vendas
+                  </p>
                 </div>
               </div>
             </div>
@@ -398,7 +609,7 @@
                     </article>
                   </div>
                   <div class="slds-col">
-                    <article class="slds-tile slds-media stat-box">
+                    <article class="slds-tile slds-media stat-box-converted">
                       <div class="slds-media__body">
                         <h3 class="slds-tile__title">Convertido</h3>
                         <div class="slds-tile__detail">
@@ -416,6 +627,7 @@
                         <lightning-icon
                           icon-name="utility:multi_picklist"
                           size="x-small"
+                          variant="warning"
                         ></lightning-icon>
                       </div>
                       <div class="slds-media__body">
@@ -425,6 +637,68 @@
                         </div>
                       </div>
                     </article>
+                  </div>
+                  <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-tile slds-media secondary-stat">
+                      <div class="slds-media__figure">
+                        <lightning-icon
+                          icon-name="utility:filter"
+                          size="x-small"
+                          variant="info"
+                        ></lightning-icon>
+                      </div>
+                      <div class="slds-media__body">
+                        <div class="slds-grid slds-grid_align-spread">
+                          <h3 class="slds-truncate">Primeiro Contato</h3>
+                          <div>
+                            <span class="slds-badge badge-highlight">3</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <!-- Expandable Section -->
+                  <div class="slds-m-top_medium">
+                    <button
+                      class="slds-button slds-button_neutral slds-button_stretch expand-button"
+                      onclick={toggleExpand}
+                      data-index="4"
+                      aria-expanded={isCard4Expanded}
+                    >
+                      <span class="slds-truncate">Ver todas oportunidades</span>
+                      <lightning-icon
+                        icon-name="utility:chevrondown"
+                        size="xx-small"
+                        class={dropdownIconClass4}
+                      >
+                      </lightning-icon>
+                    </button>
+
+                    <div class={expandableContentClass4}>
+                      <div
+                        class="slds-grid slds-grid_vertical slds-p-top_medium"
+                      >
+                        <!-- Additional Stats -->
+                        <div class="slds-col slds-size_1-of-1">
+                          <article class="slds-tile slds-media secondary-stat">
+                            <div class="slds-media__figure">
+                              <lightning-icon
+                                icon-name="utility:file"
+                                size="x-small"
+                              ></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                              <div class="slds-grid slds-grid_align-spread">
+                                <h3 class="slds-truncate">Primeira Reunião</h3>
+                                <div>
+                                  <span class="slds-badge">4</span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

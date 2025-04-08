@@ -57,6 +57,11 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track _validStatuses = [];
   @track isConfiguring = false;
 
+  // Propriedades para o modal de pesquisa avançada
+  @track isAdvancedSearchModalOpen = false;
+  @track ownerSuggestions = [];
+  @track statusSuggestions = [];
+
   // Variáveis para gerenciar a seleção múltipla
   lastSelectedId = null;
   isShiftKeyPressed = false;
@@ -195,9 +200,116 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     );
   }
 
+  /**
+   * Manipula o evento de pesquisa quando o usuário digita
+   */
   handleSearch(event) {
     this.searchTerm = event.target.value;
     this.processData();
+  } /**
+   * Abre o modal de pesquisa avançada ao clicar no botão
+   */
+  handleAdvancedSearch() {
+    // Preenche as sugestões dinamicamente antes de abrir o modal
+    this.generateSuggestions();
+    this.isAdvancedSearchModalOpen = true;
+  }
+
+  /**
+   * Fecha o modal de pesquisa avançada
+   */
+  closeAdvancedSearchModal() {
+    this.isAdvancedSearchModalOpen = false;
+  }
+
+  /**
+   * Atualiza o termo de pesquisa quando o usuário digita no campo do modal
+   */
+  handleSearchTermChange(event) {
+    this.searchTerm = event.target.value;
+  }
+
+  /**
+   * Aplica os filtros de pesquisa avançada e fecha o modal
+   */
+  applyAdvancedSearch() {
+    // Já temos o termo de pesquisa atualizado, só precisamos processar os dados
+    this.processData();
+    this.closeAdvancedSearchModal();
+  }
+
+  /**
+   * Gera sugestões dinâmicas com base nos dados disponíveis
+   */
+  generateSuggestions() {
+    // Gera sugestões de proprietários (únicos)
+    if (this.originalRecordsData) {
+      const uniqueOwners = new Map();
+      this.originalRecordsData.forEach((record) => {
+        if (record.Owner && record.Owner.Name) {
+          uniqueOwners.set(record.Owner.Id, {
+            id: record.Owner.Id,
+            name: record.Owner.Name
+          });
+        }
+      });
+      this.ownerSuggestions = Array.from(uniqueOwners.values())
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .slice(0, 5); // Mostrar apenas os 5 primeiros para não sobrecarregar o popup
+    }
+
+    // Gera sugestões de status com base no statusIconMap
+    this.statusSuggestions = this.validStatuses.map((status) => ({
+      value: status,
+      label: status,
+      iconName: this.statusIconMap[status] || "utility:record"
+    }));
+  }
+
+  /**
+   * Manipula o clique em uma sugestão de pesquisa
+   */
+  handleSuggestionClick(event) {
+    // Evita que o popup feche imediatamente
+    this._preventPopupClose = true;
+
+    const value = event.currentTarget.dataset.value;
+    const type = event.currentTarget.dataset.type;
+
+    let searchQuery = "";
+
+    // Formata a pesquisa com base no tipo de sugestão
+    switch (type) {
+      case "owner":
+        searchQuery = `proprietário:${value}`;
+        break;
+      case "value":
+        searchQuery = value; // value:>10000 ou value:<5000
+        break;
+      case "date":
+        searchQuery = value; // date:thismonth ou date:lastmonth
+        break;
+      case "stage":
+        searchQuery = `estágio:${value}`;
+        break;
+      default:
+        searchQuery = value;
+    }
+
+    // Preenche o campo de pesquisa com o valor formatado
+    const searchInput = this.template.querySelector(".search-box");
+    if (searchInput) {
+      searchInput.value = searchQuery;
+      // Dispara o evento de mudança para atualizar a pesquisa
+      searchInput.dispatchEvent(
+        new CustomEvent("change", {
+          detail: { value: searchQuery }
+        })
+      );
+    }
+
+    // Fecha o popup após selecionar
+    this.closeSearchPopup();
   }
 
   /**
