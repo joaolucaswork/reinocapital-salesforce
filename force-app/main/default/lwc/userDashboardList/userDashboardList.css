@@ -50,6 +50,11 @@
   background-color: #f7f9fb;
 }
 
+.badge {
+  background-color: #747474;
+  color: white;
+}
+
 .badge-highlight {
   background-color: #0176d3;
   color: white;
@@ -68,6 +73,7 @@
 .expand-button {
   border-radius: 4px;
   transition: background-color 0.2s;
+  border: none;
 }
 
 .rotate-icon {
