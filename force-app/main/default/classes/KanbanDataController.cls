@@ -25,6 +25,7 @@ public with sharing class KanbanDataController {
         CloseDate,
         Account.Name,
         Nome_do_Lead__c,
+        Owner.Name,
         Probability,
         Probabilidade_da_Oportunidade__c
       FROM Opportunity

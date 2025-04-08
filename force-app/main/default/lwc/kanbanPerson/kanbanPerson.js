@@ -36,6 +36,7 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   // Campos fixos para o Kanban de Oportunidades
   titleField = "Name";
   subtitleField = "Account.Name";
+  ownerField = "Owner.Name"; // Add owner field
   valueField = "Amount";
   dateField = "CloseDate";
   newButtonLabel = "Nova Oportunidade";
@@ -56,6 +57,10 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   @track _validStatuses = [];
   @track isConfiguring = false;
 
+  // Variáveis para gerenciar a seleção múltipla
+  lastSelectedId = null;
+  isShiftKeyPressed = false;
+
   recordIdToDelete;
   wiredRecordsResult;
   originalRecordsData;
@@ -69,6 +74,14 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
    */
   get hasSelectedRecords() {
     return this.selectedRecords.size > 0;
+  }
+
+  /**
+   * Retorna a contagem de registros selecionados
+   * @returns {number}
+   */
+  get selectedCount() {
+    return this.selectedRecords.size;
   }
 
   /**
@@ -197,20 +210,26 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
         (record) => record[this.statusField] === status
       );
 
-      const recordsWithIcons = statusRecords.map((record) => ({
-        ...record,
-        iconName:
-          this.statusIconMap[record[this.statusField]] || "utility:record",
-        Name: this.getFieldValue(record, this.titleField) || "N/A",
-        Amount: this.getFieldValue(record, this.valueField) || 0,
-        Probabilidade_da_Oportunidade__c:
-          record.Probabilidade_da_Oportunidade__c
-            ? record.Probabilidade_da_Oportunidade__c
-            : "Não definido",
-        CloseDate: this.getFieldValue(record, this.dateField) || null,
-        AccountName: record.Nome_do_Lead__c || record.Account?.Name || "N/A",
-        hasLeadName: !!record.Nome_do_Lead__c
-      }));
+      const recordsWithIcons = statusRecords.map((record) => {
+        const isSelected = this.selectedRecords.has(record.Id);
+        return {
+          ...record,
+          iconName:
+            this.statusIconMap[record[this.statusField]] || "utility:record",
+          Name: this.getFieldValue(record, this.titleField) || "N/A",
+          Amount: this.getFieldValue(record, this.valueField) || 0,
+          Probabilidade_da_Oportunidade__c:
+            record.Probabilidade_da_Oportunidade__c
+              ? record.Probabilidade_da_Oportunidade__c
+              : "Não definido",
+          CloseDate: this.getFieldValue(record, this.dateField) || null,
+          AccountName: record.Nome_do_Lead__c || record.Account?.Name || "N/A",
+          hasLeadName: !!record.Nome_do_Lead__c,
+          OwnerName: record.Owner?.Name || "N/A",
+          selected: isSelected,
+          cardClass: `slds-item record-item ${isSelected ? "selected" : ""}`
+        };
+      });
 
       // Propriedades para o sistema de abas
       const isActive = index === this.activeTabIndex;
@@ -374,41 +393,93 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     event.preventDefault();
     event.stopPropagation();
 
-    // Fecha o menu anterior se existir
-    if (
-      this.activeActionButton &&
-      this.activeActionButton !== event.currentTarget
-    ) {
-      this.activeActionButton.parentElement.classList.remove("slds-is-open");
-    }
+    // Fechar todos os outros dropdowns antes de abrir o atual
+    const currentTrigger = event.currentTarget.parentElement;
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        if (dropdown !== currentTrigger) {
+          dropdown.classList.remove("slds-is-open");
+        }
+      });
 
     // Toggle do menu atual
     const dropdownTrigger = event.currentTarget.parentElement;
     dropdownTrigger.classList.toggle("slds-is-open");
 
-    // Atualiza o botão ativo
-    this.activeActionButton = event.currentTarget;
+    // Se o dropdown está sendo aberto, posicione-o corretamente
+    if (dropdownTrigger.classList.contains("slds-is-open")) {
+      // Obter a posição do botão
+      const button = event.currentTarget;
+      const buttonRect = button.getBoundingClientRect();
+
+      // Obter o dropdown
+      const dropdown = dropdownTrigger.querySelector(".slds-dropdown");
+
+      // Definir a posição do dropdown em relação à viewport, não ao documento
+      dropdown.style.left = buttonRect.right - 300 + "px";
+      dropdown.style.top = buttonRect.bottom + "px";
+    }
   }
 
-  // Fecha o dropdown quando clicar fora
+  // Fecha os dropdowns quando clicar fora
   handleClickOutside = (event) => {
-    if (
-      this.activeActionButton &&
-      !this.activeActionButton.contains(event.target)
-    ) {
-      this.activeActionButton.parentElement.classList.remove("slds-is-open");
-      this.activeActionButton = null;
+    const clickedOnDropdown = event.target.closest(".slds-dropdown-trigger");
+
+    // Se não clicou em um dropdown, fecha todos
+    if (!clickedOnDropdown) {
+      this.template
+        .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+        .forEach((dropdown) => {
+          dropdown.classList.remove("slds-is-open");
+        });
+    }
+  };
+
+  // Fecha todos os dropdowns
+  closeAllDropdowns() {
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        dropdown.classList.remove("slds-is-open");
+      });
+  }
+
+  // Handler para fechar dropdowns ao rolar a página
+  handleScroll = () => {
+    this.closeAllDropdowns();
+  };
+
+  // Monitora as teclas para a seleção múltipla
+  handleKeyDown = (event) => {
+    if (event.key === "Shift") {
+      this.isShiftKeyPressed = true;
+    }
+  };
+
+  handleKeyUp = (event) => {
+    if (event.key === "Shift") {
+      this.isShiftKeyPressed = false;
     }
   };
 
   connectedCallback() {
     // Adiciona listener para fechar o dropdown quando clicar fora
     document.addEventListener("click", this.handleClickOutside);
+    // Adiciona listener para fechar o dropdown quando rolar a página
+    document.addEventListener("scroll", this.handleScroll, true);
+
+    // Adiciona listeners para as teclas (para seleção múltipla)
+    document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keyup", this.handleKeyUp);
   }
 
   disconnectedCallback() {
-    // Remove o listener quando o componente for destruído
+    // Remove os listeners quando o componente for destruído
     document.removeEventListener("click", this.handleClickOutside);
+    document.removeEventListener("scroll", this.handleScroll, true);
+    document.removeEventListener("keydown", this.handleKeyDown);
+    document.removeEventListener("keyup", this.handleKeyUp);
   }
 
   handleEdit(event) {
@@ -432,14 +503,36 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     event.preventDefault();
     event.stopPropagation();
     const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+    const recordName = record ? record.Name : "Registro";
 
-    deleteRecord({ recordId })
-      .then(() => {
-        return refreshApex(this.wiredRecordsResult);
-      })
-      .catch((error) => {
-        console.error("Erro ao excluir registro:", error);
+    // Primeiro fechamos qualquer dropdown que esteja aberto
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        dropdown.classList.remove("slds-is-open");
       });
+
+    // Confirmar exclusão
+    if (confirm(`Tem certeza que deseja excluir "${recordName}"?`)) {
+      deleteRecord({ recordId })
+        .then(() => {
+          this.showToastMessage(
+            "Sucesso",
+            `${recordName} foi excluído com sucesso.`,
+            "success"
+          );
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao excluir registro",
+            "error"
+          );
+          console.error("Erro ao excluir registro:", error);
+        });
+    }
   }
 
   handleClone(event) {
@@ -447,12 +540,42 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     event.stopPropagation();
 
     const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+    const recordName = record ? record.Name : "Registro";
+
+    // Primeiro fechamos qualquer dropdown que esteja aberto
+    this.template
+      .querySelectorAll(".slds-dropdown-trigger.slds-is-open")
+      .forEach((dropdown) => {
+        dropdown.classList.remove("slds-is-open");
+      });
 
     cloneRecord({ recordId })
-      .then(() => {
+      .then((result) => {
+        this.showToastMessage(
+          "Sucesso",
+          `${recordName} foi duplicado com sucesso e está na aba "Sem contato".`,
+          "success"
+        );
+
+        // Ativar aba "Sem contato" para mostrar o registro duplicado
+        const semContatoIndex = this.columns.findIndex(
+          (column) => column.value === "Sem contato"
+        );
+
+        if (semContatoIndex !== -1) {
+          this.activeTabIndex = semContatoIndex;
+          this.formatData(this.wiredRecordsResult.data);
+        }
+
         return refreshApex(this.wiredRecordsResult);
       })
       .catch((error) => {
+        this.showToastMessage(
+          "Erro",
+          error.body?.message || "Erro ao duplicar registro",
+          "error"
+        );
         console.error("Erro ao clonar registro:", error);
       });
   }
@@ -478,28 +601,337 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     });
   }
 
+  /**
+   * Manipula a seleção de registros através do checkbox
+   */
   handleRecordSelection(event) {
     const recordId = event.target.dataset.id;
-    if (event.target.checked) {
-      this.selectedRecords.add(recordId);
+    const isSelected = event.target.checked;
+
+    // Verifica se a tecla shift está pressionada para seleção múltipla
+    if (
+      this.isShiftKeyPressed &&
+      this.lastSelectedId &&
+      recordId !== this.lastSelectedId
+    ) {
+      this.selectRecordsBetween(this.lastSelectedId, recordId, isSelected);
     } else {
-      this.selectedRecords.delete(recordId);
+      // Seleção normal de um único registro
+      if (isSelected) {
+        this.selectedRecords.add(recordId);
+      } else {
+        this.selectedRecords.delete(recordId);
+      }
+
+      // Atualiza o último registro selecionado
+      this.lastSelectedId = isSelected ? recordId : null;
     }
-    this.showBulkActions = this.selectedRecords.size > 0;
+
+    // Atualiza a interface
+    this.updateRecordsSelection();
   }
 
-  handleBulkDelete() {
-    deleteRecordsInBulk({
-      recordIds: Array.from(this.selectedRecords)
-    })
-      .then(() => {
-        this.selectedRecords.clear();
-        this.showBulkActions = false;
-        return refreshApex(this.wiredRecordsResult);
-      })
-      .catch((error) => {
-        console.error("Erro ao excluir registros em massa:", error);
+  /**
+   * Manipula clique em qualquer parte do card para seleção
+   */
+  handleCardClick(event) {
+    // Ignora se o clique foi em um botão, link ou no checkbox
+    if (
+      event.target.tagName === "BUTTON" ||
+      event.target.tagName === "A" ||
+      event.target.tagName === "INPUT" ||
+      event.target.closest(".slds-dropdown-trigger") ||
+      event.target.closest("lightning-icon")
+    ) {
+      return;
+    }
+
+    // Obtém o ID do registro
+    const recordId = event.currentTarget.dataset.id;
+    const isSelected = this.selectedRecords.has(recordId);
+
+    // Inverte a seleção
+    if (isSelected) {
+      this.selectedRecords.delete(recordId);
+      this.lastSelectedId = null;
+    } else {
+      // Verifica se a tecla shift está pressionada para seleção múltipla
+      if (
+        this.isShiftKeyPressed &&
+        this.lastSelectedId &&
+        recordId !== this.lastSelectedId
+      ) {
+        this.selectRecordsBetween(this.lastSelectedId, recordId, true);
+      } else {
+        this.selectedRecords.add(recordId);
+        this.lastSelectedId = recordId;
+      }
+    }
+
+    // Atualiza a interface
+    this.updateRecordsSelection();
+  }
+
+  /**
+   * Seleciona todos os registros entre dois IDs
+   */
+  selectRecordsBetween(startId, endId, isSelected) {
+    // Encontrar os índices dos registros
+    let startIndex = -1;
+    let endIndex = -1;
+    let allRecords = [];
+
+    // Coletar todos os registros de todas as colunas
+    this.columns.forEach((column) => {
+      column.records.forEach((record) => {
+        allRecords.push(record);
+        if (record.Id === startId) startIndex = allRecords.length - 1;
+        if (record.Id === endId) endIndex = allRecords.length - 1;
       });
+    });
+
+    // Garantir que startIndex seja menor que endIndex
+    if (startIndex > endIndex) {
+      [startIndex, endIndex] = [endIndex, startIndex];
+    }
+
+    // Selecionar ou desselecionar todos os registros entre os índices
+    for (let i = startIndex; i <= endIndex; i++) {
+      const recordId = allRecords[i].Id;
+      if (isSelected) {
+        this.selectedRecords.add(recordId);
+      } else {
+        this.selectedRecords.delete(recordId);
+      }
+    }
+
+    this.lastSelectedId = endId;
+  }
+
+  /**
+   * Atualiza a interface para refletir os registros selecionados
+   */
+  updateRecordsSelection() {
+    // Atualiza as classes CSS e estados dos registros
+    this.formatData(this.wiredRecordsResult.data);
+  }
+
+  /**
+   * Limpa a seleção de todos os registros
+   */
+  handleClearSelection() {
+    this.selectedRecords.clear();
+    this.lastSelectedId = null;
+    this.updateRecordsSelection();
+  }
+
+  /**
+   * Excluir registros selecionados em massa
+   */
+  handleBulkDelete() {
+    if (this.selectedRecords.size === 0) return;
+
+    // Confirmar exclusão
+    if (
+      confirm(
+        `Tem certeza que deseja excluir ${this.selectedRecords.size} registro(s) selecionado(s)?`
+      )
+    ) {
+      deleteRecordsInBulk({
+        recordIds: Array.from(this.selectedRecords)
+      })
+        .then(() => {
+          this.showToastMessage(
+            "Sucesso",
+            `${this.selectedRecords.size} registro(s) excluído(s) com sucesso.`,
+            "success"
+          );
+          this.selectedRecords.clear();
+          this.lastSelectedId = null;
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao excluir registros em massa",
+            "error"
+          );
+          console.error("Erro ao excluir registros em massa:", error);
+        });
+    }
+  }
+
+  /**
+   * Exportar registros selecionados
+   */
+  handleBulkExport() {
+    if (this.selectedRecords.size === 0) return;
+
+    // Coletar dados dos registros selecionados
+    const selectedIds = Array.from(this.selectedRecords);
+    const selectedRecordsData = [];
+
+    this.columns.forEach((column) => {
+      column.records.forEach((record) => {
+        if (this.selectedRecords.has(record.Id)) {
+          selectedRecordsData.push({
+            Id: record.Id,
+            Nome: record.Name,
+            Conta: record.AccountName,
+            Valor: record.Amount,
+            Probabilidade: record.Probabilidade_da_Oportunidade__c,
+            DataFechamento: record.CloseDate,
+            Proprietario: record.OwnerName,
+            Estagio: record.StageName
+          });
+        }
+      });
+    });
+
+    // Converter para CSV
+    let csvContent = "data:text/csv;charset=utf-8,";
+
+    // Cabeçalhos
+    const headers = [
+      "Id",
+      "Nome",
+      "Conta",
+      "Valor",
+      "Probabilidade",
+      "Data de Fechamento",
+      "Proprietário",
+      "Estágio"
+    ];
+    csvContent += headers.join(",") + "\\n";
+
+    // Dados
+    selectedRecordsData.forEach((record) => {
+      const row = [
+        record.Id,
+        `"${record.Nome}"`,
+        `"${record.Conta}"`,
+        record.Valor,
+        record.Probabilidade,
+        record.DataFechamento,
+        `"${record.Proprietario}"`,
+        `"${record.Estagio}"`
+      ];
+      csvContent += row.join(",") + "\\n";
+    });
+
+    // Download do arquivo
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "oportunidades_exportadas.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    this.showToastMessage(
+      "Sucesso",
+      `${selectedRecordsData.length} registro(s) exportado(s) com sucesso.`,
+      "success"
+    );
+  }
+
+  /**
+   * Mover registros selecionados para um novo estágio
+   */
+  handleBulkMove() {
+    if (this.selectedRecords.size === 0) return;
+
+    // Criar um modal personalizado para selecionar o novo estágio
+    const modal = document.createElement("div");
+    modal.className = "slds-modal slds-fade-in-open";
+    modal.innerHTML = `
+      <div class="slds-modal__container">
+        <div class="slds-modal__header">
+          <h2 class="slds-text-heading_medium">Mover ${this.selectedRecords.size} registro(s)</h2>
+          <button class="slds-button slds-button_icon slds-modal__close">
+            <svg class="slds-button__icon" aria-hidden="true">
+              <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+            </svg>
+            <span class="slds-assistive-text">Fechar</span>
+          </button>
+        </div>
+        <div class="slds-modal__content slds-p-around_medium">
+          <div class="slds-form-element">
+            <label class="slds-form-element__label">Novo estágio:</label>
+            <div class="slds-form-element__control">
+              <div class="slds-select_container">
+                <select class="slds-select" id="bulk-move-stage-select">
+                  ${this.validStatuses.map((status) => `<option value="${status}">${status}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slds-modal__footer">
+          <button class="slds-button slds-button_neutral cancel-button">Cancelar</button>
+          <button class="slds-button slds-button_brand confirm-button">Mover</button>
+        </div>
+      </div>
+    `;
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "slds-backdrop slds-backdrop_open";
+
+    // Adicionar ao DOM
+    document.body.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    // Configurar listeners
+    const closeModal = () => {
+      document.body.removeChild(modal);
+      document.body.removeChild(backdrop);
+    };
+
+    modal
+      .querySelector(".slds-modal__close")
+      .addEventListener("click", closeModal);
+    modal.querySelector(".cancel-button").addEventListener("click", closeModal);
+
+    modal.querySelector(".confirm-button").addEventListener("click", () => {
+      const newStage = modal.querySelector("#bulk-move-stage-select").value;
+
+      // Fechar modal primeiro
+      closeModal();
+
+      // Array para armazenar as promessas de atualização
+      const updatePromises = [];
+
+      // Atualizar cada registro
+      this.selectedRecords.forEach((recordId) => {
+        updatePromises.push(
+          updateRecordStatus({
+            recordId: recordId,
+            newStatus: newStage
+          })
+        );
+      });
+
+      // Aguardar todas as atualizações
+      Promise.all(updatePromises)
+        .then(() => {
+          this.showToastMessage(
+            "Sucesso",
+            `${this.selectedRecords.size} registro(s) movido(s) para "${newStage}" com sucesso.`,
+            "success"
+          );
+          this.selectedRecords.clear();
+          this.lastSelectedId = null;
+          return refreshApex(this.wiredRecordsResult);
+        })
+        .catch((error) => {
+          this.showToastMessage(
+            "Erro",
+            error.body?.message || "Erro ao mover registros em massa",
+            "error"
+          );
+          console.error("Erro ao mover registros em massa:", error);
+        });
+    });
   }
 
   get stageOptions() {
@@ -669,12 +1101,17 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
 
   // Método auxiliar para mostrar mensagens toast
   showToastMessage(title, message, variant) {
-    const evt = new ShowToastEvent({
-      title: title,
-      message: message,
-      variant: variant
-    });
-    this.dispatchEvent(evt);
+    // Adicionando um atraso pequeno para garantir que o toast seja exibido após o refresh
+    setTimeout(() => {
+      const evt = new ShowToastEvent({
+        title: title,
+        message: message,
+        variant: variant,
+        mode: "dismissable" // Garantindo que o toast seja dismissível
+      });
+      this.dispatchEvent(evt);
+      console.log("Toast disparado:", title, message, variant);
+    }, 100);
   }
 
   handleFieldChange(event) {
@@ -742,5 +1179,65 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
     return this.availableFields.filter(
       (field) => field.type === "DATE" || field.type === "DATETIME"
     );
+  }
+
+  handleViewDetails(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+
+    // Navega para a página de detalhes da oportunidade
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: recordId,
+        objectApiName: this.objectApiName,
+        actionName: "view"
+      }
+    });
+  }
+
+  handleAssignOwner(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+
+    this[NavigationMixin.Navigate]({
+      type: "standard__recordPage",
+      attributes: {
+        recordId: recordId,
+        objectApiName: this.objectApiName,
+        actionName: "edit"
+      },
+      state: {
+        defaultFieldValues: "OwnerId=",
+        navigationLocation: "LOOKUP",
+        focusedFieldName: "OwnerId"
+      }
+    });
+  }
+
+  handleAddTask(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const recordId = event.currentTarget.dataset.id;
+    const record = this.findRecordById(recordId);
+
+    // Cria uma nova tarefa relacionada ao registro
+    this[NavigationMixin.Navigate]({
+      type: "standard__objectPage",
+      attributes: {
+        objectApiName: "Task",
+        actionName: "new"
+      },
+      state: {
+        defaultFieldValues: `WhatId=${recordId}`,
+        navigationLocation: "LOOKUP"
+      }
+    });
   }
 }

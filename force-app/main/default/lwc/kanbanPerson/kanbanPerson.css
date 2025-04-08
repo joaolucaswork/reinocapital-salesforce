@@ -233,9 +233,17 @@
   min-width: 120px;
 }
 
+.col-owner {
+  width: 150px;
+  min-width: 120px;
+}
+
 .col-actions {
-  width: 60px;
+  width: 50px;
   min-width: 50px;
+  max-width: 50px;
+  padding-right: 8px;
+  flex: 0 0 50px;
 }
 
 /* Cabeçalhos ordenáveis */
@@ -290,31 +298,52 @@
 .slds-dropdown-trigger {
   position: relative;
   margin-left: auto;
+  z-index: 9999;
 }
 
 .slds-dropdown-trigger .slds-dropdown {
   display: none;
-  position: absolute;
-  right: 0;
-  top: 100%;
-  width: 200px;
+  position: fixed; /* Alterado para fixed para evitar problemas com elementos sobrepostos */
+  right: auto; /* Removido o right anterior */
+  top: auto; /* Removido o top anterior */
+  transform: translateY(-50%); /* Melhor posicionamento vertical */
+  width: 240px; /* Aumentado o tamanho para acomodar os ícones */
   background: var(--lwc-colorBackground, white);
-  box-shadow: var(--lwc-shadowDropDown, 0 2px 3px 0 rgba(0, 0, 0, 0.16));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra melhorada */
+  z-index: 99999;
   border: 1px solid var(--lwc-colorBorder, #dddbda);
   border-radius: var(--lwc-borderRadiusMedium, 0.25rem);
-  z-index: 9000;
+  padding: 0.5rem 0; /* Espaçamento interno */
 }
 
+/* Posicionamento do dropdown quando aberto */
 .slds-dropdown-trigger.slds-is-open .slds-dropdown {
   display: block !important;
 }
 
+/* Estilo dos itens do dropdown */
+.slds-dropdown__item {
+  position: relative;
+}
+
 .slds-dropdown__item > a {
-  display: block;
-  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem;
   color: var(--lwc-colorTextDefault, #000000);
   white-space: nowrap;
   cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.1s ease;
+}
+
+/* Ícone dentro dos itens do dropdown */
+.slds-dropdown__item > a lightning-icon {
+  margin-right: 0.5rem;
+}
+
+.dropdown-item {
+  transition: all 0.15s ease-in-out;
 }
 
 .slds-dropdown__item > a:hover,
@@ -322,6 +351,33 @@
   background-color: var(--lwc-colorBackgroundRowHover, #f3f2f2);
   text-decoration: none;
   outline: 0;
+  transform: translateX(2px);
+  color: #0070d2;
+}
+
+.slds-dropdown__item > a:hover lightning-icon,
+.slds-dropdown__item > a:focus lightning-icon {
+  --sds-c-icon-color-foreground-default: #0070d2;
+}
+
+/* Divisores entre itens */
+.dropdown-divider {
+  height: 1px;
+  margin: 0.25rem 0;
+  background-color: var(--lwc-colorBorder, #dddbda);
+}
+
+/* Botão da seta aprimorado */
+.slds-dropdown-trigger button.slds-button_icon {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  transition: all 0.2s ease;
+}
+
+.slds-dropdown-trigger button.slds-button_icon:hover {
+  background-color: #f3f3f3;
+  border-color: #dddbda;
 }
 
 /* Combobox de estágio */
@@ -516,4 +572,93 @@
 
 .configuration-modal .slds-backdrop {
   z-index: 9001;
+}
+
+/* Estilos para a barra de seleção estilo Gmail */
+.selection-bar-container {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: white;
+  color: #444444;
+  padding: 0 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  transition: all 0.3s ease;
+}
+
+.selection-count {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.selection-text {
+  margin-left: 8px;
+  font-size: 15px;
+}
+
+.selection-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.selection-action {
+  color: #444444 !important;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.selection-action:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.selection-clear {
+  color: #444444 !important;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+}
+
+/* Estilo para cards selecionáveis */
+.record-item {
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.record-item.selected {
+  background-color: rgba(11, 87, 208, 0.08);
+  border: 1px solid #0b57d0;
+}
+
+/* Area clicável para selecionar o card (limitada ao conteúdo do card) */
+.selectable-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Certificando que elementos interativos estejam acima da área clicável */
+.record-item a,
+.record-item button,
+.record-item lightning-input,
+.record-item lightning-combobox,
+.slds-dropdown-trigger {
+  position: relative;
+  z-index: 2;
 }

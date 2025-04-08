@@ -32,6 +32,8 @@ Usage Guidelines:
 - Be aware that this file may contain sensitive information. Handle it with
   the same level of security as you would the original repository.
 
+- Pay special attention to the Repository Instruction. These contain important context and guidelines specific to this project.
+
 Notes:
 ------
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
@@ -57,21 +59,33 @@ force-app/main/default/classes/KanbanDataController.cls
 force-app/main/default/classes/KanbanDataController.cls-meta.xml
 force-app/main/default/classes/KanbanDataControllerTest.cls
 force-app/main/default/classes/KanbanDataControllerTest.cls-meta.xml
+force-app/main/default/classes/LeadTriggerHandler.cls
+force-app/main/default/classes/LeadTriggerHandler.cls-meta.xml
+force-app/main/default/classes/LeadTriggerHandlerTest.cls
+force-app/main/default/classes/LeadTriggerHandlerTest.cls-meta.xml
 force-app/main/default/lwc/.eslintrc.json
 force-app/main/default/lwc/kanbanPerson/__tests__/kanbanPerson.test.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.css
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.html
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js
 force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
-force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml
+force-app/main/default/permissionsetgroups/SDR_Group.permissionsetgroup-meta.xml
+force-app/main/default/permissionsets/SDR_Base_Permissions.permissionset-meta.xml
+force-app/main/default/permissionsets/SDR_Tab_Permissions.permissionset-meta.xml
+force-app/main/default/triggers/LeadTrigger.trigger
+force-app/main/default/triggers/LeadTrigger.trigger-meta.xml
 force-app/test/jest-mocks/lightning/navigation.js
 force-app/test/jest-mocks/lightning/platformShowToastEvent.js
 jest.config.js
+manifest-temp/package.xml
+manifest/package-permissions.xml
 manifest/package.xml
 mydomain.html
 package.json
+Permissões de acesso - SalesForce.md
 README.md
-reinocapital-salesforce.code-workspace
+repomix-instruction.md
+repomix.config.json
 scripts/apex/hello.apex
 scripts/soql/account.soql
 scripts/soql/api-test.soql
@@ -80,6 +94,590 @@ sfdx-project.json
 ================================================================
 Files
 ================================================================
+
+================
+File: force-app/main/default/classes/LeadTriggerHandler.cls
+================
+public class LeadTriggerHandler {
+  public static void handleBeforeDelete(List<Lead> oldLeads) {
+    if (Trigger.isDelete) {
+      Map<Id, Lead> leadsWithCreator = new Map<Id, Lead>(
+        [
+          SELECT Id, CreatedById, IsConverted
+          FROM Lead
+          WHERE Id IN :oldLeads
+        ]
+      );
+
+      for (Lead lead : oldLeads) {
+        Lead leadWithCreator = leadsWithCreator.get(lead.Id);
+        if (leadWithCreator.CreatedById != UserInfo.getUserId()) {
+          lead.addError(
+            'Você só pode excluir Leads que foram criados por você.'
+          );
+        }
+        if (leadWithCreator.IsConverted) {
+          lead.addError('Lead já convertido não pode ser excluído.');
+        }
+      }
+    }
+  }
+
+  public static void handleBeforeInsert(List<Lead> newLeads) {
+    for (Lead lead : newLeads) {
+      validateEmailFormat(lead);
+      validatePhoneFormat(lead);
+    }
+  }
+
+  public static void handleBeforeUpdate(
+    List<Lead> newLeads,
+    Map<Id, Lead> oldLeadsMap
+  ) {
+    for (Lead lead : newLeads) {
+      Lead oldLead = oldLeadsMap.get(lead.Id);
+      validateEmailFormat(lead);
+      validatePhoneFormat(lead);
+
+      if (
+        oldLead.Status != lead.Status &&
+        lead.Status == 'Fechado' &&
+        String.isBlank(lead.Rating)
+      ) {
+        lead.addError('Rating é obrigatório para Leads com status Fechado.');
+      }
+    }
+  }
+
+  private static void validateEmailFormat(Lead lead) {
+    if (String.isNotBlank(lead.Email) && !lead.Email.contains('@')) {
+      lead.Email.addError('Email inválido. Deve conter @.');
+    }
+  }
+
+  private static void validatePhoneFormat(Lead lead) {
+    if (String.isNotBlank(lead.Phone) && !lead.Phone.isNumeric()) {
+      lead.Phone.addError('Telefone deve conter apenas números.');
+    }
+  }
+}
+
+================
+File: force-app/main/default/classes/LeadTriggerHandler.cls-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
+
+================
+File: force-app/main/default/classes/LeadTriggerHandlerTest.cls
+================
+@isTest
+private class LeadTriggerHandlerTest {
+  @TestSetup
+  static void makeData() {
+    Profile p = [
+      SELECT Id
+      FROM Profile
+      WHERE Name = 'Minimum Access - API Only Integrations'
+    ];
+
+    User u1 = new User(
+      Username = 'test.user1@reinocapital.com.test',
+      LastName = 'Testing1',
+      FirstName = 'Test1',
+      Email = 'test.user1@reinocapital.com.test',
+      Alias = 'test1',
+      TimeZoneSidKey = 'America/Sao_Paulo',
+      LocaleSidKey = 'pt_BR',
+      EmailEncodingKey = 'UTF-8',
+      LanguageLocaleKey = 'pt_BR',
+      ProfileId = p.Id
+    );
+
+    User u2 = new User(
+      Username = 'test.user2@reinocapital.com.test',
+      LastName = 'Testing2',
+      FirstName = 'Test2',
+      Email = 'test.user2@reinocapital.com.test',
+      Alias = 'test2',
+      TimeZoneSidKey = 'America/Sao_Paulo',
+      LocaleSidKey = 'pt_BR',
+      EmailEncodingKey = 'UTF-8',
+      LanguageLocaleKey = 'pt_BR',
+      ProfileId = p.Id
+    );
+
+    insert new List<User>{ u1, u2 };
+  }
+
+  @isTest
+  static void testCannotDeleteOthersLead() {
+    List<User> users = [
+      SELECT Id
+      FROM User
+      WHERE Email LIKE 'test.user%@reinocapital.com.test'
+      ORDER BY Email
+    ];
+    User u1 = users[0];
+    User u2 = users[1];
+
+    System.runAs(u1) {
+      Lead l = new Lead(LastName = 'Teste', Company = 'Empresa');
+      insert l;
+
+      System.runAs(u2) {
+        Test.startTest();
+        try {
+          delete l;
+          System.assert(
+            false,
+            'Deveria ter falhado ao deletar lead de outro usuário'
+          );
+        } catch (DmlException e) {
+          String msg = e.getDmlMessage(0);
+          System.assert(
+            msg.contains(
+              'Você só pode excluir Leads que foram criados por você.'
+            ) || msg.contains('insufficient access rights'),
+            'Mensagem de erro incorreta: ' + msg
+          );
+        }
+        Test.stopTest();
+      }
+    }
+  }
+
+  @isTest
+  static void testCanDeleteOwnLead() {
+    User u = [
+      SELECT Id
+      FROM User
+      WHERE Email LIKE 'test.user1@reinocapital.com.test'
+      LIMIT 1
+    ];
+
+    System.runAs(u) {
+      Lead l = new Lead(LastName = 'Meu Lead', Company = 'Empresa');
+      insert l;
+
+      Test.startTest();
+      delete l;
+      Test.stopTest();
+
+      List<Lead> deletedLead = [SELECT Id FROM Lead WHERE Id = :l.Id];
+      System.assertEquals(
+        0,
+        deletedLead.size(),
+        'O lead deveria ter sido excluído com sucesso'
+      );
+    }
+  }
+
+  @IsTest
+  static void testCannotDeleteConvertedLead() {
+    User u = [
+      SELECT Id
+      FROM User
+      WHERE Email LIKE 'test.user1@reinocapital.com.test'
+      LIMIT 1
+    ];
+
+    System.runAs(u) {
+      // Criar conta e contato necessários para conversão
+      Account acc = new Account(Name = 'Teste Account');
+      insert acc;
+
+      Contact con = new Contact(LastName = 'Teste Contact', AccountId = acc.Id);
+      insert con;
+
+      // Consulta os valores válidos para o status de conversão
+      LeadStatus convertStatus = [
+        SELECT Id, MasterLabel
+        FROM LeadStatus
+        WHERE IsConverted = TRUE
+        LIMIT 1
+      ];
+
+      Lead l = new Lead(
+        LastName = 'Teste',
+        Company = 'Empresa',
+        Status = 'Qualificado' // Use um status válido que permita conversão
+      );
+      insert l;
+
+      Database.LeadConvert lc = new Database.LeadConvert();
+      lc.setLeadId(l.Id);
+      lc.setAccountId(acc.Id);
+      lc.setContactId(con.Id);
+      lc.setConvertedStatus(convertStatus.MasterLabel); // Use um status válido de conversão
+
+      Test.startTest();
+      Database.LeadConvertResult lcr = Database.convertLead(lc);
+      System.assert(
+        lcr.isSuccess(),
+        'A conversão do Lead deveria ter sido bem sucedida'
+      );
+
+      try {
+        delete l;
+        System.assert(
+          false,
+          'Deveria ter falhado ao tentar excluir lead convertido'
+        );
+      } catch (DmlException e) {
+        System.assert(
+          e.getMessage().contains('Lead já convertido não pode ser excluído.'),
+          'Mensagem de erro esperada'
+        );
+      }
+      Test.stopTest();
+    }
+  }
+
+  @isTest
+  static void testInvalidEmailFormat() {
+    Lead l = new Lead(
+      LastName = 'Teste',
+      Company = 'Empresa',
+      Email = 'emailinvalido'
+    );
+
+    Test.startTest();
+    try {
+      insert l;
+      System.assert(false, 'Deveria ter falhado com email inválido');
+    } catch (DmlException e) {
+      System.assertEquals(
+        'Email: endereço de email inválido: emailinvalido',
+        e.getDmlMessage(0),
+        'Mensagem de erro incorreta'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @isTest
+  static void testInvalidPhoneFormat() {
+    Lead l = new Lead(
+      LastName = 'Teste',
+      Company = 'Empresa',
+      Phone = 'abc123'
+    );
+
+    Test.startTest();
+    try {
+      insert l;
+      System.assert(false, 'Deveria ter falhado com telefone inválido');
+    } catch (DmlException e) {
+      System.assert(
+        e.getMessage().contains('apenas números'),
+        'Mensagem de erro esperada'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @isTest
+  static void testRequiredRatingOnClosedStatus() {
+    Lead l = new Lead(LastName = 'Teste', Company = 'Empresa');
+    insert l;
+
+    l.Status = 'Fechado';
+
+    Test.startTest();
+    try {
+      update l;
+      System.assert(false, 'Deveria ter falhado sem Rating');
+    } catch (DmlException e) {
+      System.assert(
+        e.getMessage().contains('Rating é obrigatório'),
+        'Mensagem de erro esperada'
+      );
+    }
+    Test.stopTest();
+  }
+
+  @isTest
+  static void testValidLeadUpdate() {
+    Lead l = new Lead(
+      LastName = 'Teste',
+      Company = 'Empresa',
+      Email = 'teste@email.com',
+      Phone = '123456789'
+    );
+    insert l;
+
+    l.Status = 'Fechado';
+    l.Rating = 'Hot';
+
+    Test.startTest();
+    update l;
+    Test.stopTest();
+
+    Lead updatedLead = [SELECT Status, Rating FROM Lead WHERE Id = :l.Id];
+    System.assertEquals('Fechado', updatedLead.Status);
+    System.assertEquals('Hot', updatedLead.Rating);
+  }
+}
+
+================
+File: force-app/main/default/classes/LeadTriggerHandlerTest.cls-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
+
+================
+File: force-app/main/default/permissionsetgroups/SDR_Group.permissionsetgroup-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Grupo de permissões para SDRs</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>SDR Group</label>
+    <permissionSets>SDR_Base_Permissions</permissionSets>
+    <permissionSets>SDR_Tab_Permissions</permissionSets>
+    <status>Updated</status>
+</PermissionSetGroup>
+
+================
+File: force-app/main/default/permissionsets/SDR_Base_Permissions.permissionset-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Permissões base para usuários SDR</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>SDR Base Permissions</label>
+    
+    <!-- Account Permissions -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Account</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    
+    <!-- Contact Permissions -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Contact</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    
+    <!-- Lead Permissions -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Lead</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    
+    <!-- Opportunity Permissions -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Opportunity</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    
+    <!-- Task Permissions -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Task</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+</PermissionSet>
+
+================
+File: force-app/main/default/permissionsets/SDR_Tab_Permissions.permissionset-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Permissões de acesso às guias para SDRs</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>SDR Tab Permissions</label>
+    
+    <!-- Tab Permissions -->
+    <tabSettings>
+        <tab>area_comercial</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+</PermissionSet>
+
+================
+File: force-app/main/default/triggers/LeadTrigger.trigger
+================
+trigger LeadTrigger on Lead(before insert, before update, before delete) {
+  if (Trigger.isBefore) {
+    if (Trigger.isDelete) {
+      LeadTriggerHandler.handleBeforeDelete(Trigger.old);
+    } else if (Trigger.isInsert) {
+      LeadTriggerHandler.handleBeforeInsert(Trigger.new);
+    } else if (Trigger.isUpdate) {
+      LeadTriggerHandler.handleBeforeUpdate(Trigger.new, Trigger.oldMap);
+    }
+  }
+}
+
+================
+File: force-app/main/default/triggers/LeadTrigger.trigger-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <status>Active</status>
+</ApexClass>
+
+================
+File: manifest-temp/package.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>LeadTriggerHandler</members>
+        <members>LeadTriggerHandlerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>LeadTrigger</members>
+        <name>ApexTrigger</name>
+    </types>
+    <version>58.0</version>
+</Package>
+
+================
+File: manifest/package-permissions.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>SDR_Base_Permissions</members>
+        <members>SDR_Tab_Permissions</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>SDR_Group</members>
+        <name>PermissionSetGroup</name>
+    </types>
+    <types>
+        <members>Lead.PreventDeletionByOthers</members>
+        <members>Opportunity.PreventDeletionByOthers</members>
+        <name>ValidationRule</name>
+    </types>
+    <types>
+        <members>Lead</members>
+        <members>Opportunity</members>
+        <name>SharingRules</name>
+    </types>
+    <version>57.0</version>
+</Package>
+
+================
+File: Permissões de acesso - SalesForce.md
+================
+# Permissões - SalesForce
+
+O objetivo desse arquivo é definir como quero que funcione os conjuntos de permissões e o grupo de permissão.
+Primeiro vamos criar os conjuntos de permissões para ser reutilizados em outro grupo, mas focaremos no grupo dos SDR's
+
+### Nome API das guias
+
+area_comercial
+area_gestor
+back_office
+
+### Nome API dos objetos
+
+Account
+Lead
+Opportunity
+Task
+
+### Nome API das Páginas Lightning
+
+PaginaGestor
+AreaComercial
+
+## Permissões SDR
+
+Primeiro vamos começar definimos quais permissão cada úsuario do time de SDR terá.
+
+O usuario que tem o grupo de SDR atribuido tem as seguintes permissões :
+
+**Permissão de guias**
+Permissão para acessar a guia com o nome de api **area_comercial**
+
+**Permissão de objetos**
+
+**Permissão para acessar objetos com esses nomes de API**
+
+- Account
+- Lead
+- Opportunity
+- Task
+
+**Objeto Account**
+
+- Visualizar somente cliente designados para o usuário dele
+- Somente tem a permissão de Leitura dos dados do cliente designado
+
+**Objeto Lead**
+
+- Só consegue visualizar os leads que ele criou ou os leads atribuido a ele.
+- CRUD para os Leads criados por ele
+- Se outro usuario criou o lead e atribuiu a ele, ele não tem permissão para excluir (Somente Ler e Atualizar)
+
+**Objeto Opportunity**
+
+- Só consegue visualizar as oportunidades que ele criou ou as oportunidades atribuidas a ele.
+- CRUD para as Oportunidades criadas por ele
+- Se outro usuario criou a Oportunidade e atribuiu a ele, ele não tem permissão para excluir (Somente Ler e Atualizar)
+
+================
+File: repomix-instruction.md
+================
+# Coding Guidelines
+
+- Follow the Airbnb JavaScript Style Guide
+- Suggest splitting files into smaller, focused units when appropriate
+- Add comments for non-obvious logic. Keep all text in Portuguese
+- All new features should have corresponding unit tests
+
+# Generate Comprehensive Output
+
+- Include all content without abbreviation, unless specified otherwise
+- Optimize for handling large codebases while maintaining output quality
+
+================
+File: repomix.config.json
+================
+{
+  "output": {
+    "instructionFilePath": "repomix-instruction.md"
+  }
+}
 
 ================
 File: .forceignore
@@ -231,39 +829,6 @@ File: force-app/main/default/lwc/.eslintrc.json
 }
 
 ================
-File: force-app/main/default/permissionsets/Kanban_Board_User.permissionset-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>Kanban Board User</label>
-    <description>Permissões necessárias para usar o Kanban Board</description>
-    
-    <!-- Permissões da Classe Apex -->
-    <classAccesses>
-        <apexClass>KanbanDataController</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-
-    <!-- Permissões do Objeto -->
-    <objectPermissions>
-        <allowCreate>true</allowCreate>
-        <allowDelete>true</allowDelete>
-        <allowEdit>true</allowEdit>
-        <allowRead>true</allowRead>
-        <modifyAllRecords>false</modifyAllRecords>
-        <object>Opportunity</object>
-        <viewAllRecords>false</viewAllRecords>
-    </objectPermissions>
-
-    <!-- Permissões dos Campos Customizados -->
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Opportunity.Probabilidade_da_Oportunidade__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-</PermissionSet>
-
-================
 File: force-app/test/jest-mocks/lightning/navigation.js
 ================
 export const NavigationMixin = (Base) => {
@@ -378,6 +943,31 @@ File: config/project-scratch-def.json
 }
 
 ================
+File: mydomain.html
+================
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reino Capital</title>
+    <style>
+      body {
+        background-color: white;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="content-top"></header>
+    <main class="content"></main>
+  </body>
+</html>
+
+================
 File: force-app/main/default/classes/KanbanDataControllerTest.cls
 ================
 @isTest
@@ -439,7 +1029,6 @@ private class KanbanDataControllerTest {
     ];
 
     Test.startTest();
-    // Usando um status diferente de "Em Negociação"
     KanbanDataController.updateRecordStatus(opp.Id, 'Primeiro Contato');
     Test.stopTest();
 
@@ -456,7 +1045,7 @@ private class KanbanDataControllerTest {
   }
 
   @isTest
-  static void testUpdateRecordStatusWithExistingActiveOpp() {
+  static void testUpdateRecordStatusToValidStage() {
     Opportunity opp = [
       SELECT Id
       FROM Opportunity
@@ -465,13 +1054,19 @@ private class KanbanDataControllerTest {
     ];
 
     Test.startTest();
-    try {
-      KanbanDataController.updateRecordStatus(opp.Id, 'Em Negociação');
-      System.assert(false, 'Deveria ter lançado uma exceção');
-    } catch (Exception e) {
-      System.assert(true, 'Exceção esperada foi lançada');
-    }
+    KanbanDataController.updateRecordStatus(opp.Id, 'Em Negociação');
     Test.stopTest();
+
+    Opportunity updatedOpp = [
+      SELECT StageName
+      FROM Opportunity
+      WHERE Id = :opp.Id
+    ];
+    System.assertEquals(
+      'Em Negociação',
+      updatedOpp.StageName,
+      'Status não foi atualizado corretamente para Em Negociação'
+    );
   }
 
   @isTest
@@ -587,84 +1182,80 @@ private class KanbanDataControllerTest {
     }
     Test.stopTest();
   }
+
+  // Teste para getAvailableObjects
+  // Verifica se os objetos disponíveis estão sendo retornados corretamente
+  @isTest
+  static void testGetAvailableObjects() {
+    Test.startTest();
+    List<Map<String, String>> objects = KanbanDataController.getAvailableObjects();
+    Test.stopTest();
+
+    System.assert(
+      objects.size() > 0,
+      'Deveria retornar pelo menos um objeto acessível'
+    );
+    System.assert(
+      objects[0].containsKey('label'),
+      'Cada objeto deveria ter uma label'
+    );
+    System.assert(
+      objects[0].containsKey('value'),
+      'Cada objeto deveria ter um value'
+    );
+  }
+
+  // Teste para getAvailableFields
+  // Verifica se os campos disponíveis para o objeto Opportunity estão sendo retornados corretamente
+  @isTest
+  static void testGetAvailableFields() {
+    Test.startTest();
+    List<Map<String, String>> fields = KanbanDataController.getAvailableFields(
+      'Opportunity'
+    );
+    Test.stopTest();
+
+    System.assert(
+      fields.size() > 0,
+      'Deveria retornar pelo menos um campo da Opportunity'
+    );
+    System.assert(
+      fields[0].containsKey('label'),
+      'Cada campo deveria ter um label'
+    );
+    System.assert(
+      fields[0].containsKey('value'),
+      'Cada campo deveria ter um value'
+    );
+    System.assert(
+      fields[0].containsKey('type'),
+      'Cada campo deveria ter um tipo'
+    );
+  }
+
+  // Teste para getPicklistValues
+  // Verifica se os valores de picklist estão sendo retornados corretamente
+  @isTest
+  static void testGetPicklistValuesAndFallback() {
+    Test.startTest();
+    // Força erro passando um campo inexistente pra cair no bloco de fallback
+    List<Map<String, String>> values = KanbanDataController.getPicklistValues(
+      'Opportunity',
+      'CampoInvalido__c'
+    );
+    Test.stopTest();
+
+    System.assert(
+      values.size() > 0,
+      'Deveria retornar valores padrão mesmo com erro'
+    );
+    System.assertEquals(
+      'Sem contato',
+      values[0].get('value'),
+      'Primeiro valor do fallback deveria ser "Sem contato"'
+    );
+  }
 }
-
-================
-File: manifest/package.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <types>
-        <members>KanbanDataController</members>
-        <members>KanbanDataControllerTest</members>
-        <name>ApexClass</name>
-    </types>
-    <types>
-        <members>kanbanPerson</members>
-        <name>LightningComponentBundle</name>
-    </types>
-    <version>63.0</version>
-</Package>
-
-================
-File: mydomain.html
-================
-<!doctype html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reino Capital</title>
-    <style>
-      body {
-        background-color: white;
-        -webkit-background-size: cover;
-        -moz-background-size: cover;
-        -o-background-size: cover;
-        background-size: cover;
-      }
-    </style>
-  </head>
-  <body>
-    <header class="content-top"></header>
-    <main class="content"></main>
-  </body>
-</html>
-
-================
-File: reinocapital-salesforce.code-workspace
-================
-{
-	"folders": [
-		{
-			"name": "reinocapital-salesforce",
-			"path": "."
-		}
-	],
-	"settings": {
-		"salesforce.einsteinForDevelopers.enable": true,
-		"salesforcedx-vscode-core.show-cli-success-msg": false
-	}
-}
-
-================
-File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
-================
-<?xml version="1.0" encoding="UTF-8" ?>
-<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>58.0</apiVersion>
-    <isExposed>true</isExposed>
-    <masterLabel>Kanban Board Genérico</masterLabel>
-    <description
-  >Visualização em Kanban configurável para qualquer objeto do Salesforce</description>
-    <targets>
-        <target>lightning__AppPage</target>
-        <target>lightning__RecordPage</target>
-        <target>lightning__HomePage</target>
-    </targets>
-  
-       
-</LightningComponentBundle>
 
 ================
 File: jest.config.js
@@ -687,6 +1278,23 @@ module.exports = {
   modulePathIgnorePatterns: ["<rootDir>/.localdevserver"],
   transformIgnorePatterns: ["/node_modules/(?!@salesforce)"]
 };
+
+================
+File: manifest/package.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>LeadTriggerHandler</members>
+        <members>LeadTriggerHandlerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>LeadTrigger</members>
+        <name>ApexTrigger</name>
+    </types>
+    <version>58.0</version>
+</Package>
 
 ================
 File: package.json
@@ -939,6 +1547,25 @@ describe("Visualização de Registros - Oportunidade", () => {
     });
   });
 });
+
+================
+File: force-app/main/default/lwc/kanbanPerson/kanbanPerson.js-meta.xml
+================
+<?xml version="1.0" encoding="UTF-8" ?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>58.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Kanban Board Genérico</masterLabel>
+    <description
+  >Visualização em Kanban configurável para qualquer objeto do Salesforce</description>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+  
+       
+</LightningComponentBundle>
 
 ================
 File: README.md
@@ -3203,6 +3830,21 @@ export default class KanbanPerson extends NavigationMixin(LightningElement) {
   }
 }
 
+
+================================================================
+Instruction
+================================================================
+# Coding Guidelines
+
+- Follow the Airbnb JavaScript Style Guide
+- Suggest splitting files into smaller, focused units when appropriate
+- Add comments for non-obvious logic. Keep all text in Portuguese
+- All new features should have corresponding unit tests
+
+# Generate Comprehensive Output
+
+- Include all content without abbreviation, unless specified otherwise
+- Optimize for handling large codebases while maintaining output quality
 
 
 ================================================================
