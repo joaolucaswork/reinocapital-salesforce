@@ -94,6 +94,57 @@
       </div>
     </div>
 
+    <!-- Barra de ações para itens selecionados (estilo Gmail) -->
+    <div if:true={hasSelectedRecords} class="selection-bar-container">
+      <div class="selection-bar">
+        <div class="selection-count">
+          <button
+            class="slds-button slds-button_icon selection-clear"
+            title="Limpar seleção"
+            onclick={handleClearSelection}
+          >
+            <lightning-icon
+              icon-name="utility:close"
+              size="small"
+            ></lightning-icon>
+          </button>
+          <span class="selection-text">{selectedCount} selecionados</span>
+        </div>
+        <div class="selection-actions">
+          <button
+            class="slds-button slds-button_icon selection-action"
+            title="Excluir selecionados"
+            onclick={handleBulkDelete}
+          >
+            <lightning-icon
+              icon-name="utility:delete"
+              size="small"
+            ></lightning-icon>
+          </button>
+          <button
+            class="slds-button slds-button_icon selection-action"
+            title="Exportar selecionados"
+            onclick={handleBulkExport}
+          >
+            <lightning-icon
+              icon-name="utility:download"
+              size="small"
+            ></lightning-icon>
+          </button>
+          <button
+            class="slds-button slds-button_icon selection-action"
+            title="Mover selecionados"
+            onclick={handleBulkMove}
+          >
+            <lightning-icon
+              icon-name="utility:move"
+              size="small"
+            ></lightning-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="slds-card__body">
       <!-- Sistema de abas do SLDS -->
       <div class="slds-tabs_default">
@@ -215,16 +266,20 @@
                     Data de Fechamento
                   </div>
                 </div>
+                <!-- Proprietário -->
+                <div class="slds-col col-owner">
+                  <div
+                    class="slds-text-title_caps slds-text-color_weak sortable-header"
+                    onclick={handleSort}
+                    data-field="Owner.Name"
+                  >
+                    Proprietário
+                  </div>
+                </div>
                 <!-- Estágio -->
                 <div class="slds-col col-stage">
                   <div class="slds-text-title_caps slds-text-color_weak">
                     Estágio
-                  </div>
-                </div>
-                <!-- Ações -->
-                <div class="slds-col col-actions">
-                  <div class="slds-text-title_caps slds-text-color_weak">
-                    Ações
                   </div>
                 </div>
               </div>
@@ -236,12 +291,18 @@
                 <template for:each={column.records} for:item="record">
                   <li
                     key={record.Id}
-                    class="slds-item record-item"
+                    class={record.cardClass}
                     draggable="true"
                     ondragstart={handleDrag}
                     ondragend={handleDragEnd}
                     data-id={record.Id}
                   >
+                    <!-- Área clicável para selecionar o card sobreposta ao conteúdo do card -->
+                    <div
+                      class="selectable-area"
+                      data-id={record.Id}
+                      onclick={handleCardClick}
+                    ></div>
                     <div class="slds-grid slds-grid_vertical-align-center">
                       <!-- Checkbox -->
                       <div class="slds-col col-checkbox">
@@ -323,6 +384,12 @@
                           </template>
                         </div>
                       </div>
+                      <!-- Proprietário -->
+                      <div class="slds-col col-owner">
+                        <div class="slds-truncate" title={record.OwnerName}>
+                          {record.OwnerName}
+                        </div>
+                      </div>
                       <!-- Estágio -->
                       <div class="slds-col col-stage">
                         <div
@@ -341,7 +408,6 @@
                           </lightning-combobox>
                         </div>
                       </div>
-                      <!-- Ações -->
                       <div class="slds-col col-actions slds-text-align_right">
                         <div
                           class="slds-dropdown-trigger slds-dropdown-trigger_click"
@@ -372,10 +438,20 @@
                                   href="javascript:void(0);"
                                   role="menuitem"
                                   tabindex="-1"
-                                  onclick={handleEdit}
+                                  onclick={handleViewDetails}
                                   data-id={record.Id}
+                                  class="dropdown-item"
                                 >
-                                  <span class="slds-truncate">Editar</span>
+                                  <lightning-icon
+                                    icon-name="utility:preview"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
+                                  <span
+                                    class="slds-truncate"
+                                    title="Ver Detalhes"
+                                    >Ver Detalhes</span
+                                  >
                                 </a>
                               </li>
                               <li
@@ -386,9 +462,62 @@
                                   href="javascript:void(0);"
                                   role="menuitem"
                                   tabindex="-1"
+                                  onclick={handleEdit}
+                                  data-id={record.Id}
+                                  class="dropdown-item"
+                                >
+                                  <lightning-icon
+                                    icon-name="utility:edit"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
+                                  <span class="slds-truncate">Editar</span>
+                                </a>
+                              </li>
+                              <div class="dropdown-divider"></div>
+
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
+                                  onclick={handleAddTask}
+                                  data-id={record.Id}
+                                  class="dropdown-item"
+                                >
+                                  <lightning-icon
+                                    icon-name="utility:task"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
+                                  <span
+                                    class="slds-truncate"
+                                    title="Adicionar Tarefa"
+                                    >Adicionar Tarefa</span
+                                  >
+                                </a>
+                              </li>
+                              <div class="dropdown-divider"></div>
+                              <li
+                                class="slds-dropdown__item"
+                                role="presentation"
+                              >
+                                <a
+                                  href="javascript:void(0);"
+                                  role="menuitem"
+                                  tabindex="-1"
                                   onclick={handleClone}
                                   data-id={record.Id}
+                                  class="dropdown-item"
                                 >
+                                  <lightning-icon
+                                    icon-name="utility:copy"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
                                   <span class="slds-truncate">Duplicar</span>
                                 </a>
                               </li>
@@ -402,7 +531,13 @@
                                   tabindex="-1"
                                   onclick={handleDelete}
                                   data-id={record.Id}
+                                  class="dropdown-item"
                                 >
+                                  <lightning-icon
+                                    icon-name="utility:delete"
+                                    size="x-small"
+                                    class="slds-m-right_x-small"
+                                  ></lightning-icon>
                                   <span class="slds-truncate" title="Excluir"
                                     >Excluir</span
                                   >

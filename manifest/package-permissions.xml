@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>SDR_Base_Permissions</members>
+        <members>SDR_Tab_Permissions</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>SDR_Group</members>
+        <name>PermissionSetGroup</name>
+    </types>
+    <types>
+        <members>Lead.PreventDeletionByOthers</members>
+        <members>Opportunity.PreventDeletionByOthers</members>
+        <name>ValidationRule</name>
+    </types>
+    <types>
+        <members>Lead</members>
+        <members>Opportunity</members>
+        <name>SharingRules</name>
+    </types>
+    <version>57.0</version>
+</Package>
